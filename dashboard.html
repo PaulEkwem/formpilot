@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/dashboard.css" />
+  </head>
+  <body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">FP</span>
+          <span class="logo-text">FormPilot</span>
+        </a>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-view="overview">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </span>
+          <span>Overview</span>
+        </a>
+        <a href="#" class="nav-item" data-view="send">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </span>
+          <span>Send form</span>
+        </a>
+        <a href="#" class="nav-item" data-view="forms">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </span>
+          <span>My forms</span>
+          <span class="nav-badge">3</span>
+        </a>
+        <a href="#" class="nav-item" data-view="community">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          <span>Community</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item" data-view="settings">
+          <span class="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <span>Settings</span>
+        </a>
+        <div class="sidebar-profile">
+          <div class="avatar">AO</div>
+          <div class="profile-info">
+            <strong>Ada Okonkwo</strong>
+            <span>Access Bank</span>
+          </div>
+          <a href="index.html" class="logout-btn" title="Log out">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- OVERLAY (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN -->
+    <div class="main-wrap">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar-title" id="topbarTitle">Overview</div>
+        <div class="topbar-right">
+          <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notif-dot"></span>
+          </button>
+          <div class="avatar avatar-sm">AO</div>
+        </div>
+      </header>
+
+      <!-- VIEWS -->
+      <main class="content">
+
+        <!-- ══════════ OVERVIEW ══════════ -->
+        <div class="view active" id="view-overview">
+          <div class="page-header">
+            <div>
+              <h1>Good morning, Ada 👋</h1>
+              <p>Here's what's happening with your form links today.</p>
+            </div>
+            <button class="btn-primary" id="quickSendBtn">+ Send form</button>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-icon stat-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Forms sent</span>
+                <strong class="stat-value">24</strong>
+                <span class="stat-delta positive">+6 this week</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Completed</span>
+                <strong class="stat-value">18</strong>
+                <span class="stat-delta positive">75% completion rate</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-amber">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Pending</span>
+                <strong class="stat-value">3</strong>
+                <span class="stat-delta neutral">Awaiting customer</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon stat-red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <div class="stat-body">
+                <span class="stat-label">Expired</span>
+                <strong class="stat-value">3</strong>
+                <span class="stat-delta negative">Links expired</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent forms table -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Recent forms</h2>
+              <button class="btn-ghost-sm" data-view="forms">View all</button>
+            </div>
+            <div class="table-wrap">
+              <table class="forms-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Bank</th>
+                    <th>Form type</th>
+                    <th>Sent</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="customer-cell"><div class="mini-avatar">KA</div>Kemi Adeyemi</div></td>
+                    <td><span class="bank-pill">Access Bank</span></td>
+                    <td>Account Opening</td>
+                    <td class="muted-cell">Today, 9:14 am</td>
+                    <td><span class="badge badge-pending">Pending</span></td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-action" title="Copy link" onclick="copyLink(this)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="icon-action" title="Resend">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><div class="customer-cell"><div class="mini-avatar">TO</div>Tunde Olawale</div></td>
+                    <td><span class="bank-pill">GTBank</span></td>
+                    <td>KYC Update</td>
+                    <td class="muted-cell">Yesterday, 3:40 pm</td>
+                    <td><span class="badge badge-complete">Completed</span></td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-action" title="Copy link" onclick="copyLink(this)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="icon-action" title="Resend">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><div class="customer-cell"><div class="mini-avatar">CI</div>Chidinma Ibe</div></td>
+                    <td><span class="bank-pill">Zenith Bank</span></td>
+                    <td>Account Opening</td>
+                    <td class="muted-cell">Yesterday, 11:02 am</td>
+                    <td><span class="badge badge-complete">Completed</span></td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-action" title="Copy link" onclick="copyLink(this)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="icon-action" title="Resend">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><div class="customer-cell"><div class="mini-avatar">BM</div>Bello Musa</div></td>
+                    <td><span class="bank-pill">First Bank</span></td>
+                    <td>Mandate Form</td>
+                    <td class="muted-cell">28 Mar, 2:15 pm</td>
+                    <td><span class="badge badge-expired">Expired</span></td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-action" title="Copy link" onclick="copyLink(this)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="icon-action" title="Resend">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><div class="customer-cell"><div class="mini-avatar">FO</div>Fatima Okoro</div></td>
+                    <td><span class="bank-pill">Access Bank</span></td>
+                    <td>Account Opening</td>
+                    <td class="muted-cell">27 Mar, 10:50 am</td>
+                    <td><span class="badge badge-pending">Pending</span></td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-action" title="Copy link" onclick="copyLink(this)">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                        <button class="icon-action" title="Resend">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════ SEND FORM ══════════ -->
+        <div class="view" id="view-send">
+          <div class="page-header">
+            <div>
+              <h1>Send a form</h1>
+              <p>Pick a bank and form type, then send the link to your customer.</p>
+            </div>
+          </div>
+
+          <div class="send-layout">
+            <div class="card send-card">
+              <form id="sendForm" novalidate>
+                <div class="send-step" id="sendStep1">
+                  <h3 class="send-step-title">
+                    <span class="send-step-num">1</span> Customer details
+                  </h3>
+                  <div class="form-row two-col">
+                    <div class="form-group">
+                      <label for="custFirst">First name</label>
+                      <input type="text" id="custFirst" placeholder="Kemi" required />
+                    </div>
+                    <div class="form-group">
+                      <label for="custLast">Last name</label>
+                      <input type="text" id="custLast" placeholder="Adeyemi" required />
+                    </div>
+                  </div>
+                  <div class="form-row two-col">
+                    <div class="form-group">
+                      <label for="custEmail">Customer email <span class="optional">(optional)</span></label>
+                      <input type="email" id="custEmail" placeholder="kemi@email.com" />
+                    </div>
+                    <div class="form-group">
+                      <label for="custPhone">Phone number <span class="optional">(optional)</span></label>
+                      <input type="tel" id="custPhone" placeholder="08012345678" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="send-divider"></div>
+
+                <div class="send-step" id="sendStep2">
+                  <h3 class="send-step-title">
+                    <span class="send-step-num">2</span> Form details
+                  </h3>
+                  <div class="form-group">
+                    <label for="sendBank">Bank</label>
+                    <select id="sendBank" required>
+                      <option value="">Select bank</option>
+                      <option>Access Bank</option>
+                      <option>First Bank</option>
+                      <option>GTBank</option>
+                      <option>UBA</option>
+                      <option>Zenith Bank</option>
+                      <option>Stanbic IBTC</option>
+                      <option>FCMB</option>
+                      <option>Fidelity Bank</option>
+                      <option>Union Bank</option>
+                      <option>Sterling Bank</option>
+                      <option>Polaris Bank</option>
+                      <option>Wema Bank</option>
+                    </select>
+                  </div>
+
+                  <!-- Form picker — shown after bank is selected -->
+                  <div id="formPickerWrap" style="display:none">
+                    <label style="font-size:.825rem;font-weight:600;display:block;margin-bottom:.6rem">
+                      Available forms
+                      <span id="formCountBadge" style="margin-left:.4rem;font-size:.72rem;font-weight:700;background:var(--primary-light);color:var(--primary);padding:.15rem .5rem;border-radius:999px;"></span>
+                    </label>
+                    <div id="formPicker" class="form-picker-grid"></div>
+                  </div>
+
+                  <!-- No forms state -->
+                  <div id="noFormsState" style="display:none" class="no-forms-state">
+                    <div class="no-forms-icon">🚧</div>
+                    <p>No forms available for this bank yet.</p>
+                    <a href="community.html" target="_blank" class="no-forms-link">Request this bank's forms →</a>
+                  </div>
+
+                  <input type="hidden" id="sendFormType" required />
+                  <div class="form-group">
+                    <label for="sendNote">Note to customer <span class="optional">(optional)</span></label>
+                    <textarea id="sendNote" rows="2" placeholder="e.g. Please fill this before your appointment on Wednesday"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="linkExpiry">Link expires in</label>
+                    <select id="linkExpiry">
+                      <option value="24">24 hours</option>
+                      <option value="48">48 hours</option>
+                      <option value="72">3 days</option>
+                      <option value="168" selected>7 days</option>
+                      <option value="720">30 days</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="send-divider"></div>
+
+                <div class="send-step" id="sendStep3">
+                  <h3 class="send-step-title">
+                    <span class="send-step-num">3</span> How to send
+                  </h3>
+                  <div class="send-method-group">
+                    <label class="send-method">
+                      <input type="radio" name="sendMethod" value="copy" checked />
+                      <div class="method-card">
+                        <span class="method-icon">🔗</span>
+                        <div>
+                          <strong>Copy link</strong>
+                          <span>Share via WhatsApp, SMS, or anywhere</span>
+                        </div>
+                      </div>
+                    </label>
+                    <label class="send-method">
+                      <input type="radio" name="sendMethod" value="email" />
+                      <div class="method-card">
+                        <span class="method-icon">📧</span>
+                        <div>
+                          <strong>Send by email</strong>
+                          <span>Delivered to the customer's inbox</span>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="send-action-row">
+                  <button type="button" class="btn-preview" id="previewFormBtn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Preview form
+                  </button>
+                  <button type="submit" class="btn-primary btn-send">Generate link</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Link result panel (hidden until generated) -->
+            <div class="card link-result" id="linkResult" hidden>
+              <div class="link-result-icon">✅</div>
+              <h3>Link ready!</h3>
+              <p id="linkResultDesc">Copy the link and access code below, then share them with <strong id="linkCustomerName">your customer</strong>.</p>
+
+              <div class="access-code-box">
+                <div class="access-code-label">🔑 Access code — share this with your customer separately</div>
+                <div class="access-code-row">
+                  <span class="access-code-digits" id="accessCodeDisplay">000000</span>
+                  <button class="copy-btn" onclick="copyAccessCode()">Copy</button>
+                </div>
+                <div class="access-code-hint">Customer will need this code to unlock the form. Do not include it in the same message as the link.</div>
+              </div>
+
+              <div class="link-box" style="margin-top:12px">
+                <span id="generatedLink">formpilot.app/fill/access-a7f3k2</span>
+                <button class="copy-btn" id="copyLinkBtn" onclick="copyGeneratedLink()">Copy</button>
+              </div>
+              <div class="link-result-actions">
+                <button class="btn-outline btn-sm" id="whatsappBtn">Share on WhatsApp</button>
+                <button class="btn-ghost-sm" onclick="resetSendForm()">Send another</button>
+              </div>
+              <div class="link-meta">
+                <span id="linkExpiryLabel">🕐 Link expires in 7 days</span>
+                <span>🔒 No data stored on our servers</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════ MY FORMS ══════════ -->
+        <div class="view" id="view-forms">
+          <div class="page-header">
+            <div>
+              <h1>My forms</h1>
+              <p>All form links you've sent and their current status.</p>
+            </div>
+            <button class="btn-primary" data-view="send">+ Send form</button>
+          </div>
+
+          <div class="card">
+            <div class="table-toolbar">
+              <div class="search-wrap">
+                <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="search" id="searchForms" placeholder="Search customer or form type…" />
+              </div>
+              <div class="filter-group">
+                <select id="filterStatus">
+                  <option value="">All status</option>
+                  <option value="pending">Pending</option>
+                  <option value="complete">Completed</option>
+                  <option value="expired">Expired</option>
+                </select>
+                <select id="filterBank">
+                  <option value="">All banks</option>
+                  <option>Access Bank</option>
+                  <option>GTBank</option>
+                  <option>Zenith Bank</option>
+                  <option>First Bank</option>
+                  <option>UBA</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="forms-table" id="allFormsTable">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Bank</th>
+                    <th>Form type</th>
+                    <th>Sent</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="allFormsBody">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════ COMMUNITY ══════════ -->
+        <div class="view" id="view-community">
+          <div class="page-header">
+            <div>
+              <h1>Community</h1>
+              <p>Request forms, read banking news, and connect with other officers.</p>
+            </div>
+          </div>
+          <div class="community-layout">
+            <div class="card community-requests">
+              <div class="card-header">
+                <h2>Most requested forms</h2>
+                <button class="btn-primary btn-sm">+ Request form</button>
+              </div>
+              <ul class="request-list">
+                <li class="request-item">
+                  <div class="request-info">
+                    <strong>Polaris Bank — Account Opening</strong>
+                    <span>Requested by 41 officers</span>
+                  </div>
+                  <button class="vote-btn voted">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    41
+                  </button>
+                </li>
+                <li class="request-item">
+                  <div class="request-info">
+                    <strong>Sterling Bank — KYC Update</strong>
+                    <span>Requested by 29 officers</span>
+                  </div>
+                  <button class="vote-btn" onclick="this.classList.toggle('voted'); this.textContent = this.classList.contains('voted') ? '▲ 30' : '▲ 29'">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    29
+                  </button>
+                </li>
+                <li class="request-item">
+                  <div class="request-info">
+                    <strong>Wema Bank — Account Opening</strong>
+                    <span>Requested by 18 officers</span>
+                  </div>
+                  <button class="vote-btn" onclick="this.classList.toggle('voted')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    18
+                  </button>
+                </li>
+                <li class="request-item">
+                  <div class="request-info">
+                    <strong>FCMB — Business Account Opening</strong>
+                    <span>Requested by 14 officers</span>
+                  </div>
+                  <button class="vote-btn" onclick="this.classList.toggle('voted')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    14
+                  </button>
+                </li>
+                <li class="request-item">
+                  <div class="request-info">
+                    <strong>Union Bank — Mandate Form</strong>
+                    <span>Requested by 9 officers</span>
+                  </div>
+                  <button class="vote-btn" onclick="this.classList.toggle('voted')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+                    9
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div class="community-sidebar">
+              <div class="card news-card">
+                <div class="card-header"><h2>Banking news</h2></div>
+                <ul class="news-list">
+                  <li class="news-item">
+                    <span class="news-tag">CBN</span>
+                    <div>
+                      <strong>CBN updates KYC documentation requirements for Tier-2 accounts</strong>
+                      <span class="news-date">March 28, 2026</span>
+                    </div>
+                  </li>
+                  <li class="news-item">
+                    <span class="news-tag">Policy</span>
+                    <div>
+                      <strong>New BVN linkage deadline extended to June 2026</strong>
+                      <span class="news-date">March 22, 2026</span>
+                    </div>
+                  </li>
+                  <li class="news-item">
+                    <span class="news-tag">Forms</span>
+                    <div>
+                      <strong>GTBank updates corporate account opening form — new template live</strong>
+                      <span class="news-date">March 18, 2026</span>
+                    </div>
+                  </li>
+                  <li class="news-item">
+                    <span class="news-tag">CBN</span>
+                    <div>
+                      <strong>FCCPC and CBN joint directive on customer data handling</strong>
+                      <span class="news-date">March 10, 2026</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════ SETTINGS ══════════ -->
+        <div class="view" id="view-settings">
+          <div class="page-header">
+            <div>
+              <h1>Settings</h1>
+              <p>Manage your account and preferences.</p>
+            </div>
+          </div>
+          <div class="settings-layout">
+            <div class="card settings-section">
+              <h3>Profile</h3>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label>First name</label>
+                  <input type="text" value="Ada" />
+                </div>
+                <div class="form-group">
+                  <label>Last name</label>
+                  <input type="text" value="Okonkwo" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label>Email</label>
+                  <input type="email" value="ada@accessbank.com" />
+                </div>
+                <div class="form-group">
+                  <label>Phone</label>
+                  <input type="tel" value="+234 801 234 5678" />
+                </div>
+              </div>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label>Bank / Institution</label>
+                  <select>
+                    <option selected>Access Bank</option>
+                    <option>GTBank</option>
+                    <option>Zenith Bank</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Role</label>
+                  <select>
+                    <option selected>Account Officer</option>
+                    <option>Relationship Manager</option>
+                    <option>Branch Manager</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn-primary">Save changes</button>
+            </div>
+
+            <div class="card settings-section">
+              <h3>Subscription</h3>
+              <div class="sub-status">
+                <div class="sub-plan">
+                  <strong>Officer Plan</strong>
+                  <span class="badge badge-complete">Active</span>
+                </div>
+                <p class="sub-desc">₦3,500/month · Renews April 30, 2026</p>
+              </div>
+              <div class="sub-actions">
+                <button class="btn-outline btn-sm">Manage billing</button>
+                <button class="btn-ghost-sm danger">Cancel subscription</button>
+              </div>
+            </div>
+
+            <div class="card settings-section">
+              <h3>Notifications</h3>
+              <ul class="toggle-list">
+                <li class="toggle-item">
+                  <div>
+                    <strong>Form completed</strong>
+                    <span>Notify me when a customer completes a form</span>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" checked />
+                    <span class="toggle-track"></span>
+                  </label>
+                </li>
+                <li class="toggle-item">
+                  <div>
+                    <strong>Link expired</strong>
+                    <span>Notify me when a form link expires unused</span>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" checked />
+                    <span class="toggle-track"></span>
+                  </label>
+                </li>
+                <li class="toggle-item">
+                  <div>
+                    <strong>Banking news</strong>
+                    <span>Weekly digest of banking updates</span>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" />
+                    <span class="toggle-track"></span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- PREVIEW MODAL -->
+    <div class="preview-overlay" id="previewOverlay">
+      <div class="preview-modal">
+        <div class="preview-modal-header">
+          <div class="preview-header-left">
+            <div class="preview-device-btns">
+              <button class="device-btn active" data-width="100%" title="Desktop">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Desktop
+              </button>
+              <button class="device-btn" data-width="390px" title="Mobile">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Mobile
+              </button>
+            </div>
+            <span class="preview-label">Customer view</span>
+          </div>
+          <div class="preview-header-right">
+            <span class="preview-url" id="previewUrlBar">fill.html?config=…</span>
+            <button class="preview-close-btn" id="closePreview">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Close preview
+            </button>
+          </div>
+        </div>
+        <div class="preview-frame-wrap" id="previewFrameWrap">
+          <iframe id="previewFrame" title="Form preview" src="about:blank"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/js/dashboard.js"></script>
+  </body>
+</html>

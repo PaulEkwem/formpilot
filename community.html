@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Community — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+    <style>
+      .comm-hero {
+        background: linear-gradient(135deg, #0f2167 0%, #2563eb 100%);
+        color: #fff;
+        text-align: center;
+        padding: 5rem 1.5rem 4rem;
+      }
+      .comm-hero .eyebrow {
+        display: inline-block;
+        background: rgba(255,255,255,.15);
+        border: 1px solid rgba(255,255,255,.25);
+        font-size: .8rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .1em;
+        padding: .35rem .9rem; border-radius: 999px; margin-bottom: 1.5rem;
+      }
+      .comm-hero h1 {
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 800; line-height: 1.2;
+        margin-bottom: 1rem; letter-spacing: -.025em;
+      }
+      .comm-hero p {
+        font-size: 1.05rem; opacity: .85;
+        max-width: 560px; margin: 0 auto 2rem; line-height: 1.7;
+      }
+      .comm-hero-actions { display: flex; justify-content: center; gap: .85rem; flex-wrap: wrap; }
+      .btn-white {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: #fff; color: var(--primary);
+        font-weight: 700; font-size: .9rem;
+        padding: .7rem 1.4rem; border-radius: 9px; border: none; cursor: pointer;
+        transition: background .2s, transform .1s;
+      }
+      .btn-white:hover { background: #eff6ff; transform: translateY(-1px); }
+      .btn-white-outline {
+        display: inline-flex; align-items: center; justify-content: center;
+        background: transparent; color: #fff;
+        font-weight: 600; font-size: .9rem;
+        padding: .7rem 1.4rem; border-radius: 9px;
+        border: 1.5px solid rgba(255,255,255,.5);
+        transition: background .2s;
+      }
+      .btn-white-outline:hover { background: rgba(255,255,255,.1); }
+
+      /* ── Stats bar ── */
+      .comm-stats {
+        background: var(--bg-alt);
+        border-bottom: 1px solid var(--border);
+        padding: 1.25rem 1.5rem;
+        display: flex; justify-content: center;
+        gap: 3rem; flex-wrap: wrap;
+      }
+      .comm-stat { text-align: center; }
+      .comm-stat big { display: block; font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+      .comm-stat span { font-size: .8rem; color: var(--muted); font-weight: 500; }
+
+      /* ── Layout ── */
+      .comm-layout {
+        max-width: 1100px; margin: 0 auto;
+        padding: 3rem 1.5rem 5rem;
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 2rem;
+        align-items: start;
+      }
+
+      /* ── Tabs ── */
+      .tab-bar {
+        display: flex; gap: .25rem;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 1.5rem;
+      }
+      .tab {
+        padding: .65rem 1.1rem;
+        font-size: .875rem; font-weight: 600;
+        color: var(--muted); border: none; background: none;
+        cursor: pointer; border-bottom: 2px solid transparent;
+        margin-bottom: -2px; transition: color .15s, border-color .15s;
+      }
+      .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      /* ── Form requests ── */
+      .requests-header {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: .75rem;
+      }
+      .requests-header h2 { font-size: 1.1rem; font-weight: 700; }
+      .request-card {
+        background: #fff; border: 1px solid var(--border);
+        border-radius: 12px; padding: 1.25rem 1.5rem;
+        margin-bottom: .75rem;
+        display: flex; align-items: center; gap: 1.25rem;
+        transition: box-shadow .2s, transform .15s;
+      }
+      .request-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-1px); }
+      .vote-col { display: flex; flex-direction: column; align-items: center; gap: .25rem; flex-shrink: 0; }
+      .vote-btn {
+        background: var(--bg-alt); border: 1.5px solid var(--border);
+        color: var(--muted); font-size: .75rem; font-weight: 700;
+        width: 44px; height: 44px; border-radius: 10px;
+        cursor: pointer; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: .1rem;
+        transition: border-color .2s, color .2s, background .2s;
+      }
+      .vote-btn .vote-arrow { font-size: .9rem; line-height: 1; }
+      .vote-btn .vote-count { font-size: .8rem; line-height: 1; }
+      .vote-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+      .vote-btn.voted { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+      .request-body { flex: 1; min-width: 0; }
+      .request-body h3 { font-size: .95rem; font-weight: 700; margin-bottom: .3rem; }
+      .request-body p  { font-size: .825rem; color: var(--muted); line-height: 1.5; }
+      .request-meta { display: flex; align-items: center; gap: .75rem; margin-top: .5rem; flex-wrap: wrap; }
+      .req-tag {
+        font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .05em; padding: .2rem .55rem; border-radius: 6px;
+      }
+      .req-tag.open     { background: #eff6ff; color: var(--primary); }
+      .req-tag.in-progress { background: #fffbeb; color: #b45309; }
+      .req-tag.done     { background: #f0fdf4; color: #15803d; }
+      .req-officer-count { font-size: .775rem; color: var(--muted); }
+
+      /* ── News ── */
+      .news-filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+      .filter-chip {
+        font-size: .78rem; font-weight: 600; padding: .3rem .75rem;
+        border-radius: 999px; border: 1.5px solid var(--border);
+        background: #fff; cursor: pointer; color: var(--muted);
+        transition: border-color .15s, color .15s, background .15s;
+      }
+      .filter-chip.active { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+      .news-card-full {
+        background: #fff; border: 1px solid var(--border);
+        border-radius: 12px; padding: 1.5rem;
+        margin-bottom: .75rem;
+        transition: box-shadow .2s;
+      }
+      .news-card-full:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+      .news-card-full .tag-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; }
+      .news-tag {
+        font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .05em; padding: .2rem .55rem; border-radius: 6px;
+        background: var(--primary-light); color: var(--primary);
+      }
+      .news-tag.cbn    { background: #f0fdf4; color: #15803d; }
+      .news-tag.policy { background: #fffbeb; color: #b45309; }
+      .news-tag.forms  { background: #eff6ff; color: var(--primary); }
+      .news-tag.alert  { background: #fef2f2; color: #b91c1c; }
+      .news-date-small { font-size: .775rem; color: var(--muted); }
+      .news-card-full h3 { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; line-height: 1.4; }
+      .news-card-full p  { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+      .news-read-more { font-size: .8rem; font-weight: 600; color: var(--primary); margin-top: .75rem; display: inline-block; }
+      .news-read-more:hover { text-decoration: underline; }
+
+      /* ── Forum ── */
+      .forum-post {
+        background: #fff; border: 1px solid var(--border);
+        border-radius: 12px; padding: 1.25rem 1.5rem;
+        margin-bottom: .75rem;
+        transition: box-shadow .2s;
+      }
+      .forum-post:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+      .post-header { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+      .post-avatar {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff; font-size: .72rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .post-meta strong { display: block; font-size: .875rem; font-weight: 600; }
+      .post-meta span   { font-size: .775rem; color: var(--muted); }
+      .forum-post h3 { font-size: .95rem; font-weight: 700; margin-bottom: .4rem; }
+      .forum-post p  { font-size: .875rem; color: var(--muted); line-height: 1.6; }
+      .post-actions { display: flex; align-items: center; gap: 1rem; margin-top: .85rem; }
+      .post-action-btn {
+        background: none; border: none; cursor: pointer;
+        font-size: .78rem; font-weight: 600; color: var(--muted);
+        display: flex; align-items: center; gap: .3rem;
+        padding: .25rem 0; transition: color .15s;
+      }
+      .post-action-btn:hover { color: var(--primary); }
+
+      /* ── Sidebar ── */
+      .comm-sidebar { display: flex; flex-direction: column; gap: 1.25rem; }
+      .side-card {
+        background: #fff; border: 1px solid var(--border);
+        border-radius: 12px; overflow: hidden;
+      }
+      .side-card-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        font-size: .875rem; font-weight: 700;
+      }
+      .side-card-body { padding: 1rem 1.25rem; }
+      .trending-item {
+        display: flex; align-items: flex-start; gap: .6rem;
+        padding: .55rem 0; border-bottom: 1px solid #f1f5f9;
+        font-size: .825rem;
+      }
+      .trending-item:last-child { border-bottom: none; }
+      .trending-num { color: var(--primary); font-weight: 800; font-size: .75rem; flex-shrink: 0; min-width: 18px; }
+      .trending-item a { color: var(--text); font-weight: 500; line-height: 1.4; }
+      .trending-item a:hover { color: var(--primary); }
+
+      .banks-grid { display: flex; flex-wrap: wrap; gap: .4rem; }
+      .bank-chip {
+        font-size: .75rem; font-weight: 600;
+        padding: .25rem .7rem; border-radius: 999px;
+        background: var(--bg-alt); border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .bank-chip.active { background: var(--primary-light); border-color: #bfdbfe; color: var(--primary); }
+
+      .new-post-form { display: flex; flex-direction: column; gap: .6rem; }
+      .new-post-form input, .new-post-form textarea {
+        width: 100%; padding: .6rem .8rem;
+        border: 1.5px solid var(--border); border-radius: 8px;
+        font-family: inherit; font-size: .85rem; color: var(--text);
+        outline: none; transition: border-color .2s;
+        resize: vertical;
+      }
+      .new-post-form input:focus, .new-post-form textarea:focus { border-color: var(--primary); }
+
+      /* ── Request modal ── */
+      .modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.45); z-index: 500;
+        align-items: center; justify-content: center;
+        padding: 1rem;
+      }
+      .modal-overlay.open { display: flex; }
+      .modal {
+        background: #fff; border-radius: 16px;
+        padding: 2rem; width: 100%; max-width: 480px;
+        box-shadow: 0 8px 40px rgba(0,0,0,.2);
+      }
+      .modal h2 { font-size: 1.2rem; font-weight: 800; margin-bottom: .35rem; }
+      .modal p  { font-size: .875rem; color: var(--muted); margin-bottom: 1.5rem; }
+      .modal-form { display: flex; flex-direction: column; gap: .85rem; }
+      .modal-form label { font-size: .825rem; font-weight: 600; display: block; margin-bottom: .3rem; }
+      .modal-form input, .modal-form select, .modal-form textarea {
+        width: 100%; padding: .65rem .85rem;
+        border: 1.5px solid var(--border); border-radius: 8px;
+        font-family: inherit; font-size: .875rem;
+        outline: none; transition: border-color .2s; appearance: none;
+      }
+      .modal-form input:focus, .modal-form select:focus, .modal-form textarea:focus { border-color: var(--primary); }
+      .modal-actions { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1.25rem; }
+      .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--muted); }
+
+      @media (max-width: 900px) {
+        .comm-layout { grid-template-columns: 1fr; }
+        .comm-sidebar { order: -1; }
+        .comm-stats { gap: 1.5rem; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="logo">
+          <span class="logo-mark">FP</span>
+          <span class="logo-text">FormPilot</span>
+        </a>
+        <ul class="nav-links">
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#pricing">Pricing</a></li>
+          <li><a href="community.html" style="color:var(--primary);font-weight:600">Community</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="login.html" class="btn-ghost">Log in</a>
+          <a href="signup.html" class="btn-primary">Get started</a>
+        </div>
+        <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="community.html">Community</a>
+        <a href="login.html">Log in</a>
+        <a href="signup.html" class="btn-primary">Get started</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="comm-hero">
+      <span class="eyebrow">Community</span>
+      <h1>Built by account officers,<br/>for account officers</h1>
+      <p>Request new forms, vote on what gets built, stay updated on banking policy, and connect with peers across Nigerian banks.</p>
+      <div class="comm-hero-actions">
+        <a href="#requests" class="btn-white">Request a form</a>
+        <a href="#news" class="btn-white-outline">Read banking news</a>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="comm-stats">
+      <div class="comm-stat">
+        <big>1,240</big>
+        <span>Account officers</span>
+      </div>
+      <div class="comm-stat">
+        <big>83</big>
+        <span>Form requests</span>
+      </div>
+      <div class="comm-stat">
+        <big>12</big>
+        <span>Banks covered</span>
+      </div>
+      <div class="comm-stat">
+        <big>47</big>
+        <span>Forms live</span>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="comm-layout">
+
+      <!-- LEFT: tabs -->
+      <div class="comm-main">
+        <div class="tab-bar">
+          <button class="tab active" data-tab="requests">Form Requests</button>
+          <button class="tab" data-tab="news">Banking News</button>
+          <button class="tab" data-tab="forum">Officer Forum</button>
+        </div>
+
+        <!-- REQUESTS TAB -->
+        <div class="tab-panel active" id="tab-requests">
+          <div class="requests-header">
+            <h2>Most requested forms</h2>
+            <button class="btn-primary" id="openRequestModal">+ Request a form</button>
+          </div>
+
+          <div id="requestsList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- NEWS TAB -->
+        <div class="tab-panel" id="tab-news">
+          <div class="news-filters">
+            <button class="filter-chip active" data-filter="all">All</button>
+            <button class="filter-chip" data-filter="cbn">CBN</button>
+            <button class="filter-chip" data-filter="policy">Policy</button>
+            <button class="filter-chip" data-filter="forms">Forms</button>
+            <button class="filter-chip" data-filter="alert">Alerts</button>
+          </div>
+          <div id="newsList"></div>
+        </div>
+
+        <!-- FORUM TAB -->
+        <div class="tab-panel" id="tab-forum">
+          <div class="requests-header">
+            <h2>Recent discussions</h2>
+            <button class="btn-primary" id="openPostModal">+ Start a discussion</button>
+          </div>
+          <div id="forumList"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: sidebar -->
+      <div class="comm-sidebar">
+
+        <div class="side-card">
+          <div class="side-card-header">🔥 Trending discussions</div>
+          <div class="side-card-body">
+            <div class="trending-item"><span class="trending-num">1</span><div><a href="#">What do you do when a customer's BVN doesn't match their ID?</a></div></div>
+            <div class="trending-item"><span class="trending-num">2</span><div><a href="#">GTBank updated their corporate form — here's what changed</a></div></div>
+            <div class="trending-item"><span class="trending-num">3</span><div><a href="#">Tips for getting customers to complete forms on time</a></div></div>
+            <div class="trending-item"><span class="trending-num">4</span><div><a href="#">New CBN directive on Tier-1 account limits — thread</a></div></div>
+            <div class="trending-item"><span class="trending-num">5</span><div><a href="#">Which mandate form version is Access Bank using now?</a></div></div>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card-header">🏦 Browse by bank</div>
+          <div class="side-card-body">
+            <div class="banks-grid">
+              <span class="bank-chip active">Access Bank</span>
+              <span class="bank-chip active">GTBank</span>
+              <span class="bank-chip active">Zenith Bank</span>
+              <span class="bank-chip active">First Bank</span>
+              <span class="bank-chip active">UBA</span>
+              <span class="bank-chip active">Stanbic IBTC</span>
+              <span class="bank-chip">Polaris Bank</span>
+              <span class="bank-chip">Sterling Bank</span>
+              <span class="bank-chip">Wema Bank</span>
+              <span class="bank-chip">FCMB</span>
+              <span class="bank-chip">Union Bank</span>
+              <span class="bank-chip">Fidelity Bank</span>
+            </div>
+            <p style="font-size:.75rem;color:var(--muted);margin-top:.85rem">
+              <span style="color:var(--primary);font-weight:600">●</span> Forms live &nbsp;
+              <span style="color:var(--border);font-weight:600">●</span> Coming soon
+            </p>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card-header">✍️ Share a tip</div>
+          <div class="side-card-body">
+            <form class="new-post-form" id="quickPostForm">
+              <input type="text" placeholder="Discussion title…" required />
+              <textarea rows="3" placeholder="Share a tip, ask a question, or start a discussion…" required></textarea>
+              <button type="submit" class="btn-primary" style="width:100%">Post</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- REQUEST MODAL -->
+    <div class="modal-overlay" id="requestModal">
+      <div class="modal" style="position:relative">
+        <button class="modal-close" id="closeRequestModal">✕</button>
+        <h2>Request a form</h2>
+        <p>Tell us which bank form you need digitised. The community votes, and we build the most-requested ones first.</p>
+        <form class="modal-form" id="requestForm">
+          <div>
+            <label>Bank</label>
+            <select required>
+              <option value="">Select bank</option>
+              <option>Access Bank</option><option>First Bank</option><option>GTBank</option>
+              <option>UBA</option><option>Zenith Bank</option><option>Stanbic IBTC</option>
+              <option>FCMB</option><option>Fidelity Bank</option><option>Polaris Bank</option>
+              <option>Sterling Bank</option><option>Union Bank</option><option>Wema Bank</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Form type</label>
+            <input type="text" placeholder="e.g. Corporate Account Opening, Mandate Form…" required />
+          </div>
+          <div>
+            <label>Why is this form needed? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+            <textarea rows="2" placeholder="Any context that helps us understand urgency or usage…"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost-sm" id="cancelRequest">Cancel</button>
+            <button type="submit" class="btn-primary">Submit request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- POST MODAL -->
+    <div class="modal-overlay" id="postModal">
+      <div class="modal" style="position:relative">
+        <button class="modal-close" id="closePostModal">✕</button>
+        <h2>Start a discussion</h2>
+        <p>Ask a question, share a tip, or discuss anything relevant to Nigerian banking forms.</p>
+        <form class="modal-form" id="postForm">
+          <div>
+            <label>Title</label>
+            <input type="text" placeholder="e.g. What changed in the new First Bank KYC form?" required />
+          </div>
+          <div>
+            <label>Your message</label>
+            <textarea rows="4" required placeholder="Share your thoughts…"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost-sm" id="cancelPost">Cancel</button>
+            <button type="submit" class="btn-primary">Post discussion</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="/" class="logo"><span class="logo-mark">FP</span><span class="logo-text">FormPilot</span></a>
+          <p>Bank forms, made human.</p>
+          <p style="margin-top:.5rem;font-size:.78rem;color:#334155;">A product of Syndra Technologies Limited</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#how-it-works">How it works</a>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#pricing">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <a href="community.html">News &amp; updates</a>
+            <a href="community.html">Request a form</a>
+            <a href="community.html">Officer forum</a>
+          </div>
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About us</a>
+            <a href="privacy.html">Privacy policy</a>
+            <a href="terms.html">Terms of service</a>
+            <a href="mailto:hello@formpilot.app">Contact</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 FormPilot by Syndra Technologies Limited. All rights reserved.</span>
+        <span>Made with care in Nigeria 🇳🇬</span>
+      </div>
+    </footer>
+
+    <script>
+      // ── Tabs ──────────────────────────────────────────────
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ── Requests data ─────────────────────────────────────
+      const REQUESTS = [
+        { id:1, bank:'Polaris Bank',  form:'Account Opening — Individual', desc:'Many of us serve Polaris customers for account opening and still rely on paper forms.', votes:41, status:'in-progress', officers:41 },
+        { id:2, bank:'Sterling Bank', form:'KYC Update',                   desc:'Sterling\'s KYC form changed last quarter and we need the new version digitised.',        votes:29, status:'open',        officers:29 },
+        { id:3, bank:'Wema Bank',     form:'Account Opening — Individual', desc:'ALAT customers still need the physical form for branch-based opening.',                   votes:18, status:'open',        officers:18 },
+        { id:4, bank:'FCMB',          form:'Business Account Opening',     desc:'Corporate customers always struggle with this one — multiple signatories etc.',           votes:14, status:'open',        officers:14 },
+        { id:5, bank:'Union Bank',    form:'Mandate Form',                  desc:'Mandate updates for existing accounts are very common.',                                 votes:9,  status:'open',        officers:9  },
+        { id:6, bank:'Fidelity Bank', form:'Change of Address',            desc:'Customers relocate often and need this updated easily.',                                  votes:7,  status:'open',        officers:7  },
+      ];
+
+      let userVotes = JSON.parse(localStorage.getItem('fp_votes') || '{}');
+
+      function renderRequests() {
+        document.getElementById('requestsList').innerHTML = REQUESTS
+          .sort((a,b) => b.votes - a.votes)
+          .map(r => {
+            const voted = !!userVotes[r.id];
+            const statusLabel = { open:'Open', 'in-progress':'In progress', done:'Done' }[r.status];
+            return `
+              <div class="request-card">
+                <div class="vote-col">
+                  <button class="vote-btn ${voted?'voted':''}" onclick="vote(${r.id}, this)">
+                    <span class="vote-arrow">▲</span>
+                    <span class="vote-count" id="votes-${r.id}">${r.votes}</span>
+                  </button>
+                </div>
+                <div class="request-body">
+                  <h3>${r.bank} — ${r.form}</h3>
+                  <p>${r.desc}</p>
+                  <div class="request-meta">
+                    <span class="req-tag ${r.status}">${statusLabel}</span>
+                    <span class="req-officer-count">Requested by ${r.officers} officers</span>
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
+      }
+
+      function vote(id, btn) {
+        const req = REQUESTS.find(r => r.id === id);
+        if (!req) return;
+        if (userVotes[id]) {
+          req.votes--;
+          delete userVotes[id];
+          btn.classList.remove('voted');
+        } else {
+          req.votes++;
+          userVotes[id] = true;
+          btn.classList.add('voted');
+        }
+        document.getElementById('votes-' + id).textContent = req.votes;
+        localStorage.setItem('fp_votes', JSON.stringify(userVotes));
+      }
+
+      // ── News data ─────────────────────────────────────────
+      const NEWS = [
+        { tag:'cbn',    date:'March 28, 2026', title:'CBN updates KYC documentation requirements for Tier-2 accounts',
+          body:'The Central Bank of Nigeria has issued a circular updating the documentation requirements for Tier-2 accounts, effective April 15, 2026. Key changes include mandatory NIN linkage and updated proof of address requirements.' },
+        { tag:'policy', date:'March 22, 2026', title:'New BVN linkage deadline extended to June 2026',
+          body:'Following industry pushback, the CBN has extended the deadline for mandatory BVN linkage on all accounts to June 30, 2026. Banks are expected to communicate this to customers immediately.' },
+        { tag:'forms',  date:'March 18, 2026', title:'GTBank updates corporate account opening form — new template live on FormPilot',
+          body:'GTBank has released a revised corporate account opening form with updated signatory sections and new AML declarations. The updated template is now live on FormPilot for all account officers.' },
+        { tag:'alert',  date:'March 10, 2026', title:'FCCPC and CBN joint directive on customer data handling',
+          body:'A new joint directive from FCCPC and CBN requires that customer data collected during account opening must not be shared with third-party marketing platforms without explicit consent.' },
+        { tag:'policy', date:'March 3, 2026', title:'CBN raises transaction limits for BVN-linked Tier-1 accounts',
+          body:'Single transaction limit for Tier-1 accounts rises to ₦200,000 and daily cumulative limit to ₦500,000, effective immediately for banks that have implemented the new limit framework.' },
+        { tag:'forms',  date:'February 24, 2026', title:'Access Bank releases new individual account opening form — what changed',
+          body:'Access Bank\'s new individual account opening form includes a revised next-of-kin section, updated FATCA declarations, and a new tax identification field that was previously optional.' },
+      ];
+
+      function renderNews(filter) {
+        const filtered = filter === 'all' ? NEWS : NEWS.filter(n => n.tag === filter);
+        document.getElementById('newsList').innerHTML = filtered.map(n => `
+          <div class="news-card-full">
+            <div class="tag-row">
+              <span class="news-tag ${n.tag}">${n.tag.toUpperCase()}</span>
+              <span class="news-date-small">${n.date}</span>
+            </div>
+            <h3>${n.title}</h3>
+            <p>${n.body}</p>
+            <a href="#" class="news-read-more">Read more →</a>
+          </div>`).join('');
+      }
+
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderNews(chip.dataset.filter);
+        });
+      });
+
+      // ── Forum data ────────────────────────────────────────
+      const FORUM = [
+        { initials:'KA', name:'Kemi A.', bank:'Access Bank', time:'2 hours ago',
+          title:'What do you do when a customer\'s BVN doesn\'t match their ID?',
+          body:'Had a customer today whose BVN name doesn\'t match their passport. The surname is spelt differently. How do other officers handle this before escalating?', likes:14, replies:8 },
+        { initials:'TO', name:'Tunde O.', bank:'GTBank', time:'5 hours ago',
+          title:'GTBank updated their corporate form — here\'s what changed',
+          body:'Just noticed the new version has an extra page for beneficial ownership disclosure. Section 7 is completely new. Sharing so others aren\'t caught off guard.', likes:22, replies:5 },
+        { initials:'CI', name:'Chidinma I.', bank:'Zenith Bank', time:'Yesterday',
+          title:'Tips for getting customers to complete forms on time',
+          body:'I\'ve been sending the FormPilot link with a WhatsApp voice note explaining what to expect. Completion rate went from about 40% to over 80%. Might help others.', likes:37, replies:12 },
+        { initials:'BM', name:'Bello M.', bank:'First Bank', time:'2 days ago',
+          title:'New CBN directive on Tier-1 account limits — discussion',
+          body:'The new ₦200k single transaction limit for Tier-1 accounts is already causing confusion. Customers think their accounts are blocked. Anyone else getting this?', likes:19, replies:21 },
+      ];
+
+      function renderForum() {
+        document.getElementById('forumList').innerHTML = FORUM.map(p => `
+          <div class="forum-post">
+            <div class="post-header">
+              <div class="post-avatar">${p.initials}</div>
+              <div class="post-meta">
+                <strong>${p.name} · ${p.bank}</strong>
+                <span>${p.time}</span>
+              </div>
+            </div>
+            <h3>${p.title}</h3>
+            <p>${p.body}</p>
+            <div class="post-actions">
+              <button class="post-action-btn" onclick="likePost(this, ${p.likes})">
+                <span>♡</span> <span class="like-count">${p.likes} likes</span>
+              </button>
+              <button class="post-action-btn">
+                <span>💬</span> ${p.replies} replies
+              </button>
+              <button class="post-action-btn">Share</button>
+            </div>
+          </div>`).join('');
+      }
+
+      function likePost(btn, current) {
+        const countEl = btn.querySelector('.like-count');
+        const liked   = btn.classList.toggle('liked');
+        btn.querySelector('span').textContent = liked ? '♥' : '♡';
+        countEl.textContent = `${liked ? current + 1 : current} likes`;
+        if (liked) btn.style.color = '#ef4444';
+        else btn.style.color = '';
+      }
+
+      // ── Modals ────────────────────────────────────────────
+      function openModal(id)  { document.getElementById(id).classList.add('open'); }
+      function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+      document.getElementById('openRequestModal').addEventListener('click', () => openModal('requestModal'));
+      document.getElementById('closeRequestModal').addEventListener('click', () => closeModal('requestModal'));
+      document.getElementById('cancelRequest').addEventListener('click',     () => closeModal('requestModal'));
+      document.getElementById('openPostModal').addEventListener('click',     () => openModal('postModal'));
+      document.getElementById('closePostModal').addEventListener('click',    () => closeModal('postModal'));
+      document.getElementById('cancelPost').addEventListener('click',        () => closeModal('postModal'));
+
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+      });
+
+      document.getElementById('requestForm').addEventListener('submit', e => {
+        e.preventDefault();
+        closeModal('requestModal');
+        showToast('Request submitted! The community will vote on it. 🙌');
+        e.target.reset();
+      });
+
+      document.getElementById('postForm').addEventListener('submit', e => {
+        e.preventDefault();
+        closeModal('postModal');
+        showToast('Discussion posted! 💬');
+        e.target.reset();
+      });
+
+      document.getElementById('quickPostForm').addEventListener('submit', e => {
+        e.preventDefault();
+        showToast('Tip shared with the community! 💬');
+        e.target.reset();
+      });
+
+      // ── Nav ───────────────────────────────────────────────
+      document.getElementById('hamburger').addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('open');
+        document.getElementById('hamburger').classList.toggle('active');
+      });
+      window.addEventListener('scroll', () => {
+        document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 10);
+      });
+
+      // ── Toast ─────────────────────────────────────────────
+      function showToast(msg) {
+        let t = document.getElementById('comm-toast');
+        if (!t) {
+          t = document.createElement('div');
+          t.id = 'comm-toast';
+          t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);background:#0f172a;color:#fff;padding:.7rem 1.4rem;border-radius:999px;font-size:.875rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.2);opacity:0;transition:transform .3s,opacity .3s;z-index:999;white-space:nowrap;font-family:Inter,sans-serif';
+          document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        requestAnimationFrame(() => {
+          t.style.opacity = '1';
+          t.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        setTimeout(() => {
+          t.style.opacity = '0';
+          t.style.transform = 'translateX(-50%) translateY(60px)';
+        }, 3000);
+      }
+
+      // ── Init ──────────────────────────────────────────────
+      renderRequests();
+      renderNews('all');
+      renderForum();
+    </script>
+  </body>
+</html>

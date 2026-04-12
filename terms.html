@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms of Service — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+    <style>
+      .legal-hero { background: var(--bg-alt); border-bottom: 1px solid var(--border); padding: 3.5rem 1.5rem 3rem; text-align: center; }
+      .legal-hero .eyebrow { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--primary); margin-bottom: .75rem; }
+      .legal-hero h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: .5rem; }
+      .legal-hero p  { font-size: .9rem; color: var(--muted); }
+      .legal-layout { max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem 5rem; display: grid; grid-template-columns: 220px 1fr; gap: 3rem; align-items: start; }
+      .toc { position: sticky; top: 80px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+      .toc h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .85rem; }
+      .toc a { display: block; font-size: .83rem; font-weight: 500; color: var(--muted); padding: .3rem 0; border-left: 2px solid transparent; padding-left: .6rem; transition: color .15s, border-color .15s; }
+      .toc a:hover { color: var(--primary); border-left-color: var(--primary); }
+      .legal-content h2 { font-size: 1.2rem; font-weight: 800; margin: 2.5rem 0 .85rem; padding-top: .5rem; scroll-margin-top: 80px; }
+      .legal-content h2:first-child { margin-top: 0; }
+      .legal-content h3 { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 .5rem; }
+      .legal-content p  { font-size: .9rem; color: #374151; line-height: 1.8; margin-bottom: .85rem; }
+      .legal-content ul { margin: .5rem 0 1rem 1.25rem; display: flex; flex-direction: column; gap: .4rem; }
+      .legal-content ul li { font-size: .9rem; color: #374151; line-height: 1.7; }
+      .legal-content a { color: var(--primary); }
+      .legal-content a:hover { text-decoration: underline; }
+      .highlight-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1.1rem 1.25rem; margin: 1rem 0; }
+      .highlight-box p { margin: 0; color: var(--primary); font-weight: 500; font-size: .875rem; }
+      .last-updated { font-size: .8rem; color: var(--muted); margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+      @media (max-width: 768px) { .legal-layout { grid-template-columns: 1fr; } .toc { position: static; } }
+    </style>
+  </head>
+  <body>
+
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="logo"><span class="logo-mark">FP</span><span class="logo-text">FormPilot</span></a>
+        <ul class="nav-links">
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#pricing">Pricing</a></li>
+          <li><a href="community.html">Community</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="login.html" class="btn-ghost">Log in</a>
+          <a href="signup.html" class="btn-primary">Get started</a>
+        </div>
+        <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html">Home</a><a href="login.html">Log in</a>
+        <a href="signup.html" class="btn-primary">Get started</a>
+      </div>
+    </nav>
+
+    <div class="legal-hero">
+      <div class="eyebrow">Legal</div>
+      <h1>Terms of Service</h1>
+      <p>Last updated: March 31, 2026 &nbsp;·&nbsp; Effective: March 31, 2026</p>
+    </div>
+
+    <div class="legal-layout">
+
+      <nav class="toc">
+        <h3>On this page</h3>
+        <a href="#agreement">Agreement</a>
+        <a href="#description">Service description</a>
+        <a href="#officers">Account officers</a>
+        <a href="#customers">Customers</a>
+        <a href="#subscription">Subscription & billing</a>
+        <a href="#acceptable-use">Acceptable use</a>
+        <a href="#accuracy">Form accuracy</a>
+        <a href="#ip">Intellectual property</a>
+        <a href="#liability">Limitation of liability</a>
+        <a href="#termination">Termination</a>
+        <a href="#governing-law">Governing law</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="legal-content">
+
+        <div class="highlight-box">
+          <p>📋 The short version: FormPilot helps account officers send guided form links to customers. We are a tool — we are not responsible for the accuracy of forms submitted to banks, and we do not store customer banking data.</p>
+        </div>
+
+        <h2 id="agreement">1. Agreement to terms</h2>
+        <p>By accessing or using FormPilot ("the Service"), operated by Syndra Technologies Limited ("Syndra", "we", "us"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service.</p>
+        <p>These Terms apply to all users of the Service, including account officers with subscriptions and customers who fill forms via shared links.</p>
+
+        <h2 id="description">2. Service description</h2>
+        <p>FormPilot is a software-as-a-service platform that allows account officers at Nigerian banks and financial institutions to:</p>
+        <ul>
+          <li>Generate guided, step-by-step digital form links for their customers</li>
+          <li>Send those links via copy, WhatsApp, or email</li>
+          <li>Receive a notification when a customer completes a form</li>
+          <li>Access a library of digitised Nigerian bank forms</li>
+          <li>Participate in a community of banking professionals</li>
+        </ul>
+        <p>Customers who receive form links can fill forms interactively and download a completed PDF. FormPilot does not connect to any bank's internal systems and is not affiliated with any bank.</p>
+
+        <h2 id="officers">3. Account officers</h2>
+        <p>To access officer features, you must create an account with accurate information. You are responsible for:</p>
+        <ul>
+          <li>Maintaining the confidentiality of your login credentials</li>
+          <li>All activity that occurs under your account</li>
+          <li>Ensuring the customers you send links to have consented to the process</li>
+          <li>Using FormPilot only for legitimate banking-related purposes within your professional role</li>
+        </ul>
+        <p>You must not share your account credentials or allow others to use your subscription. Each subscription is for one individual officer.</p>
+
+        <h2 id="customers">4. Customers (form fillers)</h2>
+        <p>Customers who receive FormPilot links do not need to create an account. By using a form link, customers acknowledge that:</p>
+        <ul>
+          <li>The form data they enter is processed entirely on their own device</li>
+          <li>FormPilot does not store their banking or personal information</li>
+          <li>The PDF they download is for submission to their account officer or bank — FormPilot is not party to that submission</li>
+          <li>They are responsible for the accuracy of the information they enter</li>
+        </ul>
+
+        <h2 id="subscription">5. Subscription &amp; billing</h2>
+
+        <h3>Officer plan</h3>
+        <p>The Officer subscription is billed monthly at the rate displayed at the time of purchase. Prices are in Nigerian Naira (₦) and include applicable taxes.</p>
+
+        <h3>Free trial</h3>
+        <p>New officer accounts receive a 14-day free trial. No payment method is required during the trial. At the end of the trial, you will be asked to subscribe to continue using officer features.</p>
+
+        <h3>Cancellation</h3>
+        <p>You may cancel your subscription at any time from your account settings. Cancellation takes effect at the end of the current billing period. We do not offer refunds for partial months.</p>
+
+        <h3>Payment processing</h3>
+        <p>Payments are processed by Paystack. By subscribing, you agree to Paystack's terms of service. Syndra does not store your card details.</p>
+
+        <h3>Price changes</h3>
+        <p>We may change subscription pricing with 30 days' notice sent to your registered email address. Continued use after the notice period constitutes acceptance of the new price.</p>
+
+        <h2 id="acceptable-use">6. Acceptable use</h2>
+        <p>You agree not to use FormPilot to:</p>
+        <ul>
+          <li>Impersonate a bank, financial institution, or regulatory body</li>
+          <li>Send form links to individuals who have not consented or have no relationship with you as an account officer</li>
+          <li>Collect or attempt to store customer data outside the intended PDF download flow</li>
+          <li>Reverse-engineer, scrape, or otherwise extract data from the platform</li>
+          <li>Use the Service for any fraudulent, misleading, or unlawful purpose</li>
+          <li>Violate any applicable Nigerian law, CBN directive, or financial regulation</li>
+          <li>Interfere with or disrupt the Service or its infrastructure</li>
+        </ul>
+        <p>Violation of these terms may result in immediate account suspension without refund.</p>
+
+        <h2 id="accuracy">7. Form accuracy &amp; disclaimer</h2>
+        <p>FormPilot provides digitised versions of publicly available bank forms for guidance and convenience. We make reasonable efforts to keep form templates current, but:</p>
+        <ul>
+          <li>We do not guarantee that any form template reflects the most current version used by a given bank</li>
+          <li>Banks may update their forms at any time without notice to us</li>
+          <li>We are not responsible for forms rejected by banks due to outdated templates or incorrect information entered by customers</li>
+          <li>FormPilot is a productivity tool — it does not replace professional banking advice or your institution's compliance requirements</li>
+        </ul>
+        <p>Account officers are responsible for verifying that submitted forms meet their institution's current requirements before processing them.</p>
+
+        <h2 id="ip">8. Intellectual property</h2>
+        <p>The FormPilot platform, including its design, software, content, and trademarks, is owned by Syndra Technologies Limited and protected under applicable intellectual property laws.</p>
+        <p>Bank form layouts and designs are the property of the respective banks. FormPilot uses these only to provide a service to licensed banking professionals and claims no ownership over bank form designs.</p>
+        <p>You may not copy, reproduce, distribute, or create derivative works of any part of the FormPilot platform without our written permission.</p>
+
+        <h2 id="liability">9. Limitation of liability</h2>
+        <p>To the maximum extent permitted by Nigerian law, Syndra Technologies Limited shall not be liable for:</p>
+        <ul>
+          <li>Indirect, incidental, or consequential damages arising from your use of the Service</li>
+          <li>Any loss resulting from a form being rejected by a bank</li>
+          <li>Data entered by customers into forms</li>
+          <li>Actions taken by third parties who receive form links</li>
+          <li>Service interruptions or downtime</li>
+        </ul>
+        <p>Our total liability to you for any claim arising from your use of FormPilot shall not exceed the amount you paid us in the three months preceding the claim.</p>
+
+        <h2 id="termination">10. Termination</h2>
+        <p>We reserve the right to suspend or terminate accounts that violate these Terms, engage in fraudulent activity, or pose a risk to other users or the platform, with or without prior notice.</p>
+        <p>You may close your account at any time by contacting us at <a href="mailto:hello@formpilot.app">hello@formpilot.app</a>. Upon closure, your data will be deleted in accordance with our Privacy Policy.</p>
+
+        <h2 id="governing-law">11. Governing law</h2>
+        <p>These Terms are governed by and construed in accordance with the laws of the Federal Republic of Nigeria. Any disputes shall be resolved in the courts of Nigeria.</p>
+
+        <h2 id="contact">12. Contact</h2>
+        <p>If you have questions about these Terms, please contact us:</p>
+        <ul>
+          <li>Email: <a href="mailto:legal@formpilot.app">legal@formpilot.app</a></li>
+          <li>General: <a href="mailto:hello@formpilot.app">hello@formpilot.app</a></li>
+        </ul>
+        <p>Syndra Technologies Limited, Nigeria.</p>
+
+        <p class="last-updated">These Terms were last updated on March 31, 2026.</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="/" class="logo"><span class="logo-mark">FP</span><span class="logo-text">FormPilot</span></a>
+          <p>Bank forms, made human.</p>
+          <p style="margin-top:.5rem;font-size:.78rem;color:#334155;">A product of Syndra Technologies Limited</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#how-it-works">How it works</a>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#pricing">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <a href="community.html">News &amp; updates</a>
+            <a href="community.html">Request a form</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy policy</a>
+            <a href="terms.html">Terms of service</a>
+            <a href="about.html">About us</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 FormPilot by Syndra Technologies Limited. All rights reserved.</span>
+        <span>Made with care in Nigeria 🇳🇬</span>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('hamburger').addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('open');
+        document.getElementById('hamburger').classList.toggle('active');
+      });
+      window.addEventListener('scroll', () => {
+        document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 10);
+      });
+    </script>
+  </body>
+</html>

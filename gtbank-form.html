@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTBank — Business Account Opening</title>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#E8470A;--orange-l:#FFF0EB;--dark:#1A1208;--ink:#2D2416;
+  --muted:#7A6E64;--line:#EAE5DF;--bg:#FFFFFF;--success:#1A6B3A;
+  --success-bg:#EBF7F0;--danger:#C0392B;
+}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
+
+/* PROGRESS */
+#prog-track{position:fixed;top:0;left:0;width:100%;height:3px;background:var(--line);z-index:200}
+#prog-fill{height:100%;background:var(--orange);transition:width .4s ease;width:0%}
+
+/* SECTION PILL */
+#section-pill{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:190;background:var(--orange-l);color:var(--orange);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 14px;border-radius:99px;display:none;white-space:nowrap}
+
+/* CTX BANNER */
+#ctx-banner{position:fixed;top:3px;left:0;right:0;background:#FFF8F5;border-bottom:1px solid #FDDFD0;padding:9px 24px;font-size:13px;color:var(--ink);display:none;align-items:center;gap:10px;z-index:185}
+
+/* BACK + COUNTER */
+#back-btn{position:fixed;top:18px;left:16px;z-index:200;background:none;border:none;cursor:pointer;color:var(--muted);display:none;align-items:center;gap:5px;font-size:13px;font-family:'DM Sans',sans-serif;padding:5px 10px;border-radius:8px;transition:all .2s}
+#back-btn:hover{background:var(--line);color:var(--ink)}
+#counter{position:fixed;top:18px;right:16px;z-index:200;font-size:12px;color:var(--muted);display:none;font-weight:500}
+
+/* SLIDES */
+#slides{position:fixed;inset:0;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:64px max(28px,6vw) 80px;transition:transform .42s cubic-bezier(.4,0,.2,1),opacity .42s;overflow-y:auto}
+.slide.pos-active{transform:translateY(0);opacity:1;pointer-events:all}
+.slide.pos-above{transform:translateY(-100%);opacity:0;pointer-events:none}
+.slide.pos-below{transform:translateY(100%);opacity:0;pointer-events:none}
+.slide-inner{max-width:640px;width:100%;margin:auto 0}
+
+/* SECTION SLIDE */
+.section-slide{background:var(--orange-l)}
+.section-slide .slide-q{color:var(--orange)}
+
+/* TYPOGRAPHY */
+.slide-emoji{font-size:44px;margin-bottom:20px;line-height:1;display:block}
+.slide-q{font-family:'DM Serif Display',serif;font-size:clamp(24px,4vw,36px);color:var(--dark);line-height:1.2;margin-bottom:8px;letter-spacing:-.4px}
+.slide-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+
+/* CHOICES */
+.choices{display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
+.choice-btn{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s;width:100%}
+.choice-btn:hover,.choice-btn.selected{border-color:var(--orange);background:var(--orange-l)}
+.choice-btn.selected .choice-key{background:var(--orange);color:#fff;border-color:var(--orange)}
+.choice-key{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;transition:all .15s}
+.choice-label{font-size:14px;font-weight:500;color:var(--ink)}
+.choice-sub{font-size:12px;color:var(--muted);margin-top:1px}
+
+/* INPUTS */
+.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:17px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:7px 0;outline:none;transition:border-color .2s;margin-bottom:6px}
+/* smaller inputs inside group/address slides with multiple fields */
+.group-fields .tally-input,.group-fields .tally-select{font-size:15px}
+.inline-fields .tally-input{font-size:14px}
+.tally-input:focus{border-color:var(--orange)}
+.tally-input.err-i{border-color:var(--danger)}
+.tally-select{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:7px 0;outline:none;transition:border-color .2s;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%237A6E64' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.tally-select:focus{border-color:var(--orange)}
+.input-hint{font-size:12px;color:var(--muted);margin-bottom:16px}
+.err-msg{font-size:12px;color:var(--danger);margin-bottom:10px;display:none}
+.err-msg.show{display:block}
+.group-fields{display:flex;flex-direction:column;gap:18px;margin-bottom:24px}
+.group-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+
+/* BVN */
+.bvn-wrap{position:relative}
+.bvn-ok{position:absolute;right:0;bottom:10px;font-size:12px;font-weight:600;color:var(--success);background:var(--success-bg);padding:2px 8px;border-radius:99px;display:none}
+.bvn-ok.show{display:block}
+
+/* SAME-AS TOGGLE */
+.same-toggle{display:flex;align-items:center;gap:10px;margin-bottom:20px;cursor:pointer;padding:10px 14px;border:1.5px solid var(--line);border-radius:10px;background:#F8F6F4;transition:all .15s;user-select:none}
+.same-toggle.active{border-color:var(--success);background:var(--success-bg)}
+.same-toggle input{width:18px;height:18px;cursor:pointer;accent-color:var(--success)}
+.same-toggle span{font-size:13px;font-weight:500;color:var(--ink)}
+
+/* INLINE EXPAND (ID fields) */
+.inline-fields{margin-top:16px;display:none;flex-direction:column;gap:16px;padding:16px;background:#F8F6F4;border-radius:10px}
+.inline-fields.show{display:flex}
+.inline-fields label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block}
+
+/* OK BUTTON */
+.ok-btn{display:inline-flex;align-items:center;gap:7px;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .2s}
+.ok-btn:hover{background:#C73A07}
+.ok-btn:disabled{background:#ccc;cursor:not-allowed}
+.press-hint{font-size:12px;color:var(--muted);margin-left:8px}
+.skip-link{display:inline-block;margin-top:12px;font-size:13px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.skip-link:hover{color:var(--ink)}
+
+/* CONSENT */
+.consent-body{font-size:13px;color:var(--muted);line-height:1.7;background:#F8F6F4;border-radius:10px;padding:14px;margin-bottom:18px;max-height:150px;overflow-y:auto}
+.consent-btns{display:flex;gap:10px}
+.c-btn{padding:11px 26px;border-radius:8px;border:1.5px solid var(--line);font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;background:#fff;color:var(--ink)}
+.c-btn.yes.active{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.c-btn.no.active{background:#FFF0F0;border-color:#E57373;color:var(--danger)}
+.consent-warn{font-size:12px;color:var(--danger);margin-top:8px;display:none}
+.consent-warn.show{display:block}
+
+/* MULTI */
+.multi-opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.multi-chip{padding:9px 16px;border:1.5px solid var(--line);border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s}
+.multi-chip:hover{border-color:var(--orange);background:var(--orange-l)}
+.multi-chip.selected{background:var(--orange);border-color:var(--orange);color:#fff}
+
+/* REVIEW */
+.review-section{margin-bottom:16px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.review-head{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#F8F6F4;font-weight:600;font-size:13px}
+.review-edit{background:none;border:none;color:var(--orange);font-size:12px;cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif}
+.review-rows{padding:2px 0}
+.review-row{display:flex;padding:7px 14px;border-bottom:1px solid var(--line);font-size:13px}
+.review-row:last-child{border-bottom:none}
+.review-row-label{color:var(--muted);width:140px;flex-shrink:0}
+.review-row-value{color:var(--ink);font-weight:500;word-break:break-word}
+
+/* DONE */
+.done-wrap{text-align:center;padding:0 16px}
+.done-burst{font-size:68px;margin-bottom:18px;animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.done-title{font-family:'DM Serif Display',serif;font-size:34px;color:var(--dark);margin-bottom:10px}
+.done-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;max-width:440px;margin-left:auto;margin-right:auto}
+.done-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:20px}
+.btn-wa{display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px}
+.btn-email{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px}
+.privacy-note{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* WELCOME */
+.welcome-badge{display:inline-flex;align-items:center;gap:8px;background:var(--orange-l);color:var(--orange);font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;margin-bottom:18px}
+.welcome-title{font-family:'DM Serif Display',serif;font-size:clamp(30px,5.5vw,50px);color:var(--dark);line-height:1.15;margin-bottom:14px;letter-spacing:-.7px}
+.welcome-title em{color:var(--orange);font-style:italic}
+.welcome-sub{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:32px;max-width:500px}
+.welcome-pills{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:32px}
+.w-pill{display:flex;align-items:center;gap:7px;background:#F8F6F4;border-radius:99px;padding:6px 14px;font-size:13px;color:var(--ink)}
+.start-btn{display:inline-flex;align-items:center;gap:9px;background:var(--orange);color:#fff;border:none;border-radius:10px;padding:15px 30px;font-size:16px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .2s}
+.start-btn:hover{background:#C73A07}
+
+/* NATIONALITY INLINE */
+.inline-country{display:none;margin-top:16px}
+.inline-country.show{display:block}
+
+/* ACCOUNT PRODUCT SELECTOR */
+.acct-group{border:1.5px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.acct-group.selected{border-color:var(--orange)}
+.acct-group-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;background:#fff;transition:background .15s}
+.acct-group-head:hover{background:var(--orange-l)}
+.acct-group.selected .acct-group-head{background:var(--orange-l)}
+.acct-group-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.acct-group-info{flex:1}
+.acct-group-name{font-size:14px;font-weight:600;color:var(--ink)}
+.acct-group-desc{font-size:12px;color:var(--muted);margin-top:1px}
+.acct-group-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.acct-group.selected .acct-group-check{background:var(--orange);border-color:var(--orange);color:#fff}
+.acct-variants{display:none;padding:0 14px 14px;background:#FDFCFB;border-top:1px solid var(--line)}
+.acct-variants.show{display:block}
+.acct-variants-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:12px 0 8px}
+.acct-variant-row{display:flex;flex-direction:column;gap:7px}
+.acct-variant-btn{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border:1.5px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;transition:all .15s;text-align:left;font-family:'DM Sans',sans-serif}
+.acct-variant-btn:hover{border-color:var(--orange);background:var(--orange-l)}
+.acct-variant-btn.sel{border-color:var(--orange);background:var(--orange-l)}
+.acct-variant-left{display:flex;flex-direction:column}
+.acct-variant-name{font-size:13px;font-weight:600;color:var(--ink)}
+.acct-variant-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.acct-variant-badge{font-size:11px;font-weight:600;color:var(--orange);background:var(--orange-l);padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+
+/* DOMICILIARY */
+.domi-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px}
+.domi-chip{display:flex;align-items:center;gap:10px;padding:13px 18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.domi-chip:hover{border-color:var(--orange);background:var(--orange-l)}
+.domi-chip.selected{border-color:var(--orange);background:var(--orange-l)}
+.domi-chip.selected .domi-check{background:var(--orange);border-color:var(--orange);color:#fff}
+.domi-flag{font-size:22px}
+.domi-info{display:flex;flex-direction:column}
+.domi-name{font-size:14px;font-weight:600;color:var(--ink)}
+.domi-sub{font-size:11px;color:var(--muted)}
+.domi-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;transition:all .15s}
+
+/* ADD SIGNATORY */
+.sig-option-card{border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s;background:#fff}
+.sig-option-card:hover{border-color:var(--orange);background:var(--orange-l)}
+.sig-option-title{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px}
+.sig-option-sub{font-size:12px;color:var(--muted)}
+
+/* SIGNATURE CAPTURE */
+.sig-capture-btns{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.sig-capture-btn{display:flex;align-items:center;gap:12px;padding:14px 18px;border:1.5px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink);transition:all .15s;text-align:left}
+.sig-capture-btn:hover{border-color:var(--orange);background:var(--orange-l)}
+.sig-capture-btn .sig-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.sig-preview-wrap{display:none;margin-bottom:20px}
+.sig-preview-wrap.show{display:block}
+.sig-preview-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+.sig-canvas-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sig-canvas-box{flex:1;min-width:120px}
+.sig-canvas-box p{font-size:11px;color:var(--muted);margin-bottom:4px;text-align:center}
+.sig-canvas-box canvas{width:100%;border-radius:8px;border:1px solid var(--line);background:#F8F6F4;display:block}
+.sig-canvas-box canvas.clean-bg{background:#fff}
+.sig-confirm-btns{display:flex;gap:10px}
+.sig-confirm-btn{flex:1;padding:11px;border-radius:8px;border:1.5px solid var(--line);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s}
+.sig-confirm-btn.accept{border-color:var(--success);background:var(--success-bg);color:var(--success)}
+.sig-confirm-btn:hover{opacity:.85}
+.sig-accepted-badge{display:none;align-items:center;gap:8px;padding:10px 14px;background:var(--success-bg);border-radius:8px;font-size:13px;font-weight:600;color:var(--success);margin-bottom:14px}
+.sig-accepted-badge.show{display:flex}
+.sig-processing{display:none;font-size:13px;color:var(--muted);margin-bottom:12px;align-items:center;gap:8px}
+.sig-processing.show{display:flex}
+
+/* TERMS PAGE */
+.terms-block{margin-bottom:18px}
+.terms-block-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin-bottom:6px}
+.terms-scroll{background:#F8F6F4;border-radius:10px;padding:14px 16px;font-size:12px;color:var(--ink);line-height:1.8;max-height:160px;overflow-y:auto;border:1px solid var(--line)}
+.terms-scroll h4{font-size:12px;font-weight:700;margin:10px 0 4px}
+.terms-scroll p{margin-bottom:6px}
+.terms-scroll ul{margin:4px 0 8px 16px}
+.terms-scroll ul li{margin-bottom:3px}
+.terms-consent-box{border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;transition:border-color .2s;background:#fff}
+.terms-consent-box.accepted{border-color:var(--success);background:var(--success-bg)}
+.terms-consent-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.terms-consent-label input[type=checkbox]{width:18px;height:18px;flex-shrink:0;margin-top:2px;accent-color:var(--success);cursor:pointer}
+.terms-consent-label span{font-size:13px;line-height:1.6;color:var(--ink)}
+.terms-err{font-size:12px;color:var(--danger);margin-top:8px;display:none}
+.terms-err.show{display:block}
+
+/* PROGRESS CHECKLIST */
+.chk-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.chk-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;background:#F8F6F4;font-size:13px}
+.chk-item.done{background:var(--success-bg)}
+.chk-item.done .chk-icon{color:var(--success)}
+.chk-item.pending .chk-icon{color:var(--muted)}
+.chk-item.warn{background:#FFF8F0}
+.chk-item.warn .chk-icon{color:#E8470A}
+.chk-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.chk-label{flex:1;font-weight:500;color:var(--ink)}
+.chk-status{font-size:11px;font-weight:600}
+.chk-item.done .chk-status{color:var(--success)}
+.chk-item.pending .chk-status{color:var(--muted)}
+.chk-item.warn .chk-status{color:var(--orange)}
+
+/* DOCUMENTS */
+.doc-upload-row{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.doc-upload-item{border:1.5px dashed var(--line);border-radius:12px;padding:14px 16px;transition:all .15s;background:#fff}
+.doc-upload-item.uploaded{border-style:solid;border-color:var(--success);background:var(--success-bg)}
+.doc-upload-label{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.doc-upload-sub{font-size:11px;color:var(--muted);margin-bottom:10px}
+.doc-upload-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1.5px solid var(--line);border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.doc-upload-btn:hover{border-color:var(--orange);color:var(--orange)}
+.doc-upload-done{font-size:12px;color:var(--success);font-weight:600;display:none}
+.doc-upload-item.uploaded .doc-upload-done{display:block}
+.doc-upload-item.uploaded .doc-upload-btn{display:none}
+
+/* BOARD RESOLUTION */
+.resolution-box{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.resolution-head{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#F8F6F4}
+.resolution-head-title{font-size:13px;font-weight:600;color:var(--ink)}
+.resolution-preview{padding:14px;font-size:12px;color:var(--ink);line-height:1.8;max-height:180px;overflow-y:auto;background:#fff;border-top:1px solid var(--line)}
+.resolution-actions{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);background:#F8F6F4;flex-wrap:wrap}
+.res-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1.5px solid var(--line);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s}
+.res-btn:hover{border-color:var(--orange);color:var(--orange)}
+.res-btn.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
+.res-btn.primary:hover{background:#C73A07}
+
+/* PROCESSING PAGE */
+.proc-wrap{align-items:center;text-align:center}
+.proc-ring-wrap{position:relative;width:110px;height:110px;margin:0 auto 24px}
+.proc-ring-bg{fill:none;stroke:var(--line);stroke-width:7}
+.proc-ring-fg{fill:none;stroke:var(--orange);stroke-width:7;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset .95s linear}
+.proc-countdown-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:36px;font-weight:700;color:var(--dark)}
+.proc-steps{display:flex;flex-direction:column;gap:7px;margin-top:20px;width:100%;max-width:400px;text-align:left}
+.proc-step{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;background:#F8F6F4;font-size:13px;color:var(--muted);transition:all .5s}
+.proc-step.active{background:var(--orange-l);color:var(--ink);font-weight:600}
+.proc-step.done{background:var(--success-bg);color:var(--success);font-weight:500}
+.proc-step-dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0;transition:all .5s}
+.proc-step.active .proc-step-dot{background:var(--orange)}
+.proc-step.done .proc-step-dot{background:var(--success)}
+
+/* DOC FINAL LIST */
+.doc-final-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;text-align:left;width:100%;max-width:440px}
+.doc-final-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:#F8F6F4;font-size:13px}
+.doc-final-item.ready{background:var(--success-bg)}
+.doc-final-item.pending{background:#FFF8F0}
+.doc-final-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.doc-final-label{flex:1;font-weight:500;color:var(--ink)}
+.doc-final-status{font-size:11px;font-weight:600;color:var(--muted)}
+.doc-final-item.ready .doc-final-status{color:var(--success)}
+.doc-final-item.pending .doc-final-status{color:var(--orange)}
+
+@media(max-width:520px){
+  .slide{padding:60px 18px 88px}
+  .slide-q{font-size:22px}
+  .welcome-title{font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── GATE SCREEN ─────────────────────────────── -->
+<div id="gate-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:#FAF8F5;overflow-y:auto">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px">
+    <div style="width:100%;max-width:420px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:32px">
+        <div style="width:36px;height:36px;background:#E8470A;border-radius:8px;display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span style="font-size:13px;font-weight:700;color:#1A1208">Guaranty Trust Bank</span>
+      </div>
+
+      <div id="gate-body">
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#E8470A;margin-bottom:8px">Form link from your account officer</p>
+        <h1 style="font-family:'DM Serif Display',serif;font-size:clamp(24px,5vw,32px);color:#1A1208;line-height:1.2;margin-bottom:8px">Hi <span id="gate-customer-name">there</span> 👋</h1>
+        <p style="font-size:14px;color:#555;margin-bottom:4px"><strong id="gate-officer-name">Your account officer</strong> has shared an interactive account opening form with you.</p>
+        <p style="font-size:13px;color:#888;margin-bottom:28px" id="gate-expiry-line"></p>
+
+        <div style="background:#fff;border:1.5px solid #E8E3DC;border-radius:14px;padding:24px">
+          <label style="display:block;font-size:12px;font-weight:700;color:#1A1208;margin-bottom:6px">Enter your 6-digit access code</label>
+          <p style="font-size:12px;color:#888;margin-bottom:14px">Your account officer shared this code with you separately.</p>
+          <input id="gate-code-input" type="text" inputmode="numeric" maxlength="6" placeholder="e.g. 294810"
+            style="width:100%;box-sizing:border-box;font-size:28px;font-weight:800;letter-spacing:.2em;text-align:center;padding:14px 16px;border:2px solid #E8E3DC;border-radius:10px;outline:none;font-family:'DM Mono','Courier New',monospace;color:#1A1208;background:#FAFAF8"
+            oninput="this.value=this.value.replace(/\D/g,'');document.getElementById('gate-err').style.display='none'"
+            onkeydown="if(event.key==='Enter')unlockForm()">
+          <div id="gate-err" style="display:none;color:#c0392b;font-size:12px;font-weight:600;margin-top:8px">⚠️ Incorrect code. Please check with your account officer.</div>
+          <button onclick="unlockForm()" style="width:100%;margin-top:16px;background:#E8470A;color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+            Unlock form →
+          </button>
+        </div>
+        <p style="font-size:11px;color:#aaa;text-align:center;margin-top:16px">🔒 This link is personal to you. Data stays on your device.</p>
+      </div>
+
+      <div id="gate-expired" style="display:none">
+        <div style="font-size:48px;margin-bottom:16px">⏳</div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:26px;color:#1A1208;margin-bottom:10px">This link has expired</h2>
+        <p style="font-size:14px;color:#555;margin-bottom:24px">The form link shared by <strong id="expired-officer-name">your account officer</strong> is no longer active.</p>
+        <div style="background:#fff;border:1.5px solid #E8E3DC;border-radius:12px;padding:18px;font-size:13px;color:#555;line-height:1.8">
+          Please contact your account officer to request a new link.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="prog-track"><div id="prog-fill"></div></div>
+<div id="section-pill"></div>
+<div id="ctx-banner"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--orange)"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5V7l1.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span id="ctx-text"></span></div>
+<button id="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Back</button>
+<div id="counter"></div>
+<div id="slides"></div>
+
+<script>
+// ── URL CONFIG ──────────────────────────────────
+const _p = new URLSearchParams(window.location.search);
+let _cfg = {};
+try { const r=_p.get('config'); if(r) _cfg=JSON.parse(decodeURIComponent(escape(atob(r)))); } catch(e){}
+const CFG_CUSTOMER=_cfg.customer||'', CFG_OFFICER=_cfg.officer||'', CFG_SESSION=_cfg.sessionId||'';
+
+// ── GATE / EXPIRY CHECK ─────────────────────────
+(function initGate(){
+  const code = _cfg.accessCode || '';
+  const expiresAt = _cfg.expiresAt || 0;
+  const gate = document.getElementById('gate-screen');
+
+  // No access code in config — no gate needed (preview / direct link)
+  if(!code) return;
+
+  // Populate names
+  const cName = document.getElementById('gate-customer-name');
+  const oName = document.getElementById('gate-officer-name');
+  const oExpired = document.getElementById('expired-officer-name');
+  if(cName) cName.textContent = CFG_CUSTOMER ? CFG_CUSTOMER.split(' ')[0] : 'there';
+  if(oName) oName.textContent = CFG_OFFICER || 'Your account officer';
+  if(oExpired) oExpired.textContent = CFG_OFFICER || 'your account officer';
+
+  // Check expiry
+  if(expiresAt && Date.now() > expiresAt){
+    gate.style.display = 'block';
+    document.getElementById('gate-body').style.display = 'none';
+    document.getElementById('gate-expired').style.display = 'block';
+    return;
+  }
+
+  // Show expiry line
+  const expLine = document.getElementById('gate-expiry-line');
+  if(expLine && expiresAt){
+    const diff = expiresAt - Date.now();
+    const hrs = Math.floor(diff / 36e5);
+    const days = Math.floor(hrs / 24);
+    expLine.textContent = days >= 2 ? `⏳ This link expires in ${days} days` : hrs > 0 ? `⏳ This link expires in ${hrs} hour${hrs!==1?'s':''}` : '⏳ This link expires soon';
+  }
+
+  // Show gate
+  gate.style.display = 'block';
+})();
+
+function unlockForm(){
+  const entered = (document.getElementById('gate-code-input').value||'').trim();
+  if(entered === String(_cfg.accessCode)){
+    document.getElementById('gate-screen').style.display = 'none';
+  } else {
+    document.getElementById('gate-err').style.display = 'block';
+    const input = document.getElementById('gate-code-input');
+    input.style.borderColor = '#c0392b';
+    setTimeout(()=>{ input.style.borderColor = '#E8E3DC'; }, 1800);
+  }
+}
+
+// ── DATA ────────────────────────────────────────
+const STATES=['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno',
+  'Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna',
+  'Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo',
+  'Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT — Abuja'];
+const SECTORS=['Agriculture & Agro-Allied','Construction & Real Estate','Education',
+  'Finance & Insurance','Healthcare & Pharmaceuticals','Hospitality & Tourism',
+  'ICT & Technology','Legal & Professional Services','Manufacturing','Mining & Quarrying',
+  'Oil & Gas','Retail & Trade','Transport & Logistics','Other'];
+const TITLES=['Mr','Mrs','Miss','Ms','Dr','Prof','Alhaji','Alhaja','Chief','Engr','Barr','Hon','Rev'];
+const COUNTRIES=['Afghanistan','Albania','Algeria','Angola','Argentina','Australia','Austria','Bangladesh',
+  'Belgium','Benin','Brazil','Burkina Faso','Cameroon','Canada','Chad','China','Congo (DRC)',
+  'Côte d\'Ivoire','Egypt','Ethiopia','France','Gambia','Germany','Ghana','Guinea','India',
+  'Indonesia','Iran','Iraq','Italy','Japan','Kenya','Lebanon','Liberia','Libya','Mali',
+  'Morocco','Mozambique','Netherlands','Niger','Pakistan','Philippines','Saudi Arabia',
+  'Senegal','Sierra Leone','Somalia','South Africa','Spain','Sudan','Tanzania','Togo',
+  'Tunisia','Turkey','Uganda','United Kingdom','United States','Zimbabwe','Other'];
+const DNFI_LIST=[
+  'Dealers in Luxury Goods',
+  'Dealers in Jewellery',
+  'Car Dealers',
+  'Supermarket',
+  'Hotels and Hospitality Business(es)',
+  'Casinos, Pool Betting & Lottery Businesses',
+  'Audit Firms',
+  'Tax Consultants',
+  'Accounting Firms',
+  'Estate Surveyors and Valuers',
+  'Dealers in Real Estate',
+  'Mechanized Farming',
+  'Construction Companies',
+  'Mortgage Brokers',
+  'Consulting Companies',
+  'Clearing & Forwarding Companies',
+  'Dealers in Precious Metal & Stones',
+  'Non-Profit Organizations (NPOs)',
+];
+const FD={}, MULTI={}, CONSENTS={};
+
+// ── SLIDE DEFINITIONS ──────────────────────────
+// section labels for the pill
+const SEC = {
+  BIZ:'📋 Business Info',
+  ADDR:'📍 Address & Contact',
+  SIG1:'👤 About You',
+  SIGS:'👥 Signatories',
+  SVCS:'⚙️ Account Services',
+  NOK:'👨‍👩‍👧 Next of Kin',
+  LEGAL:'📜 Consents',
+  DOCS:'📎 Documents',
+};
+
+const SLIDES=[
+// 0
+{type:'welcome'},
+
+// ══════════ BUSINESS (1–8) ══════════
+{type:'section',sec:SEC.BIZ,emoji:'🏢',q:'Let\'s start with\nyour business',sub:'We\'ll collect your registration details, address, and contact information. Takes about 3 minutes.'},
+{type:'choice',sec:SEC.BIZ,id:'bizCategory',emoji:'🏪',q:'What type of business\nare you registering?',required:true,opts:[
+  {key:'A',val:'Sole Proprietorship',label:'Sole Proprietorship',sub:'Owned by one individual'},
+  {key:'B',val:'Partnership',label:'Partnership',sub:'Two or more people sharing ownership'},
+]},
+{type:'account-product',sec:SEC.BIZ,emoji:'🏦',q:'Which account would\nyou like to open?',sub:'Choose your naira account. Optionally add a domiciliary account below.',required:true},
+{type:'group',sec:SEC.BIZ,emoji:'📋',q:'Business name & registration',sub:'Exactly as registered with CAC.',fields:[
+  {id:'bizName',label:'Business name *',placeholder:'e.g. Adeyemi Ventures',type:'text',required:true},
+  {id:'bizRegNumber',label:'CAC number (BN / RC)',placeholder:'e.g. BN 1234567',type:'text',required:false},
+  {id:'bizRegDate',label:'Date of registration',type:'date',required:false},
+  {id:'bizRegState',label:'State of registration',type:'select',opts:['Select state',...STATES],required:false},
+]},
+{type:'group',sec:SEC.BIZ,emoji:'💼',q:'Business activity & size',sub:'',fields:[
+  {id:'bizNature',label:'Type / nature of business *',placeholder:'e.g. Retail trading, IT consulting',type:'text',required:true},
+  {id:'bizSector',label:'Sector / industry',type:'select',opts:['Select sector',...SECTORS],required:false},
+  {id:'bizTurnover',label:'Estimated annual turnover',type:'select',opts:['Select range','Less than ₦50M','₦50M – ₦500M','₦500M – ₦5B','Above ₦5B'],required:false},
+]},
+{type:'group',sec:SEC.BIZ,emoji:'🔢',q:'Tax & compliance',sub:'',fields:[
+  {id:'bizTIN',label:'Tax Identification Number (TIN) *',placeholder:'e.g. 1234567890',type:'text',required:true},
+  {id:'bizCRM',label:'CRM No / Borrower\'s code',placeholder:'Where applicable',type:'text',required:false},
+],extraId:'scuml-block'},
+{type:'group',sec:SEC.ADDR,emoji:'🏠',q:'Business operating address',sub:'Your registered operating address.',fields:[
+  {id:'bizHousePlot',label:'House / plot number',placeholder:'e.g. 12',type:'text',required:false},
+  {id:'bizAddr1',label:'Street name *',placeholder:'e.g. Broad Street',type:'text',required:true},
+  {id:'bizBusStop',label:'Nearest bus stop / landmark',placeholder:'e.g. Near Shoprite, Ikeja',type:'text',required:false},
+  {id:'bizCity',label:'City / town *',placeholder:'e.g. Lagos',type:'text',required:true},
+  {id:'bizLGA',label:'LGA (Local Govt. Area)',placeholder:'e.g. Lagos Island',type:'text',required:false},
+  {id:'bizState',label:'State *',type:'select',opts:['Select state',...STATES],required:true},
+]},
+{type:'group',sec:SEC.ADDR,emoji:'📞',q:'Business contact details',sub:'GTBank uses these for account notifications.',fields:[
+  {id:'bizMobile',label:'Business mobile number *',placeholder:'e.g. 08012345678',type:'tel',required:true},
+  {id:'bizEmail',label:'Business email address *',placeholder:'contact@yourbusiness.com',type:'email',required:true},
+  {id:'bizPhone',label:'Office phone (landline)',placeholder:'Optional',type:'tel',required:false},
+  {id:'bizWebsite',label:'Website',placeholder:'www.yourbusiness.com (optional)',type:'text',required:false},
+]},
+
+// ══════════ SIGNATORY (8–16) ══════════
+{type:'section',sec:SEC.SIG1,emoji:'👤',q:'About you —\nthe account signatory',sub:'Personal details of the business owner or primary signatory.'},
+{type:'group',sec:SEC.SIG1,emoji:'✍️',q:'Your full name',sub:'As it appears on your valid ID.',fields:[
+  {id:'s1Title',label:'Title',type:'select',opts:['Select title',...TITLES],required:false},
+  {id:'s1Surname',label:'Surname *',placeholder:'e.g. Okonkwo',type:'text',required:true},
+  {id:'s1FirstName',label:'First name *',placeholder:'e.g. Ada',type:'text',required:true},
+  {id:'s1OtherNames',label:'Other names',placeholder:'Middle name(s)',type:'text',required:false},
+]},
+{type:'group',sec:SEC.SIG1,emoji:'🧑',q:'Personal details',sub:'',fields:[
+  {id:'s1Gender',label:'Gender *',type:'select',opts:['Select','Male','Female'],required:true},
+  {id:'s1Marital',label:'Marital status',type:'select',opts:['Select','Single','Married','Divorced','Widowed'],required:false},
+  {id:'s1DOB',label:'Date of birth *',type:'date',required:true},
+  {id:'s1PlaceOfBirth',label:'Place of birth',placeholder:'e.g. Lagos',type:'text',required:false},
+  {id:'s1MothersName',label:"Mother's maiden name",placeholder:"Your mother's surname at birth",type:'text',required:false},
+  {id:'s1StateOrigin',label:'State of origin',type:'select',opts:['Select state',...STATES],required:false},
+  {id:'s1LGAOrigin',label:'LGA of origin',placeholder:'e.g. Onitsha North',type:'text',required:false},
+]},
+{type:'nationality',sec:SEC.SIG1,id:'s1Nationality',emoji:'🌍',q:'What is your nationality?',required:true},
+{type:'bvn',sec:SEC.SIG1,id:'s1BVN',emoji:'🔐',q:'Your Bank Verification\nNumber (BVN)',sub:'Your 11-digit BVN — dial *565*0# on your registered phone to confirm.',placeholder:'Enter 11-digit BVN',required:true},
+{type:'id-select',sec:SEC.SIG1,idField:'s1IDType',emoji:'🪪',q:'Which ID document\nwill you use?',sub:'Choose your valid, unexpired ID.',required:true},
+{type:'group',sec:SEC.SIG1,emoji:'📱',q:'Contact & role',sub:'',fields:[
+  {id:'s1Mobile',label:'Mobile number *',placeholder:'08012345678',type:'tel',required:true},
+  {id:'s1Phone',label:'Alternate phone',placeholder:'Optional landline',type:'tel',required:false},
+  {id:'s1Email',label:'Personal email',placeholder:'your@email.com',type:'email',required:false},
+  {id:'s1Occupation',label:'Occupation',placeholder:'e.g. Business owner',type:'text',required:false},
+  {id:'s1JobTitle',label:'Job title / status',placeholder:'e.g. Managing Director',type:'text',required:false},
+  {id:'s1Position',label:'Position in the firm',placeholder:'e.g. Sole Proprietor',type:'text',required:false},
+  {id:'s1TIN',label:'Personal TIN (if available)',placeholder:'Tax ID number',type:'text',required:false},
+]},
+{type:'address',sec:SEC.SIG1,prefix:'s1Res',emoji:'🏡',q:'Your residential address',sub:'Your home address. Toggle below if same as business address.',required:true},
+{type:'signature',sec:SEC.SIG1,id:'s1Signature',emoji:'✍️',q:'Your signature',sub:'Sign on plain white paper, take a clear photo. We\'ll clean it up.'},
+
+// ══════════ NEXT OF KIN (17–18) ══════════
+{type:'section',sec:SEC.NOK,emoji:'👨‍👩‍👧',q:'Next of kin',sub:'Someone GTBank can contact on your behalf in an emergency.'},
+{type:'group',sec:SEC.NOK,emoji:'👤',q:'Next of kin details',sub:'',fields:[
+  {id:'nokSurname',label:'Surname *',placeholder:'Surname',type:'text',required:true},
+  {id:'nokFirstName',label:'First name *',placeholder:'First name',type:'text',required:true},
+  {id:'nokOtherNames',label:'Other names',placeholder:'Optional',type:'text',required:false},
+  {id:'nokRelationship',label:'Relationship to you *',type:'select',opts:['Select','Spouse','Child','Parent','Sibling','Uncle/Aunt','Cousin','Friend','Other'],required:true},
+  {id:'nokDOB',label:'Date of birth',type:'date',required:false},
+  {id:'nokGender',label:'Gender',type:'select',opts:['Select','Male','Female'],required:false},
+  {id:'nokMobile',label:'Mobile number',placeholder:'08012345678',type:'tel',required:false},
+  {id:'nokHousePlot',label:'House / plot number',placeholder:'e.g. 12',type:'text',required:false},
+  {id:'nokStreet',label:'Street name',placeholder:'e.g. Broad Street',type:'text',required:false},
+  {id:'nokCity',label:'City / town',placeholder:'e.g. Lagos',type:'text',required:false},
+  {id:'nokState',label:'State',type:'select',opts:['Select state',...STATES],required:false},
+  {id:'nokEmail',label:'Email address',placeholder:'Optional',type:'email',required:false},
+]},
+
+// ══════════ SIGNATORIES (19) ══════════
+{type:'add-signatories',sec:SEC.SIGS},
+
+// ══════════ ACCOUNT SERVICES (21–24) ══════════
+{type:'section',sec:SEC.SVCS,emoji:'⚙️',q:'Account services',sub:'Set up online banking, choose your statement frequency, cheque book, and salary payment preferences.'},
+{type:'choice',sec:SEC.SVCS,id:'onlineBanking',emoji:'💻',q:'Do you need\nonline banking?',optional:true,opts:[
+  {key:'A',val:'GAPS-Lite',label:'GAPS-Lite',sub:'Single user, simple access'},
+  {key:'B',val:'GAPS',label:'GAPS (Full access)',sub:'Multiple users, batch payments, approvals'},
+  {key:'C',val:'Not required',label:'Not required right now'},
+]},
+{type:'group',sec:SEC.SVCS,emoji:'📄',q:'Statement & cheque book',sub:'',fields:[
+  {id:'stmtFreq',label:'Account statement frequency',type:'select',opts:['Select','Monthly','Quarterly','Semi-Annually','Annually'],required:false},
+  {id:'chequeBook',label:'Cheque book',type:'select',opts:['Select','25 Leaves','50 Leaves','100 Leaves','200 Leaves','Not required'],required:false},
+],optional:true},
+{type:'salary',sec:SEC.SVCS,emoji:'💰',q:'Will you use this account\nto pay staff salaries?'},
+
+// ══════════ TERMS (23) ══════════
+{type:'terms',sec:SEC.LEGAL},
+
+// ══════════ DOCUMENTS (25–28) ══════════
+{type:'section',sec:SEC.DOCS,emoji:'📎',q:'Supporting documents',sub:'Almost done! Attach your board resolution, ID, CAC certificate, and referee forms. You can upload files or send links to your referees.'},
+{type:'doc-board-res',sec:SEC.DOCS},
+{type:'doc-uploads',sec:SEC.DOCS},
+{type:'doc-references',sec:SEC.DOCS},
+
+// ══════════ REVIEW → DONE (27–29) ══════════
+{type:'review'},
+{type:'processing'},
+{type:'done'},
+];
+
+const TOTAL_Q = SLIDES.filter(s=>!['welcome','section','review','done'].includes(s.type)).length;
+let cur = 0;
+
+// ── RENDER ─────────────────────────────────────
+function renderSlide(s,idx){
+  const div=document.createElement('div');
+  div.className='slide pos-below';
+  div.id='slide-'+idx;
+  switch(s.type){
+    case 'welcome':      div.innerHTML=renderWelcome(); break;
+    case 'section':      div.innerHTML=renderSection(s); div.classList.add('section-slide'); break;
+    case 'choice':       div.innerHTML=renderChoice(s,idx); break;
+    case 'account-product': div.innerHTML=renderAccountProduct(s,idx); break;
+    case 'domiciliary':  div.innerHTML=renderDomiciliary(s,idx); break;
+    case 'text':         div.innerHTML=renderText(s,idx); break;
+    case 'group':        div.innerHTML=renderGroup(s,idx); break;
+    case 'bvn':          div.innerHTML=renderBVN(s,idx); break;
+    case 'nationality':  div.innerHTML=renderNationality(s,idx); break;
+    case 'id-select':    div.innerHTML=renderIDSelect(s,idx); break;
+    case 'address':      div.innerHTML=renderAddress(s,idx); break;
+    case 'signature':    div.innerHTML=renderSignature(s,idx); break;
+    case 'salary':       div.innerHTML=renderSalary(s,idx); break;
+    case 'scuml':        div.innerHTML=renderSCUML(s,idx); break;
+    case 'add-signatories': div.innerHTML=renderAddSig(s,idx); break;
+    case 'consent':      div.innerHTML=renderConsent(s,idx); break;
+    case 'terms':        div.innerHTML=renderTerms(idx); break;
+    case 'references':   div.innerHTML=renderReferencesPage(idx); break;
+    case 'checklist':    div.innerHTML=renderChecklist(); break;
+    case 'documents':    div.innerHTML=renderDocuments(idx); break;
+    case 'doc-board-res':  div.innerHTML=renderDocBoardRes(idx); break;
+    case 'doc-uploads':    div.innerHTML=renderDocUploads(idx); break;
+    case 'doc-references': div.innerHTML=renderDocRefs(idx); break;
+    case 'review':       div.innerHTML=renderReview(); break;
+    case 'processing':   div.innerHTML=renderProcessingPage(); break;
+    case 'done':         div.innerHTML=renderDone(); break;
+  }
+  return div;
+}
+
+function okRow(idx,s){
+  const skip=s&&(s.optional)?`<span class="skip-link" onclick="skipSlide()">Skip →</span>`:'';
+  return `<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px">
+    <button class="ok-btn" onclick="tryAdvance(${idx})">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span class="press-hint">or <strong>Enter ↵</strong></span>${skip}
+  </div>`;
+}
+
+function renderWelcome(){
+  const name=CFG_CUSTOMER?CFG_CUSTOMER.split(' ')[0]:'';
+  const greeting=name?`Hi ${name}! 👋`:'👋 Welcome';
+  const sentBy=CFG_OFFICER?`<div class="w-pill">🏦 Sent by <strong style="margin-left:4px">${CFG_OFFICER}</strong> · GTBank</div>`:'';
+  return `<div class="slide-inner">
+    <div class="welcome-badge">🏦 GTBank Business Account Opening</div>
+    <h1 class="welcome-title">${greeting}<br>Open your GTBank<br>business account <em>stress-free</em></h1>
+    <p class="welcome-sub">We'll guide you section by section — just like a conversation. Auto-saves as you go. PDF generated on your device. 🔒</p>
+    <div class="welcome-pills">${sentBy}
+      <div class="w-pill">⏱️ About 15–20 minutes</div>
+      <div class="w-pill">💾 Auto-saves as you go</div>
+      <div class="w-pill">📄 PDF on your device</div>
+    </div>
+    <button class="start-btn" onclick="goNext()">Let's get started <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted)">Use ↑↓ arrow keys or swipe to navigate</p>
+  </div>`;
+}
+
+function renderSection(s){
+  return `<div class="slide-inner" style="text-align:center;max-width:480px">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <button class="ok-btn" onclick="goNext()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>`;
+}
+
+function renderChoice(s,idx){
+  const opts=s.opts.map(o=>`
+    <button class="choice-btn" data-val="${escQ(o.val)}" onclick="pickChoice('${s.id}','${escQ(o.val)}',this,true,${idx})">
+      <span class="choice-key">${o.key}</span>
+      <span><span class="choice-label">${o.label}</span>${o.sub?`<div class="choice-sub">${o.sub}</div>`:''}</span>
+    </button>`).join('');
+  const skip=s.optional?`<span class="skip-link" onclick="skipSlide()">Skip →</span>`:'';
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    ${s.sub?`<p class="slide-sub">${s.sub}</p>`:''}
+    <div class="choices" id="choices-${s.id}">${opts}</div>
+    <div class="err-msg" id="err-${s.id}">Please make a selection to continue.</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
+      <button class="ok-btn" onclick="tryAdvance(${idx})">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="press-hint">or <strong>Enter ↵</strong></span>${skip}
+    </div>
+  </div>`;
+}
+
+function renderText(s,idx){
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    ${s.sub?`<p class="slide-sub">${s.sub}</p>`:''}
+    <input class="tally-input" type="${s.inputType||'text'}" id="${s.id}" placeholder="${s.placeholder||''}" autocomplete="off"
+      oninput="FD['${s.id}']=this.value;autoSave()"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();tryAdvance(${idx})}">
+    <div class="err-msg" id="err-${s.id}">This field is required.</div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function renderGroup(s,idx){
+  const fields=s.fields.map(f=>{
+    if(f.type==='select'){
+      const opts=f.opts.map((o,i)=>`<option value="${i===0?'':o}">${o}</option>`).join('');
+      return `<div class="group-field"><label for="${f.id}">${f.label}</label><select class="tally-select" id="${f.id}" onchange="FD['${f.id}']=this.value;autoSave()">${opts}</select></div>`;
+    }
+    return `<div class="group-field"><label for="${f.id}">${f.label}</label><input class="tally-input" type="${f.type||'text'}" id="${f.id}" placeholder="${f.placeholder||''}" oninput="FD['${f.id}']=this.value;autoSave()"></div>`;
+  }).join('');
+  const extra=s.extraId===`scuml-block`?renderSCUMLInline():'';
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    ${s.sub?`<p class="slide-sub">${s.sub}</p>`:''}
+    <div class="group-fields">${fields}${extra}</div>
+    <div class="err-msg" id="err-group-${idx}">Please fill in all required fields.</div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+// ── ACCOUNT PRODUCTS DATA ──────────────────────
+const ACCT_PRODUCTS = [
+  {
+    id:'current',
+    name:'Current Account',
+    icon:'🏦',
+    desc:'Standard day-to-day business account',
+    variants: null,
+    features:['Cheque book & debit card','Online banking (GAPS)','₦1/mille COT on transactions'],
+  },
+  {
+    id:'gtbusiness',
+    name:'GT Business Account',
+    icon:'💼',
+    desc:'SME-focused account with CAMF-free monthly turnover',
+    variants:[
+      {id:'silver',name:'GT Business Silver',badge:'< ₦20M revenue',meta:'Min bal ₦10,000 · ₦2,000 fixed monthly charge · ₦20M CAMF-free'},
+      {id:'gold',name:'GT Business Gold',badge:'₦20M – ₦50M revenue',meta:'Min bal ₦20,000 · ₦5,000 fixed monthly charge · ₦50M CAMF-free'},
+      {id:'platinum',name:'GT Business Platinum',badge:'> ₦50M revenue',meta:'Min bal ₦50,000 · ₦10,000 fixed monthly charge · ₦100M CAMF-free'},
+    ],
+    features:['Corporate & sole prop card','Loans & advances access','Annual business workshops'],
+  },
+  {
+    id:'gtmax',
+    name:'GTMax Account',
+    icon:'📈',
+    desc:'Maximum interest on your daily balance · minimum charges on your transactions',
+    variants:[
+      {id:'silver',name:'GTMax Silver',badge:'4.75% p.a.',meta:'Min opening ₦150,000 · Min balance ₦100,000'},
+      {id:'gold',name:'GTMax Gold',badge:'5.00% p.a.',meta:'Min opening ₦500,000 · Min balance ₦250,000'},
+      {id:'platinum',name:'GTMax Platinum',badge:'5.25% p.a.',meta:'Min opening ₦1,000,000 · Min balance ₦500,000'},
+    ],
+    features:['COT free · Free cheque books','Naira MasterCard','Non-borrowing account'],
+    conditions:'Max 5 free withdrawals/month — exceeding this applies ₦1/mille COT on ALL transactions that month. Must maintain minimum balance — falling below forfeits interest and triggers ₦1/mille COT.',
+  },
+  {
+    id:'gtbiz_premium',
+    name:'GTBusiness Premium',
+    icon:'⭐',
+    desc:'For corporates with annual revenue ₦10BN – ₦50BN',
+    variants: null,
+    features:['Zero CAMF up to ₦2BN/month','Min balance ₦500,000','Free corporate card & cheque book'],
+  },
+];
+
+const DOMI_CURRENCIES = [
+  {id:'usd',flag:'🇺🇸',name:'US Dollar (USD)',sub:'American Dollar account'},
+  {id:'eur',flag:'🇪🇺',name:'Euro (EUR)',sub:'European Euro account'},
+  {id:'gbp',flag:'🇬🇧',name:'British Pound (GBP)',sub:'Sterling Pound account'},
+];
+
+function renderAccountProduct(s,idx){
+  const cards = ACCT_PRODUCTS.map(p=>{
+    const featuresHtml = `<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:${p.variants||p.conditions?'12px':'0'}">
+      ${p.features.map(f=>`<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink)"><span style="color:var(--success);font-size:11px;flex-shrink:0">✔</span>${f}</div>`).join('')}
+    </div>`;
+
+    const tiersHtml = p.variants ? `
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">Choose your tier</div>
+      <div class="acct-variant-row">
+        ${p.variants.map(v=>`
+          <button class="acct-variant-btn" id="acct-v-${p.id}-${v.id}"
+            onclick="pickProductVariant('${p.id}','${v.id}','${v.name}',${idx})">
+            <div class="acct-variant-left">
+              <span class="acct-variant-name">${v.name}</span>
+              <span class="acct-variant-meta">${v.meta}</span>
+            </div>
+            <span class="acct-variant-badge">${v.badge}</span>
+          </button>`).join('')}
+      </div>` : '';
+
+    const conditionsHtml = p.conditions
+      ? `<div style="margin-top:10px;padding:10px 12px;background:#FFF8F0;border:1px solid #FDDFD0;border-radius:8px;font-size:11px;color:#8B4513;line-height:1.6">⚠️ <strong>Important conditions:</strong> ${p.conditions}</div>`
+      : '';
+
+    return `<div class="acct-group" id="acct-group-${p.id}">
+      <div class="acct-group-head" onclick="toggleProductGroup('${p.id}',${idx},${p.variants?'true':'false'})">
+        <span class="acct-group-icon">${p.icon}</span>
+        <div class="acct-group-info">
+          <div class="acct-group-name">${p.name}</div>
+          <div class="acct-group-desc">${p.desc}</div>
+        </div>
+        <div class="acct-group-check" id="acct-check-${p.id}">
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="acct-variants" id="acct-variants-${p.id}">
+        ${featuresHtml}${tiersHtml}${conditionsHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <div style="margin-bottom:8px">${cards}</div>
+    <div class="err-msg" id="err-acct-product">Please select an account type to continue.</div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function toggleProductGroup(pid, idx, hasVariants){
+  const group = document.getElementById('acct-group-'+pid);
+  const expandEl = document.getElementById('acct-variants-'+pid);
+  const isSelected = group.classList.contains('selected');
+
+  // Deselect all others
+  ACCT_PRODUCTS.forEach(p=>{
+    document.getElementById('acct-group-'+p.id)?.classList.remove('selected');
+    document.getElementById('acct-variants-'+p.id)?.classList.remove('show');
+  });
+
+  if(!isSelected){
+    group.classList.add('selected');
+    if(expandEl) expandEl.classList.add('show');
+    FD['bizAccountProduct'] = pid;
+    FD['bizAccountProductName'] = ACCT_PRODUCTS.find(p=>p.id===pid)?.name||pid;
+    FD['bizAccountVariant'] = '';
+    FD['bizAccountVariantName'] = '';
+    autoSave();
+    clearErr('acct-product');
+    // No tiers — stay on slide, user clicks OK
+  } else {
+    FD['bizAccountProduct'] = '';
+    FD['bizAccountVariant'] = '';
+    autoSave();
+  }
+}
+
+function pickProductVariant(pid, vid, vname, idx){
+  FD['bizAccountProduct'] = pid;
+  FD['bizAccountProductName'] = ACCT_PRODUCTS.find(p=>p.id===pid)?.name||pid;
+  FD['bizAccountVariant'] = vid;
+  FD['bizAccountVariantName'] = vname;
+  autoSave();
+  clearErr('acct-product');
+  // Highlight selected variant
+  const p = ACCT_PRODUCTS.find(x=>x.id===pid);
+  if(p&&p.variants) p.variants.forEach(v=>{
+    const el=document.getElementById('acct-v-'+pid+'-'+v.id);
+    if(el) el.classList.toggle('sel', v.id===vid);
+  });
+}
+
+function renderDomiciliary(s,idx){
+  const chips = DOMI_CURRENCIES.map(c=>`
+    <div class="domi-chip" id="domi-${c.id}" onclick="toggleDomi('${c.id}')">
+      <span class="domi-flag">${c.flag}</span>
+      <div class="domi-info">
+        <span class="domi-name">${c.name}</span>
+        <span class="domi-sub">${c.sub}</span>
+      </div>
+      <div class="domi-check" id="domi-check-${c.id}">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>`).join('');
+
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <div class="domi-chips">${chips}</div>
+    <div style="padding:10px 14px;background:#F8F6F4;border-radius:10px;font-size:12px;color:var(--muted);margin-bottom:20px">
+      💡 No additional documents required. A domiciliary account will be opened alongside your naira account.
+    </div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function toggleDomi(cid){
+  if(!MULTI['domiCurrencies']) MULTI['domiCurrencies'] = new Set();
+  const s = MULTI['domiCurrencies'];
+  if(s.has(cid)) s.delete(cid); else s.add(cid);
+  FD['domiCurrencies'] = Array.from(s).join(', ');
+  // Update UI
+  DOMI_CURRENCIES.forEach(c=>{
+    const chip = document.getElementById('domi-'+c.id);
+    const check = document.getElementById('domi-check-'+c.id);
+    const sel = s.has(c.id);
+    chip?.classList.toggle('selected', sel);
+    if(check) check.style.cssText = sel ? 'background:var(--orange);border-color:var(--orange);color:#fff' : '';
+  });
+  autoSave();
+}
+
+function renderSCUMLInline(){
+  const opts=DNFI_LIST.map(d=>`<option value="${d}">${d}</option>`).join('');
+  return `<div class="group-field" id="scuml-wrap">
+    <label>Does your business fall into any of these regulated categories?</label>
+    <select class="tally-select" id="bizDNFIType" onchange="FD['bizDNFIType']=this.value;toggleSCUML();autoSave()">
+      <option value="">None of these apply to my business</option>${opts}
+    </select>
+    <div id="scuml-input-wrap" style="display:none;margin-top:12px">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;display:block">SCUML Registration Number</label>
+      <input class="tally-input" type="text" id="bizSCUML" placeholder="Your SCUML number" oninput="FD['bizSCUML']=this.value;autoSave()">
+    </div>
+  </div>`;
+}
+
+function renderBVN(s,idx){
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <div class="bvn-wrap">
+      <input class="tally-input" type="text" id="${s.id}" maxlength="11" placeholder="${s.placeholder}"
+        oninput="onBVNInput('${s.id}',${idx})"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();tryAdvance(${idx})}">
+      <span class="bvn-ok" id="${s.id}-ok">✓ Valid</span>
+    </div>
+    <div class="input-hint">11 digits — no spaces or dashes</div>
+    <div class="err-msg" id="err-${s.id}">BVN must be exactly 11 digits.</div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function renderNationality(s,idx){
+  const countryOpts=COUNTRIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q}</h2>
+    <div class="choices" id="choices-${s.id}">
+      <button class="choice-btn" data-val="Nigerian" onclick="pickNationality('Nigerian',this,${idx})">
+        <span class="choice-key">A</span><span class="choice-label">Nigerian 🇳🇬</span>
+      </button>
+      <button class="choice-btn" data-val="Other" onclick="pickNationality('Other',this,${idx})">
+        <span class="choice-key">B</span><span class="choice-label">Other nationality</span>
+      </button>
+    </div>
+    <div class="inline-country" id="other-country-wrap">
+      <div class="group-field" style="margin-bottom:8px">
+        <label>Select your country</label>
+        <select class="tally-select" id="s1NationalityCountry" onchange="FD['s1NationalityCountry']=this.value;autoSave()">
+          <option value="">Select country</option>${countryOpts}
+        </select>
+      </div>
+      <div class="group-fields" style="margin-bottom:16px">
+        <div class="group-field"><label>Resident permit number</label><input class="tally-input" type="text" id="s1ResidentPermit" placeholder="Permit number" oninput="FD['s1ResidentPermit']=this.value;autoSave()"></div>
+        <div class="group-field"><label>Social security number</label><input class="tally-input" type="text" id="s1SocialSecurity" placeholder="SSN" oninput="FD['s1SocialSecurity']=this.value;autoSave()"></div>
+        <div class="group-field"><label>Permit issue date</label><input class="tally-input" type="date" id="s1PermitIssue" oninput="FD['s1PermitIssue']=this.value;autoSave()"></div>
+        <div class="group-field"><label>Permit expiry date</label><input class="tally-input" type="date" id="s1PermitExpiry" oninput="FD['s1PermitExpiry']=this.value;autoSave()"></div>
+      </div>
+      <button class="ok-btn" onclick="tryAdvance(${idx})">OK ✓</button>
+    </div>
+    <div class="err-msg" id="err-${s.id}">Please select your nationality.</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px" id="nat-ok-row">
+      <button class="ok-btn" onclick="tryAdvance(${idx})">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="press-hint">or <strong>Enter ↵</strong></span>
+    </div>
+  </div>`;
+}
+
+// ID types and which fields they need
+const ID_CFG={
+  "National ID (NIN Slip)":    {fields:['number']},
+  "Driver's Licence":          {fields:['number','issue','expiry']},
+  "International Passport":    {fields:['number','issue','expiry']},
+  "Voter's Card":              {fields:['number']},
+};
+const ID_KEYS=Object.keys(ID_CFG);
+
+function renderIDSelect(s,idx){
+  const opts=ID_KEYS.map((k,i)=>`
+    <button class="choice-btn" data-val="${k}" onclick="pickID('${s.idField}','${escQ(k)}',this,${idx})">
+      <span class="choice-key">${String.fromCharCode(65+i)}</span>
+      <span class="choice-label">${k}</span>
+    </button>`).join('');
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <div class="choices" id="choices-${s.idField}">${opts}</div>
+    <div class="inline-fields" id="id-fields-wrap">
+      <div id="id-number-wrap"><label>ID number *</label><input class="tally-input" type="text" id="s1IDNumber" placeholder="Your ID number" oninput="FD['s1IDNumber']=this.value;autoSave()"></div>
+      <div id="id-issue-wrap" style="display:none"><label>Issue date</label><input class="tally-input" type="date" id="s1IDIssue" oninput="FD['s1IDIssue']=this.value;autoSave()"></div>
+      <div id="id-expiry-wrap" style="display:none"><label>Expiry date</label><input class="tally-input" type="date" id="s1IDExpiry" oninput="FD['s1IDExpiry']=this.value;autoSave()"></div>
+      <button class="ok-btn" onclick="tryAdvance(${idx})" style="margin-top:4px">OK ✓</button>
+    </div>
+    <div class="err-msg" id="err-${s.idField}">Please select an ID type.</div>
+  </div>`;
+}
+
+function renderAddress(s,idx){
+  const pre=s.prefix;
+  const stateOpts=['Select state',...STATES].map((o,i)=>`<option value="${i===0?'':o}">${o}</option>`).join('');
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <label class="same-toggle" id="same-biz-toggle" onclick="toggleSameAsBusiness(this)">
+      <input type="checkbox" id="same-biz-check" style="pointer-events:none">
+      <span>Same as my business address</span>
+    </label>
+    <div id="res-fields-wrap" class="group-fields" style="margin-bottom:20px">
+      <div class="group-field"><label>House / plot number</label><input class="tally-input" type="text" id="${pre}HousePlot" placeholder="e.g. 12" oninput="FD['${pre}HousePlot']=this.value;autoSave()"></div>
+      <div class="group-field"><label>Street name *</label><input class="tally-input" type="text" id="${pre}Street" placeholder="e.g. Broad Street" oninput="FD['${pre}Street']=this.value;autoSave()"></div>
+      <div class="group-field"><label>Nearest bus stop / landmark</label><input class="tally-input" type="text" id="${pre}BusStop" placeholder="e.g. Near Shoprite" oninput="FD['${pre}BusStop']=this.value;autoSave()"></div>
+      <div class="group-field"><label>City / town *</label><input class="tally-input" type="text" id="${pre}City" placeholder="e.g. Lagos" oninput="FD['${pre}City']=this.value;autoSave()"></div>
+      <div class="group-field"><label>LGA</label><input class="tally-input" type="text" id="${pre}LGA" placeholder="Local govt. area" oninput="FD['${pre}LGA']=this.value;autoSave()"></div>
+      <div class="group-field"><label>State *</label><select class="tally-select" id="${pre}State" onchange="FD['${pre}State']=this.value;autoSave()">${stateOpts}</select></div>
+      <div class="group-field"><label>Mailing address (if different)</label><input class="tally-input" type="text" id="${pre}MailAddr" placeholder="Leave blank if same as above" oninput="FD['${pre}MailAddr']=this.value;autoSave()"></div>
+    </div>
+    <div class="err-msg" id="err-group-${idx}">Please fill in the required address fields.</div>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function renderSignature(s,idx){
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q}</h2>
+    <p class="slide-sub">${s.sub}</p>
+
+    <div class="sig-capture-btns" id="sig-capture-btns-${idx}">
+      <button class="sig-capture-btn" onclick="openSignatureCapture(${idx},'camera')">
+        <span class="sig-icon">📸</span>
+        <span><strong>Take a photo</strong><br><span style="font-size:12px;color:var(--muted)">Opens your camera — point at your signature</span></span>
+      </button>
+      <button class="sig-capture-btn" onclick="openSignatureCapture(${idx},'file')">
+        <span class="sig-icon">🖼️</span>
+        <span><strong>Upload from gallery</strong><br><span style="font-size:12px;color:var(--muted)">Choose a photo you've already taken</span></span>
+      </button>
+    </div>
+
+    <input type="file" id="sig-input-${idx}" accept="image/*" capture="environment" style="display:none" onchange="processSignatureFile(${idx},this)">
+
+    <div class="sig-processing" id="sig-proc-${idx}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"/></svg>
+      Removing background…
+    </div>
+
+    <div class="sig-accepted-badge" id="sig-ok-badge-${idx}">
+      ✅ Signature captured — looking clean!
+    </div>
+
+    <div class="sig-preview-wrap" id="sig-preview-${idx}">
+      <div class="sig-canvas-row">
+        <div class="sig-canvas-box">
+          <p>Original photo</p>
+          <canvas id="sig-before-${idx}" height="120"></canvas>
+        </div>
+        <div class="sig-canvas-box" style="position:relative">
+          <p>Cleaned signature</p>
+          <canvas id="sig-after-${idx}" class="clean-bg" height="120"></canvas>
+          <div id="sig-confirm-btns-${idx}" style="display:none;margin-top:8px;flex-direction:column;gap:8px">
+            <button class="sig-confirm-btn accept" onclick="acceptSignature(${idx})">✅ Looks good — use this</button>
+            <button class="sig-confirm-btn" onclick="retakeSignature(${idx})">🔄 Retake</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="err-msg" id="err-${s.id}">Please capture your signature to continue.</div>
+    <button class="ok-btn" id="sig-continue-${idx}" style="display:none;margin-top:8px" onclick="goNext()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>`;
+}
+
+function openSignatureCapture(idx, mode){
+  const inp = document.getElementById('sig-input-'+idx);
+  if(!inp) return;
+  if(mode==='file') inp.removeAttribute('capture');
+  else inp.setAttribute('capture','environment');
+  inp.click();
+}
+
+function processSignatureFile(idx, inputEl){
+  const file = inputEl.files[0];
+  if(!file) return;
+  const proc = document.getElementById('sig-proc-'+idx);
+  const preview = document.getElementById('sig-preview-'+idx);
+  const badge = document.getElementById('sig-ok-badge-'+idx);
+  const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
+  if(proc) proc.classList.add('show');
+  if(preview) preview.classList.remove('show');
+  if(badge) badge.classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const MAX = 600;
+      let w = img.width, h = img.height;
+      if(w > MAX){ h = Math.round(h * MAX/w); w = MAX; }
+      if(h > MAX){ w = Math.round(w * MAX/h); h = MAX; }
+
+      // Draw "before" canvas
+      const bc = document.getElementById('sig-before-'+idx);
+      if(bc){ bc.width=w; bc.height=h; bc.getContext('2d').drawImage(img,0,0,w,h); }
+
+      // Process: remove background — clean black ink on white
+      const ac = document.getElementById('sig-after-'+idx);
+      if(ac){
+        ac.width=w; ac.height=h;
+        const ctx = ac.getContext('2d');
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,w,h);
+        ctx.drawImage(img,0,0,w,h);
+        const id = ctx.getImageData(0,0,w,h);
+        const px = id.data;
+        for(let i=0;i<px.length;i+=4){
+          const bright = (px[i]*299 + px[i+1]*587 + px[i+2]*114)/1000;
+          if(bright > 160){
+            px[i]=255; px[i+1]=255; px[i+2]=255; px[i+3]=255;
+          } else {
+            px[i]=0; px[i+1]=0; px[i+2]=0; px[i+3]=255;
+          }
+        }
+        ctx.putImageData(id,0,0);
+        window['_sigPending_'+idx] = ac.toDataURL('image/png');
+      }
+
+      if(proc) proc.classList.remove('show');
+      if(preview) preview.classList.add('show');
+      if(confirmBtns){ confirmBtns.style.display='flex'; confirmBtns.style.flexDirection='column'; }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function acceptSignature(idx){
+  const sigData = window['_sigPending_'+idx];
+  if(!sigData) return;
+  const s = SLIDES[idx];
+  FD[s.id] = sigData;
+  autoSave();
+  // Hide confirm, show badge
+  const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
+  const badge = document.getElementById('sig-ok-badge-'+idx);
+  if(confirmBtns) confirmBtns.style.display='none';
+  if(badge) badge.classList.add('show');
+  const cont = document.getElementById('sig-continue-'+idx);
+  if(cont) cont.style.display='inline-flex';
+  clearErr(s.id);
+}
+
+function retakeSignature(idx){
+  const inp = document.getElementById('sig-input-'+idx);
+  const preview = document.getElementById('sig-preview-'+idx);
+  const badge = document.getElementById('sig-ok-badge-'+idx);
+  const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
+  if(preview) preview.classList.remove('show');
+  if(badge) badge.classList.remove('show');
+  if(confirmBtns) confirmBtns.style.display='flex';
+  if(inp){ inp.value=''; inp.click(); }
+}
+
+function renderSalary(s,idx){
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <div class="choices" id="choices-salary">
+      <button class="choice-btn" data-val="Yes" onclick="pickSalary('Yes',this)">
+        <span class="choice-key">A</span><span class="choice-label">Yes — we pay salaries from this account</span>
+      </button>
+      <button class="choice-btn" data-val="No" onclick="pickSalary('No',this)">
+        <span class="choice-key">B</span><span class="choice-label">No salary payments needed</span>
+      </button>
+    </div>
+    <div id="employees-wrap" style="display:none;margin-bottom:20px">
+      <div class="group-field">
+        <label>Number of employees on payroll</label>
+        <select class="tally-select" id="staffCount" onchange="FD['staffCount']=this.value;autoSave()">
+          <option value="">Select range</option>
+          <option>1 – 50</option><option>51 – 200</option><option>201 – 500</option><option>Over 500</option>
+        </select>
+      </div>
+    </div>
+    <button class="ok-btn" id="salary-ok-btn" style="display:none;margin-top:14px" onclick="goNext()">OK ✓</button>
+    <span class="skip-link" onclick="skipSlide()">Skip →</span>
+  </div>`;
+}
+
+function renderSCUML(s,idx){
+  // This slide is shown after salary — it's a reminder about SCUML for DNFIs
+  // But we already included it in the TIN group slide (slide 7)
+  // So skip this placeholder
+  return `<div class="slide-inner" style="display:none"></div>`;
+}
+
+function renderAddSig(s,idx){
+  return `<div class="slide-inner">
+    <span class="slide-emoji">👥</span>
+    <h2 class="slide-q">Do you need to add\nanother signatory?</h2>
+    <p class="slide-sub">Add co-signatories here or send them a private link to fill their own details, attach their signature and passport photo.</p>
+    <div id="sig-warning" style="display:none;padding:10px 14px;background:#FFF8F0;border:1px solid #FDDFD0;border-radius:8px;font-size:12px;color:#8B4513;margin-bottom:16px;line-height:1.6">
+      ⚠️ <strong>Note:</strong> You cannot submit this form until all required signatories have completed their section. Send them the link early so they don't delay your application.
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="sig-option-card" onclick="addSigHere()">
+        <div class="sig-option-title">➕ Add signatory here</div>
+        <div class="sig-option-sub">You have their information and can fill it yourself</div>
+      </div>
+      <div class="sig-option-card" onclick="sendSigLink()">
+        <div class="sig-option-title">📨 Send them a link</div>
+        <div class="sig-option-sub">They fill their own details, upload signature & passport photo from their phone</div>
+      </div>
+      <div class="sig-option-card" onclick="goNext()">
+        <div class="sig-option-title">⏭️ Skip — sole proprietorship</div>
+        <div class="sig-option-sub">Only one signatory needed</div>
+      </div>
+    </div>
+    <div id="send-sig-wrap" style="display:none;padding:16px;background:#F8F6F4;border-radius:10px;margin-bottom:16px">
+      <div class="group-field" style="margin-bottom:12px"><label>Signatory's name</label><input class="tally-input" type="text" id="sig2LinkName" placeholder="Full name" oninput="FD['sig2LinkName']=this.value"></div>
+      <div class="group-field" style="margin-bottom:12px"><label>Their phone number or email</label><input class="tally-input" type="text" id="sig2LinkContact" placeholder="08012345678 or email" oninput="FD['sig2LinkContact']=this.value"></div>
+      <button class="ok-btn" onclick="confirmSendLink()">📨 Generate & copy link</button>
+    </div>
+    <div id="sig-link-copied" style="display:none;font-size:13px;color:var(--success);font-weight:500;margin-bottom:12px">✅ Link copied! Send it to them via WhatsApp or SMS.</div>
+  </div>`;
+}
+
+function renderConsent(s,idx){
+  const skip=s.optional?`<span class="skip-link" onclick="skipSlide()">Skip / decide later →</span>`:'';
+  const warn=s.warn?`<div class="consent-warn" id="consent-warn-${s.id}">${s.warn}</div>`:'';
+  return `<div class="slide-inner" style="max-width:640px">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <p class="slide-sub">${s.sub}</p>
+    <div class="consent-body">${s.body}</div>
+    <div class="consent-btns">
+      <button class="c-btn yes" id="c-yes-${s.id}" onclick="giveConsent('${s.id}','accepted',${idx},${s.required})">✅ I accept</button>
+      <button class="c-btn no"  id="c-no-${s.id}"  onclick="giveConsent('${s.id}','declined',${idx},${s.required})">✗ I decline</button>
+    </div>${warn}${skip}
+  </div>`;
+}
+
+function renderReferences(idx){
+  const refTypeOpts = [
+    {val:'gtb-personal',label:'Personal GTBank current / domiciliary account holder'},
+    {val:'other-biz',label:'Other bank business account holder'},
+  ];
+
+  function refBlock(n){
+    return `<div style="border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;background:#fff" id="ref${n}-wrap">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin-bottom:12px">Referee ${n}</div>
+      <div class="group-fields" style="margin-bottom:0">
+        <div class="group-field">
+          <label>Full name *</label>
+          <input class="tally-input" type="text" id="ref${n}Name" placeholder="Referee's full name" oninput="FD['ref${n}Name']=this.value;autoSave()">
+        </div>
+        <div class="group-field">
+          <label>Account type</label>
+          <select class="tally-select" id="ref${n}Type" onchange="FD['ref${n}Type']=this.value;autoSave()">
+            <option value="">Select account type</option>
+            <option value="GTBank Personal Current">GTBank Personal Current Account</option>
+            <option value="GTBank Personal Domiciliary">GTBank Personal Domiciliary Account</option>
+            <option value="GTBank Business Current">GTBank Business Current Account</option>
+            <option value="Other Bank Business Account">Other Bank Business Account</option>
+          </select>
+        </div>
+        <div class="group-field">
+          <label>Account number</label>
+          <input class="tally-input" type="text" id="ref${n}Account" placeholder="10-digit account number" maxlength="10" oninput="FD['ref${n}Account']=this.value;autoSave()">
+        </div>
+        <div class="group-field">
+          <label>Phone number</label>
+          <input class="tally-input" type="tel" id="ref${n}Phone" placeholder="08012345678" oninput="FD['ref${n}Phone']=this.value;autoSave()">
+        </div>
+        <div class="group-field">
+          <label>Email address</label>
+          <input class="tally-input" type="email" id="ref${n}Email" placeholder="referee@email.com" oninput="FD['ref${n}Email']=this.value;autoSave()">
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="slide-inner" style="max-width:640px">
+    <span class="slide-emoji">🤝</span>
+    <h2 class="slide-q">Your two\naccount referees</h2>
+    <p class="slide-sub">GTBank requires two referees to open a business account. Accepted referee types:</p>
+    <div style="padding:12px 14px;background:#F8F6F4;border-radius:10px;font-size:12px;color:var(--ink);line-height:1.8;margin-bottom:18px">
+      <div>✔ Two personal GTBank current / domiciliary account holders</div>
+      <div>✔ One personal GTBank account holder + one other bank business account holder</div>
+      <div>✔ Two other bank business account holders</div>
+    </div>
+    ${refBlock(1)}
+    ${refBlock(2)}
+    <div class="err-msg" id="err-refs">Please provide both referees' names to continue.</div>
+    ${okRow(idx,{optional:false})}
+  </div>`;
+}
+
+function renderReferencesPage(idx){
+  function refBlock(n){
+    return `<div style="border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;background:#fff">
+      <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:12px">Referee ${n}</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="doc-upload-btn" id="ref${n}-upload-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'upload')">📎 Upload filled form</button>
+        <button class="doc-upload-btn" id="ref${n}-link-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'link')">📨 Send a link</button>
+      </div>
+      <div id="ref${n}-upload-wrap" style="display:none">
+        <input type="file" id="ref${n}-file-input" accept="image/*,.pdf" style="display:none" onchange="markRefUploaded(${n},this)">
+        <button class="doc-upload-btn" onclick="document.getElementById('ref${n}-file-input').click()">📎 Choose referee form</button>
+        <div id="ref${n}-upload-done" style="display:none;font-size:12px;color:var(--success);font-weight:600;margin-top:8px">✅ Referee form uploaded</div>
+      </div>
+      <div id="ref${n}-link-wrap" style="display:none">
+        <div class="group-fields" style="margin-bottom:12px">
+          <div class="group-field"><label>Referee's full name *</label><input class="tally-input" type="text" id="ref${n}Name" placeholder="Full name" oninput="FD['ref${n}Name']=this.value;autoSave()"></div>
+          <div class="group-field"><label>Email address *</label><input class="tally-input" type="email" id="ref${n}Email" placeholder="referee@email.com" oninput="FD['ref${n}Email']=this.value;autoSave()"></div>
+        </div>
+        <button class="ok-btn" style="font-size:12px;padding:8px 16px" onclick="generateRefLink(${n})">📨 Generate & copy link</button>
+        <div id="ref${n}-link-sent" style="display:none;margin-top:10px;font-size:12px;color:var(--success);font-weight:600">✅ Link copied! Send via WhatsApp or email.</div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="slide-inner" style="max-width:640px">
+    <div style="margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--line)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:6px">Account References</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(22px,4vw,32px);color:var(--dark);line-height:1.2;margin-bottom:6px">Your two referees</h2>
+      <p style="font-size:13px;color:var(--muted)">GTBank requires two referees. Upload their completed referee form, or send them a link to fill it online.</p>
+    </div>
+    <div style="padding:10px 14px;background:#F8F6F4;border-radius:10px;font-size:12px;color:var(--ink);line-height:1.8;margin-bottom:16px">
+      Accepted combinations:<br>
+      ✔ Two personal GTBank current / domiciliary account holders<br>
+      ✔ One GTBank holder + one other bank business account holder<br>
+      ✔ Two other bank business account holders
+    </div>
+    ${refBlock(1)}
+    ${refBlock(2)}
+    ${okRow(idx,{optional:true})}
+  </div>`;
+}
+
+function renderTerms(idx){
+  return `<div class="slide-inner" style="max-width:640px">
+    <span class="slide-emoji">📜</span>
+    <h2 class="slide-q">Terms, Privacy\n& Declaration</h2>
+    <p class="slide-sub">Please read and accept all sections below to continue.</p>
+
+    <div class="terms-block">
+      <div class="terms-block-title">Terms & Conditions</div>
+      <div class="terms-scroll">
+        <p>These Terms and Conditions govern your application to open a business account with <strong>Guaranty Trust Bank Limited</strong> ("GTBank", "the Bank"). By submitting this form, you agree to be bound by the following:</p>
+        <h4>1. Account Opening</h4>
+        <p>The Bank reserves the right to accept or decline any account opening application at its sole discretion. Approval of this application is subject to satisfactory completion of the Bank's Know Your Customer (KYC) and Anti-Money Laundering (AML) checks as required by the Central Bank of Nigeria (CBN).</p>
+        <h4>2. Global Standing Instruction (GSI)</h4>
+        <p>By accepting these terms, I/we give express consent and authorization to GTBank to invoke the CBN's Global Standing Instruction (GSI) framework. This permits the Bank to recover any outstanding loan obligations by instructing other participating financial institutions to debit my/our accounts held therein, in accordance with the CBN GSI Guidelines.</p>
+        <h4>3. Account Operation</h4>
+        <ul>
+          <li>You must operate your account in accordance with the Bank's guidelines and applicable Nigerian laws.</li>
+          <li>The Bank may place restrictions on transactions that appear suspicious or inconsistent with your stated business activity.</li>
+          <li>You are responsible for the security of your account credentials and online banking tokens.</li>
+          <li>The Bank reserves the right to close or suspend any account found to be used for fraudulent, illegal, or unauthorized activities.</li>
+        </ul>
+        <h4>4. Fees & Charges</h4>
+        <p>Account maintenance fees, transaction charges, and other applicable fees will be applied in accordance with GTBank's current tariff schedule, which may be updated from time to time. You will be notified of any material changes.</p>
+        <h4>5. Accuracy of Information</h4>
+        <p>You certify that all information provided in this application is true, complete, and accurate. Providing false or misleading information is a criminal offence under Nigerian law and will result in immediate closure of the account and may be reported to relevant authorities.</p>
+        <h4>6. Changes to Terms</h4>
+        <p>GTBank reserves the right to amend these terms at any time. Continued use of the account after notification of changes constitutes acceptance of the revised terms.</p>
+        <h4>7. Governing Law</h4>
+        <p>These terms are governed by the laws of the Federal Republic of Nigeria. Any disputes shall be subject to the jurisdiction of Nigerian courts.</p>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="terms-block-title">Privacy Policy</div>
+      <div class="terms-scroll">
+        <p><strong>Guaranty Trust Bank Limited</strong> ("GTBank") is committed to protecting your personal data in accordance with the Nigeria Data Protection Act 2023 (NDPA), the Nigeria Data Protection Regulation (NDPR), and the CBN Consumer Protection Framework.</p>
+        <h4>What We Collect</h4>
+        <p>We collect personal data including but not limited to: full name, date of birth, BVN, contact details, identification documents, residential address, employment information, and financial information necessary for account opening and management.</p>
+        <h4>How We Use Your Data</h4>
+        <ul>
+          <li>To open and manage your business account</li>
+          <li>To verify your identity and conduct KYC/AML checks</li>
+          <li>To comply with regulatory and legal obligations (CBN, FIRS, NFIU, SCUML)</li>
+          <li>To detect and prevent fraud</li>
+          <li>To communicate account statements, alerts, and service updates</li>
+          <li>To improve our products and services</li>
+        </ul>
+        <h4>Data Sharing</h4>
+        <p>Your data may be shared with: regulatory authorities (CBN, NDPC, NFIU), credit bureaus, GTBank Group entities, and trusted third-party service providers under strict data processing agreements. We do not sell your personal data to third parties.</p>
+        <h4>Data Retention</h4>
+        <p>We retain your personal data for a minimum of 5 years after account closure, or longer where required by law.</p>
+        <h4>Your Rights</h4>
+        <p>You have the right to access, correct, or request deletion of your personal data. To exercise these rights, contact our Data Protection Officer at <strong>dpo.ng@gtbank.com</strong>.</p>
+        <h4>Marketing Communications</h4>
+        <p>With your consent (indicated below), we may send you product updates, promotional offers, and surveys via SMS, email, or telephone. You may withdraw this consent at any time by contacting <strong>cea@gtbank.com</strong>.</p>
+      </div>
+    </div>
+
+    <div class="terms-block">
+      <div class="terms-block-title">Declaration</div>
+      <div class="terms-scroll">
+        <p>I/We, the undersigned, hereby declare that:</p>
+        <ul>
+          <li>All information provided in this application is true, accurate, and complete to the best of my/our knowledge.</li>
+          <li>I/We are not subject to any sanctions, debarment, or legal restrictions that would prevent me/us from opening or operating a bank account.</li>
+          <li>The funds to be deposited in this account are from legitimate sources and are not proceeds of any unlawful activity.</li>
+          <li>I/We will promptly notify GTBank of any changes to the information provided in this application.</li>
+          <li>I/We understand that GTBank may conduct periodic reviews of this account and may request updated documentation.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="terms-consent-box" id="terms-consent-box">
+      <label class="terms-consent-label">
+        <input type="checkbox" id="terms-check" onchange="onTermsCheck(${idx})">
+        <span>I have read and understood the Terms & Conditions, Privacy Policy, and Declaration above. I/We consent to the Global Standing Instruction (GSI), data processing, and confirm that all information provided is accurate and truthful.</span>
+      </label>
+    </div>
+
+    <div class="terms-consent-box" id="marketing-consent-box" style="border-color:var(--line)">
+      <label class="terms-consent-label">
+        <input type="checkbox" id="marketing-check" onchange="onMarketingCheck()">
+        <span><strong>Optional:</strong> I agree to receive marketing communications, product updates, and promotional offers from GTBank via SMS, email, or phone. I can withdraw this consent at any time.</span>
+      </label>
+    </div>
+
+    <div class="terms-err" id="terms-err">You must accept the Terms, Privacy Policy and Declaration to continue.</div>
+    <div style="margin-top:16px">
+      <button class="ok-btn" onclick="tryTermsAdvance(${idx})">I agree — Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>`;
+}
+
+function onTermsCheck(idx){
+  const chk = document.getElementById('terms-check');
+  const box = document.getElementById('terms-consent-box');
+  const err = document.getElementById('terms-err');
+  if(box) box.classList.toggle('accepted', chk.checked);
+  if(err && chk.checked) err.classList.remove('show');
+  CONSENTS.terms = chk.checked ? 'accepted' : '';
+  FD.consent_terms = CONSENTS.terms;
+  autoSave();
+}
+
+function onMarketingCheck(){
+  const chk = document.getElementById('marketing-check');
+  const box = document.getElementById('marketing-consent-box');
+  if(box) box.classList.toggle('accepted', chk.checked);
+  CONSENTS.marketing = chk.checked ? 'accepted' : 'declined';
+  FD.consent_marketing = CONSENTS.marketing;
+  autoSave();
+}
+
+function tryTermsAdvance(idx){
+  const chk = document.getElementById('terms-check');
+  if(!chk || !chk.checked){
+    const err = document.getElementById('terms-err');
+    if(err) err.classList.add('show');
+    return;
+  }
+  goNext();
+}
+
+function renderChecklist(){
+  const sigCount = 1 + (FD['s2Surname'] ? 1 : 0) + (FD['s3Surname'] ? 1 : 0);
+  const sigLabel = sigCount > 1 ? `Signatories' details (${sigCount})` : 'Signatory details';
+
+  function chk(label, done, optional){
+    const cls = done ? 'done' : optional ? 'pending' : 'warn';
+    const icon = done ? '✅' : optional ? '○' : '⚠️';
+    const status = done ? 'Done' : optional ? 'Optional' : 'Incomplete';
+    return `<div class="chk-item ${cls}"><span class="chk-icon">${icon}</span><span class="chk-label">${label}</span><span class="chk-status">${status}</span></div>`;
+  }
+
+  const bizDone     = !!(FD.bizName && FD.bizAccountProduct && FD.bizAddr1 && FD.bizState);
+  const sigDone     = !!(FD.s1Surname && FD.s1FirstName && FD.s1BVN && FD.s1IDType && FD.s1Signature && (FD.s1ResStreet || FD.sameAsBusiness));
+  const nokDone     = !!(FD.nokSurname && FD.nokRelationship);
+  const svcsDone    = !!(FD.onlineBanking || FD.stmtFreq || FD.chequeBook);
+  const termsDone   = CONSENTS.terms === 'accepted';
+
+  const allRequired = bizDone && sigDone && nokDone && termsDone;
+
+  return `<div class="slide-inner" style="max-width:620px">
+    <span class="slide-emoji">📋</span>
+    <h2 class="slide-q">Almost there —\nquick check</h2>
+    <p class="slide-sub">Here's where things stand before we get to your documents.</p>
+    <div class="chk-list">
+      ${chk('Business details', bizDone, false)}
+      ${chk(sigLabel, sigDone, false)}
+      ${chk('Next of kin', nokDone, false)}
+      ${chk('Account services', svcsDone, true)}
+      ${chk('Terms & Declaration', termsDone, false)}
+    </div>
+    ${allRequired
+      ? `<div style="padding:12px 14px;background:var(--success-bg);border-radius:10px;font-size:13px;color:var(--success);font-weight:600;margin-bottom:20px">✅ All required sections complete — you're good to go!</div>`
+      : `<div style="padding:12px 14px;background:#FFF8F0;border-radius:10px;font-size:12px;color:#8B4513;margin-bottom:20px">Some sections are incomplete. You can still continue but the bank may require you to complete them.</div>`
+    }
+    <button class="ok-btn" onclick="goNext()">Continue to documents <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>`;
+}
+
+function renderDocuments(idx){
+  const biz = FD.bizName || '[Business Name]';
+  const bn = FD.bizRegNumber || '[BN Number]';
+  const addr = [FD.bizHousePlot,FD.bizAddr1,FD.bizCity,FD.bizState].filter(Boolean).join(', ') || '[Business Address]';
+  const mobile = FD.bizMobile || FD.s1Mobile || '';
+  const email = FD.bizEmail || FD.s1Email || '';
+  const sig1 = [FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ') || '[Signatory Name]';
+  const position = FD.s1Position || 'Director';
+  const today = new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'});
+  const sigImg = FD.s1Signature ? `<img src="${FD.s1Signature}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
+
+  const contactLine = [mobile?`📞 ${mobile}`:'', email?`✉ ${email}`:''].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+
+  const letterHTML = `
+    <div style="text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:2.5px solid #E8470A">
+      <div style="font-family:'DM Serif Display',serif;font-size:22px;font-weight:700;color:#1A1208;letter-spacing:-.3px;text-transform:uppercase">${biz}</div>
+      <div style="font-size:11px;color:#555;margin-top:4px">${addr}</div>
+      ${contactLine ? `<div style="font-size:11px;color:#555;margin-top:2px">${contactLine}</div>` : ''}
+    </div>
+    <div style="font-size:12px;line-height:1.9;color:#1A1208">
+      <p>The Manager,<br>Guaranty Trust Bank Ltd,<br>Lagos State.</p>
+      <p style="margin-top:12px">Dear Sir/Ma,</p>
+      <p style="margin-top:12px;font-weight:700;text-decoration:underline;text-align:center">RESOLUTION FOR ACCOUNT OPENING / CONFIRMATION OF NO PRIOR ANNUAL REPORT (BN NO ${bn})</p>
+      <p style="margin-top:12px">At the Meeting of the Board of Directors of <strong>${biz.toUpperCase()}</strong>, a company duly organized and existing under the Laws of the Federal Republic of Nigeria Companies And Allied Matters Act, CAP C20 LFN 2004, whose address is <strong>${addr}</strong>, held at the above stated address on the <strong>${today}</strong>, the following resolutions were duly passed in accordance with the provisions of the Company's Articles of Association:</p>
+      <ol style="margin:12px 0 12px 18px;display:flex;flex-direction:column;gap:10px">
+        <li>THAT the Company be and is hereby authorized to open and operate an account with <strong>Guaranty Trust Bank Ltd</strong> ("the Bank");</li>
+        <li>THAT the following signatories are hereby authorized to conduct the selected account activities on behalf of the Company:<br><br>
+          <span style="margin-left:16px">Signatory: <strong>${sig1}</strong> — A</span><br>
+          <span style="margin-left:16px">Mandate: <strong>Sole Signatory</strong></span>
+        </li>
+        <li>THAT as of the date of this letter, <strong>${biz.toUpperCase()}</strong> has not prepared, filed, or published any annual reports for any previous fiscal years, as we have only recently commenced our business operations.</li>
+      </ol>
+      <p>Thank you for your cooperation.</p>
+      <div style="margin-top:28px">
+        ${sigImg}
+        <div style="font-weight:700;font-size:12px">${sig1}</div>
+        <div style="font-size:11px;color:#555">${position}</div>
+      </div>
+    </div>`;
+
+  window._boardResolutionHTML = letterHTML;
+  window._boardResolutionText = `${biz}\n${addr}\n${mobile} ${email}\n\nThe Manager,\nGuaranty Trust Bank Ltd,\nLagos State.\n\nDear Sir/Ma,\n\nRESOLUTION FOR ACCOUNT OPENING / CONFIRMATION OF NO PRIOR ANNUAL REPORT (BN NO ${bn})\n\nAt the Meeting of the Board of Directors of ${biz.toUpperCase()}, a company duly organized and existing under the Laws of the Federal Republic of Nigeria Companies And Allied Matters Act, CAP C20 LFN 2004, whose address is ${addr}, held at the above stated address on the ${today}, the following resolutions were duly passed:\n\n1. THAT the Company be and is hereby authorized to open and operate an account with Guaranty Trust Bank Ltd ("the Bank");\n\n2. THAT the following signatories are hereby authorized:\n   Signatory: ${sig1} — A\n   Mandate: Sole Signatory\n\n3. THAT as of the date of this letter, ${biz.toUpperCase()} has not prepared, filed, or published any annual reports for any previous fiscal years.\n\nThank you for your cooperation.\n\n\n______________________________\n${sig1}\n${position}`;
+
+  function docSection(title){ return `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:20px 0 8px">${title}</div>`; }
+  function docItem(id,label,sub){
+    return `<div class="doc-upload-item" id="${id}-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="doc-upload-label">${label}</div><div class="doc-upload-sub">${sub}</div></div>
+        <div class="doc-upload-done" style="flex-shrink:0;margin-left:10px">✅</div>
+      </div>
+      <input type="file" id="${id}-input" accept="image/*,.pdf" style="display:none" onchange="markDocUploaded('${id}',this)">
+      <button class="doc-upload-btn" style="margin-top:10px" onclick="document.getElementById('${id}-input').click()">📎 Upload file</button>
+    </div>`;
+  }
+
+  function refBlock(n){
+    return `<div style="border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff" id="ref${n}-card">
+      <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:12px">Referee ${n}</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="doc-upload-btn" id="ref${n}-upload-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'upload')">📎 Upload filled form</button>
+        <button class="doc-upload-btn" id="ref${n}-link-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'link')">📨 Send a link</button>
+      </div>
+      <div id="ref${n}-upload-wrap" style="display:none">
+        <input type="file" id="ref${n}-file-input" accept="image/*,.pdf" style="display:none" onchange="markRefUploaded(${n},this)">
+        <button class="doc-upload-btn" onclick="document.getElementById('ref${n}-file-input').click()">📎 Choose referee form</button>
+        <div id="ref${n}-upload-done" style="display:none;font-size:12px;color:var(--success);font-weight:600;margin-top:8px">✅ Referee form uploaded</div>
+      </div>
+      <div id="ref${n}-link-wrap" style="display:none">
+        <div class="group-fields" style="margin-bottom:12px">
+          <div class="group-field"><label>Referee's full name *</label><input class="tally-input" type="text" id="ref${n}Name" placeholder="Full name" oninput="FD['ref${n}Name']=this.value;autoSave()"></div>
+          <div class="group-field"><label>Email address *</label><input class="tally-input" type="email" id="ref${n}Email" placeholder="referee@email.com" oninput="FD['ref${n}Email']=this.value;autoSave()"></div>
+        </div>
+        <button class="ok-btn" style="font-size:12px;padding:8px 16px" onclick="generateRefLink(${n})">📨 Generate & copy link</button>
+        <div id="ref${n}-link-sent" style="display:none;margin-top:10px;font-size:12px;color:var(--success);font-weight:600">✅ Link copied! Send via WhatsApp or email.</div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="slide-inner" style="max-width:640px">
+
+    <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--line)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:6px">Supporting Documents</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(22px,4vw,32px);color:var(--dark);line-height:1.2;margin-bottom:6px">Attach your documents</h2>
+      <p style="font-size:13px;color:var(--muted)">Upload all items below before submitting. These are required for GTBank to process your account opening.</p>
+    </div>
+
+    ${docSection('1 · Board Resolution')}
+    <div class="resolution-box" style="margin-bottom:4px">
+      <div class="resolution-head">
+        <span class="resolution-head-title">📄 Pre-filled board resolution</span>
+        <span style="font-size:11px;color:var(--muted)">Your details & signature included</span>
+      </div>
+      <div class="resolution-preview" id="resolution-preview" style="max-height:300px;background:#fff;padding:20px 22px;font-family:'DM Sans',sans-serif">${letterHTML}</div>
+      <div class="resolution-actions">
+        <button class="res-btn primary" onclick="adoptResolution()">Adopt this resolution</button>
+        <button class="res-btn" onclick="downloadResolution()">⬇️ Download to edit (.doc)</button>
+      </div>
+    </div>
+    <div id="resolution-adopted" style="display:none;padding:10px 14px;background:var(--success-bg);border-radius:8px;font-size:12px;color:var(--success);font-weight:600;margin-bottom:4px">✅ Resolution adopted.</div>
+
+    ${docSection('2 · Valid ID (Signatory 1)')}
+    ${docItem('doc-id','Government-issued ID','NIN slip, Driver\'s Licence, International Passport or Voter\'s Card')}
+
+    ${docSection('3 · CAC Certificate')}
+    ${docItem('doc-cac','Certificate of Registration','Issued by the Corporate Affairs Commission (CAC)')}
+
+    ${docSection('4 · Form 2 — Particulars of Directors / Status Report')}
+    ${docItem('doc-form2','CAC Form BN 1 / Form 2','Particulars of directors or business name status report from CAC')}
+
+    ${docSection('5 · References')}
+    <div style="padding:10px 14px;background:#F8F6F4;border-radius:10px;font-size:12px;color:var(--ink);line-height:1.8;margin-bottom:14px">
+      Accepted combinations:<br>
+      ✔ Two personal GTBank current / domiciliary account holders<br>
+      ✔ One GTBank holder + one other bank business account holder<br>
+      ✔ Two other bank business account holders
+    </div>
+    ${refBlock(1)}
+    ${refBlock(2)}
+
+    ${okRow(idx,{optional:true})}
+  </div>`;
+}
+
+// ── SPLIT DOCUMENT SLIDES ───────────────────────────────────────────────────
+
+function renderDocBoardRes(idx){
+  const biz = FD.bizName || '[Business Name]';
+  const bn = FD.bizRegNumber || '[BN Number]';
+  const addr = [FD.bizHousePlot,FD.bizAddr1,FD.bizCity,FD.bizState].filter(Boolean).join(', ') || '[Business Address]';
+  const mobile = FD.bizMobile || FD.s1Mobile || '';
+  const email = FD.bizEmail || FD.s1Email || '';
+  const sig1 = [FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ') || '[Signatory Name]';
+  const position = FD.s1Position || 'Director';
+  const today = new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'});
+  const sigImg = FD.s1Signature ? `<img src="${FD.s1Signature}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
+  const contactLine = [mobile?`📞 ${mobile}`:'', email?`✉ ${email}`:''].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+
+  const letterHTML = `
+    <div style="text-align:center;padding-bottom:14px;margin-bottom:14px;border-bottom:2.5px solid #E8470A">
+      <div style="font-family:'DM Serif Display',serif;font-size:22px;font-weight:700;color:#1A1208;letter-spacing:-.3px;text-transform:uppercase">${biz}</div>
+      <div style="font-size:11px;color:#555;margin-top:4px">${addr}</div>
+      ${contactLine ? `<div style="font-size:11px;color:#555;margin-top:2px">${contactLine}</div>` : ''}
+    </div>
+    <div style="font-size:12px;line-height:1.9;color:#1A1208">
+      <p>The Manager,<br>Guaranty Trust Bank Ltd,<br>Lagos State.</p>
+      <p style="margin-top:12px">Dear Sir/Ma,</p>
+      <p style="margin-top:12px;font-weight:700;text-decoration:underline;text-align:center">RESOLUTION FOR ACCOUNT OPENING / CONFIRMATION OF NO PRIOR ANNUAL REPORT (BN NO ${bn})</p>
+      <p style="margin-top:12px">At the Meeting of the Board of Directors of <strong>${biz.toUpperCase()}</strong>, a company duly organized and existing under the Laws of the Federal Republic of Nigeria Companies And Allied Matters Act, CAP C20 LFN 2004, whose address is <strong>${addr}</strong>, held at the above stated address on the <strong>${today}</strong>, the following resolutions were duly passed in accordance with the provisions of the Company's Articles of Association:</p>
+      <ol style="margin:12px 0 12px 18px;display:flex;flex-direction:column;gap:10px">
+        <li>THAT the Company be and is hereby authorized to open and operate an account with <strong>Guaranty Trust Bank Ltd</strong> ("the Bank");</li>
+        <li>THAT the following signatories are hereby authorized to conduct the selected account activities on behalf of the Company:<br><br>
+          <span style="margin-left:16px">Signatory: <strong>${sig1}</strong> — A</span><br>
+          <span style="margin-left:16px">Mandate: <strong>Sole Signatory</strong></span>
+        </li>
+        <li>THAT as of the date of this letter, <strong>${biz.toUpperCase()}</strong> has not prepared, filed, or published any annual reports for any previous fiscal years, as we have only recently commenced our business operations.</li>
+      </ol>
+      <p>Thank you for your cooperation.</p>
+      <div style="margin-top:28px">
+        ${sigImg}
+        <div style="font-weight:700;font-size:12px">${sig1}</div>
+        <div style="font-size:11px;color:#555">${position}</div>
+      </div>
+    </div>`;
+
+  window._boardResolutionHTML = letterHTML;
+  window._boardResolutionText = `${biz}\n${addr}\n\nThe Manager,\nGuaranty Trust Bank Ltd,\nLagos State.\n\nRESOLUTION FOR ACCOUNT OPENING (BN NO ${bn})\n\nAt the Meeting of the Board of Directors of ${biz.toUpperCase()}, held at ${addr} on ${today}, the following resolutions were duly passed:\n\n1. THAT the Company be authorized to open an account with Guaranty Trust Bank Ltd.\n2. THAT the signatory ${sig1} is authorized to operate the account.\n3. THAT no prior annual reports have been filed.\n\n______________________________\n${sig1}\n${position}`;
+
+  return `<div class="slide-inner" style="max-width:640px">
+    <div style="margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--line)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:6px">Documents · 1 of 3</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(20px,4vw,28px);color:var(--dark);line-height:1.2;margin-bottom:6px">Board Resolution</h2>
+      <p style="font-size:13px;color:var(--muted)">We've pre-filled your board resolution using your details. Review it and adopt — or download to edit.</p>
+    </div>
+    <div class="resolution-box" style="margin-bottom:8px">
+      <div class="resolution-head">
+        <span class="resolution-head-title">📄 Pre-filled board resolution</span>
+        <span style="font-size:11px;color:var(--muted)">Your details & signature included</span>
+      </div>
+      <div class="resolution-preview" id="resolution-preview" style="max-height:300px;background:#fff;padding:20px 22px;font-family:'DM Sans',sans-serif">${letterHTML}</div>
+      <div class="resolution-actions">
+        <button class="res-btn primary" onclick="adoptResolution()">Adopt this resolution</button>
+        <button class="res-btn" onclick="downloadResolution()">⬇️ Download to edit (.doc)</button>
+      </div>
+    </div>
+    <div id="resolution-adopted" style="display:none;padding:10px 14px;background:var(--success-bg);border-radius:8px;font-size:12px;color:var(--success);font-weight:600;margin-bottom:8px">✅ Resolution adopted.</div>
+    ${okRow(idx,{optional:true})}
+  </div>`;
+}
+
+function renderDocUploads(idx){
+  function docItem(id,label,sub){
+    return `<div class="doc-upload-item" id="${id}-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="doc-upload-label">${label}</div><div class="doc-upload-sub">${sub}</div></div>
+        <div class="doc-upload-done" style="flex-shrink:0;margin-left:10px">✅</div>
+      </div>
+      <input type="file" id="${id}-input" accept="image/*,.pdf" style="display:none" onchange="markDocUploaded('${id}',this)">
+      <button class="doc-upload-btn" style="margin-top:10px" onclick="document.getElementById('${id}-input').click()">📎 Upload file</button>
+    </div>`;
+  }
+  return `<div class="slide-inner" style="max-width:640px">
+    <div style="margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--line)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:6px">Documents · 2 of 3</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(20px,4vw,28px);color:var(--dark);line-height:1.2;margin-bottom:6px">Upload ID & CAC documents</h2>
+      <p style="font-size:13px;color:var(--muted)">These three documents are required to verify your identity and business registration.</p>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:0 0 8px">Valid ID — Signatory 1</div>
+    ${docItem('doc-id','Government-issued ID','NIN slip, Driver\'s Licence, International Passport or Voter\'s Card')}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:16px 0 8px">CAC Certificate</div>
+    ${docItem('doc-cac','Certificate of Registration','Issued by the Corporate Affairs Commission (CAC)')}
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:16px 0 8px">Form 2 — Particulars of Directors</div>
+    ${docItem('doc-form2','CAC Form BN 1 / Form 2','Particulars of directors or business name status report from CAC')}
+    ${okRow(idx,{optional:true})}
+  </div>`;
+}
+
+function renderDocRefs(idx){
+  function refBlock(n){
+    return `<div style="border:1.5px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:#fff" id="ref${n}-card">
+      <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:12px">Referee ${n}</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="doc-upload-btn" id="ref${n}-upload-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'upload')">📎 Upload filled form</button>
+        <button class="doc-upload-btn" id="ref${n}-link-btn" style="flex:1;justify-content:center" onclick="toggleRefMode(${n},'link')">📨 Send a link</button>
+      </div>
+      <div id="ref${n}-upload-wrap" style="display:none">
+        <input type="file" id="ref${n}-file-input" accept="image/*,.pdf" style="display:none" onchange="markRefUploaded(${n},this)">
+        <button class="doc-upload-btn" onclick="document.getElementById('ref${n}-file-input').click()">📎 Choose referee form</button>
+        <div id="ref${n}-upload-done" style="display:none;font-size:12px;color:var(--success);font-weight:600;margin-top:8px">✅ Referee form uploaded</div>
+      </div>
+      <div id="ref${n}-link-wrap" style="display:none">
+        <div class="group-fields" style="margin-bottom:12px">
+          <div class="group-field"><label>Referee's full name *</label><input class="tally-input" type="text" id="ref${n}Name" placeholder="Full name" oninput="FD['ref${n}Name']=this.value;autoSave()"></div>
+          <div class="group-field"><label>Email address *</label><input class="tally-input" type="email" id="ref${n}Email" placeholder="referee@email.com" oninput="FD['ref${n}Email']=this.value;autoSave()"></div>
+        </div>
+        <button class="ok-btn" style="font-size:12px;padding:8px 16px" onclick="generateRefLink(${n})">📨 Generate & copy link</button>
+        <div id="ref${n}-link-sent" style="display:none;margin-top:10px;font-size:12px;color:var(--success);font-weight:600">✅ Link copied! Send via WhatsApp or email.</div>
+      </div>
+    </div>`;
+  }
+  return `<div class="slide-inner" style="max-width:640px">
+    <div style="margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--line)">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--orange);margin-bottom:6px">Documents · 3 of 3</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(20px,4vw,28px);color:var(--dark);line-height:1.2;margin-bottom:6px">References</h2>
+      <p style="font-size:13px;color:var(--muted)">GTBank requires two referees. Upload a completed referee form, or send the link to your referees to fill online.</p>
+    </div>
+    <div style="padding:10px 14px;background:#F8F6F4;border-radius:10px;font-size:12px;color:var(--ink);line-height:1.8;margin-bottom:16px">
+      Accepted combinations:<br>
+      ✔ Two personal GTBank current / domiciliary account holders<br>
+      ✔ One GTBank holder + one other bank business account holder<br>
+      ✔ Two other bank business account holders
+    </div>
+    ${refBlock(1)}
+    ${refBlock(2)}
+    ${okRow(idx,{optional:true})}
+  </div>`;
+}
+
+function toggleRefMode(n, mode){
+  const uploadWrap = document.getElementById('ref'+n+'-upload-wrap');
+  const linkWrap = document.getElementById('ref'+n+'-link-wrap');
+  const uploadBtn = document.getElementById('ref'+n+'-upload-btn');
+  const linkBtn = document.getElementById('ref'+n+'-link-btn');
+  if(mode==='upload'){
+    if(uploadWrap) uploadWrap.style.display='block';
+    if(linkWrap) linkWrap.style.display='none';
+    if(uploadBtn) uploadBtn.style.cssText+='border-color:var(--orange);color:var(--orange)';
+    if(linkBtn) linkBtn.style.cssText='flex:1;justify-content:center';
+  } else {
+    if(linkWrap) linkWrap.style.display='block';
+    if(uploadWrap) uploadWrap.style.display='none';
+    if(linkBtn) linkBtn.style.cssText+='border-color:var(--orange);color:var(--orange)';
+    if(uploadBtn) uploadBtn.style.cssText='flex:1;justify-content:center';
+  }
+  FD['ref'+n+'Mode'] = mode;
+  autoSave();
+}
+
+function markRefUploaded(n, inputEl){
+  if(!inputEl.files[0]) return;
+  FD['ref'+n+'File'] = inputEl.files[0].name;
+  const done = document.getElementById('ref'+n+'-upload-done');
+  if(done) done.style.display='block';
+  autoSave();
+}
+
+function generateRefLink(n){
+  const name = FD['ref'+n+'Name']||'';
+  const email = FD['ref'+n+'Email']||'';
+  if(!name||!email){ alert('Please enter the referee\'s name and email address first.'); return; }
+  const refConfig = btoa(JSON.stringify({
+    refFor: FD.bizName||'',
+    refForDirector: [FD.s1Title,FD.s1FirstName,FD.s1Surname].filter(Boolean).join(' '),
+    refName: name,
+    refN: n,
+    sessionId: CFG_SESSION||''
+  }));
+  const link = window.location.href.replace(/gtbank-form\.html.*$/, '') + 'gtbank-referee.html?ref=' + refConfig;
+  navigator.clipboard.writeText(link).then(()=>{
+    const el = document.getElementById('ref'+n+'-link-sent');
+    if(el) el.style.display='block';
+  }).catch(()=>{
+    prompt('Copy this link and send to the referee:', link);
+  });
+}
+
+function markDocUploaded(docId, inputEl){
+  if(!inputEl.files[0]) return;
+  const wrap = document.getElementById(docId+'-wrap');
+  if(wrap) wrap.classList.add('uploaded');
+  FD['doc_'+docId] = inputEl.files[0].name;
+  autoSave();
+}
+
+function adoptResolution(){
+  FD['boardResolutionAdopted'] = 'Yes';
+  FD['boardResolutionText'] = window._boardResolution || '';
+  autoSave();
+  const el = document.getElementById('resolution-adopted');
+  if(el) el.style.display='block';
+}
+
+function downloadResolution(){
+  const inner = window._boardResolutionHTML || '';
+  const html = `<html><head><style>body{font-family:'Times New Roman',serif;font-size:12pt;line-height:1.9;margin:72px 80px;color:#000}h1{font-size:18pt}ol{margin-left:20px}</style></head><body>${inner}</body></html>`;
+  const blob = new Blob([html], {type:'application/msword'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='Board_Resolution_'+(FD.bizName||'GTBank').replace(/\s+/g,'_')+'.doc';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function renderProcessingPage(){
+  const r=47; const circ=2*Math.PI*r;
+  return `<div class="slide-inner proc-wrap" style="max-width:480px">
+    <div class="proc-ring-wrap">
+      <svg width="110" height="110" viewBox="0 0 110 110">
+        <circle class="proc-ring-bg" cx="55" cy="55" r="${r}"/>
+        <circle class="proc-ring-fg" id="proc-ring" cx="55" cy="55" r="${r}" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="0"/>
+      </svg>
+      <div class="proc-countdown-num" id="proc-num">10</div>
+    </div>
+    <h2 class="slide-q" style="margin-bottom:6px">Generating your<br>application…</h2>
+    <p class="slide-sub" style="margin-bottom:0">Compiling details, building your PDF, packaging everything up.</p>
+    <div class="proc-steps" id="proc-steps">
+      <div class="proc-step" id="ps1"><span class="proc-step-dot"></span>Compiling your details</div>
+      <div class="proc-step" id="ps2"><span class="proc-step-dot"></span>Generating PDF document</div>
+      <div class="proc-step" id="ps3"><span class="proc-step-dot"></span>Embedding signature &amp; data</div>
+      <div class="proc-step" id="ps4"><span class="proc-step-dot"></span>Merging supporting documents</div>
+      <div class="proc-step" id="ps5"><span class="proc-step-dot"></span>Wrapping up &amp; finalising</div>
+    </div>
+  </div>`;
+}
+
+let _procTimers=[];
+function startProcessing(){
+  _procTimers.forEach(clearTimeout); _procTimers=[];
+  const r=47; const circ=2*Math.PI*r;
+  let count=10;
+  const ring=document.getElementById('proc-ring');
+  const numEl=document.getElementById('proc-num');
+  const steps=['ps1','ps2','ps3','ps4','ps5'];
+
+  function setStep(i,state){
+    const el=document.getElementById(steps[i]);
+    if(el) el.className='proc-step '+state;
+  }
+  function tick(){
+    count--;
+    if(numEl) numEl.textContent=count;
+    if(ring) ring.style.strokeDashoffset=(circ*(count/10)).toFixed(1);
+    if(count<=0){
+      steps.forEach((_,i)=>setStep(i,'done'));
+      // show success flash then go to done
+      if(numEl){ numEl.style.fontSize='28px'; numEl.textContent='✓'; numEl.style.color='var(--success)'; }
+      if(ring){ ring.style.stroke='var(--success)'; }
+      _procTimers.push(setTimeout(()=>goToSlide(SLIDES.length-1,SLIDES.length-2),900));
+      return;
+    }
+    _procTimers.push(setTimeout(tick,1000));
+  }
+
+  // Step activations (0-indexed, at seconds 10,8,6,4,2)
+  setStep(0,'active');
+  _procTimers.push(setTimeout(()=>{ setStep(0,'done');setStep(1,'active'); },2000));
+  _procTimers.push(setTimeout(()=>{ setStep(1,'done');setStep(2,'active'); },4000));
+  _procTimers.push(setTimeout(()=>{ setStep(2,'done');setStep(3,'active'); },6000));
+  _procTimers.push(setTimeout(()=>{ setStep(3,'done');setStep(4,'active'); },8000));
+
+  // Kick off PDF generation at 1s (finishes before 10s)
+  _procTimers.push(setTimeout(generatePDF,800));
+  // Start countdown
+  _procTimers.push(setTimeout(tick,1000));
+}
+
+function renderReview(){
+  return `<div class="slide-inner" style="max-width:660px">
+    <span class="slide-emoji">🔍</span>
+    <h2 class="slide-q">Review your details</h2>
+    <p class="slide-sub">Check everything. Click any section to edit before generating your form.</p>
+    <div id="review-content" style="margin-bottom:24px"></div>
+    <p class="privacy-note" style="margin-bottom:18px">🔒 Your data stays on your device.</p>
+    <button class="ok-btn" style="font-size:16px;padding:15px 30px" onclick="goNext()">🚀 Generate my form</button>
+  </div>`;
+}
+
+function renderDone(){
+  function docLine(icon,label,status,ready){
+    return `<div class="doc-final-item ${ready?'ready':'pending'}">
+      <span class="doc-final-icon">${icon}</span>
+      <span class="doc-final-label">${label}</span>
+      <span class="doc-final-status">${status}</span>
+    </div>`;
+  }
+  const hasBoardRes  = FD.boardResolutionAdopted==='Yes';
+  const hasID        = !!FD['doc_doc-id'];
+  const hasCAC       = !!FD['doc_doc-cac'];
+  const hasForm2     = !!FD['doc_doc-form2'];
+  const hasRef1      = !!(FD.ref1Name||FD['ref1File']);
+  const hasRef2      = !!(FD.ref2Name||FD['ref2File']);
+  const biz          = FD.bizName||'your business';
+
+  return `<div class="slide-inner done-wrap" style="max-width:500px;margin:auto">
+    <div class="done-burst">🎉</div>
+    <div class="done-title">Application complete!</div>
+    <div class="done-sub" id="done-sub">Your GTBank account opening form for <strong>${biz}</strong> has been generated and downloaded.</div>
+
+    <div class="doc-final-list">
+      ${docLine('📄','GTBank Application Form (PDF)','Downloaded ✓',true)}
+      ${docLine('📋','Board Resolution', hasBoardRes?'Adopted ✓':'Not adopted', hasBoardRes)}
+      ${docLine('🪪','Valid ID (Signatory 1)', hasID?'Uploaded ✓':'Not uploaded', hasID)}
+      ${docLine('🏢','CAC Certificate', hasCAC?'Uploaded ✓':'Not uploaded', hasCAC)}
+      ${docLine('📄','Form 2 / BN 1', hasForm2?'Uploaded ✓':'Not uploaded', hasForm2)}
+      ${docLine('🤝','Referee 1', hasRef1?'Ready ✓':'Pending', hasRef1)}
+      ${docLine('🤝','Referee 2', hasRef2?'Ready ✓':'Pending', hasRef2)}
+    </div>
+
+    <div class="done-actions">
+      <a href="#" id="wa-btn" class="btn-wa" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+        Send via WhatsApp
+      </a>
+      <a href="#" id="email-btn" class="btn-email">📧 Send by email</a>
+    </div>
+    <p class="privacy-note">🔒 No data stored on any server.</p>
+  </div>`;
+}
+
+// ── HELPERS ────────────────────────────────────
+function escQ(s){ return s.replace(/'/g,"\\'"); }
+
+// ── INIT ───────────────────────────────────────
+function init(){
+  const container=document.getElementById('slides');
+  SLIDES.forEach((s,i)=>{ container.appendChild(renderSlide(s,i)); });
+
+  // Officer attribution shown on gate screen only — banner removed
+
+  restoreFromStorage();
+  goToSlide(0,0);
+}
+
+// ── NAVIGATION ─────────────────────────────────
+function goToSlide(to,from){
+  document.querySelectorAll('.slide').forEach((el,i)=>{
+    if(i===to) el.className='slide pos-active';
+    else if(i<to) el.className='slide pos-above';
+    else el.className='slide pos-below';
+  });
+  cur=to;
+  updateChrome();
+  setTimeout(()=>{ autoFocus(to); restoreSlideValues(to); }, 460);
+  if(SLIDES[to].type==='review') buildReview();
+  if(SLIDES[to].type==='checklist'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderChecklist();el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='documents'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDocuments(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='doc-board-res'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDocBoardRes(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='doc-uploads'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDocUploads(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='doc-references'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDocRefs(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='references'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderReferencesPage(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
+  if(SLIDES[to].type==='processing'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderProcessingPage();el.className='slide pos-active';} setTimeout(startProcessing,400); }
+  if(SLIDES[to].type==='done'){
+    const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDone();el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);}
+    setTimeout(()=>{
+      const waEl=document.getElementById('wa-btn'); if(waEl&&window._doneWA) waEl.href='https://wa.me/?text='+window._doneWA;
+      const emEl=document.getElementById('email-btn'); if(emEl&&window._doneEmail) emEl.href=window._doneEmail;
+    },100);
+  }
+}
+function goNext(){ if(cur<SLIDES.length-1) goToSlide(cur+1,cur); }
+function goBack(){ if(cur>0) goToSlide(cur-1,cur); }
+function skipSlide(){ goNext(); }
+
+function tryAdvance(idx){
+  if(!validateSlide(SLIDES[idx],idx)) return;
+  goNext();
+}
+
+function updateChrome(){
+  const s=SLIDES[cur];
+  const isWelcome=s.type==='welcome', isDone=s.type==='done';
+  document.getElementById('back-btn').style.display=(cur>0&&!isDone)?'flex':'none';
+  const cnt=document.getElementById('counter');
+  const pill=document.getElementById('section-pill');
+  if(isWelcome||isDone||s.type==='review'){cnt.style.display='none';pill.style.display='none';}
+  else if(s.type==='section'){cnt.style.display='none';pill.style.display='none';}
+  else {
+    const q=SLIDES.slice(0,cur+1).filter(x=>!['welcome','section','review','done'].includes(x.type)).length;
+    cnt.textContent=q+' / '+TOTAL_Q;
+    cnt.style.display='block';
+    if(s.sec){ pill.textContent=s.sec; pill.style.display='block'; }
+    else pill.style.display='none';
+  }
+  const pct=(cur/(SLIDES.length-1))*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+}
+
+function autoFocus(idx){
+  const el=document.querySelector('#slide-'+idx+' .tally-input:not([type="date"]), #slide-'+idx+' .tally-select');
+  if(el) el.focus();
+}
+
+// ── INTERACTIONS ───────────────────────────────
+function pickChoice(field,val,btn,autoAdv,idx){
+  FD[field]=val;
+  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+  clearErr(field);
+  autoSave();
+}
+
+function pickNationality(val,btn,idx){
+  const isSelected = btn.classList.contains('selected');
+  // Deselect all first
+  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>{
+    b.classList.remove('selected');
+    const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
+  });
+  const wrap=document.getElementById('other-country-wrap');
+  if(isSelected){
+    // Toggle off
+    FD['s1Nationality']='';
+    if(wrap) wrap.classList.remove('show');
+    autoSave();
+    return;
+  }
+  // Select new
+  FD['s1Nationality']=val;
+  btn.classList.add('selected');
+  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+  clearErr('s1Nationality');
+  autoSave();
+  if(val==='Nigerian'){ if(wrap) wrap.classList.remove('show'); }
+  else { if(wrap) wrap.classList.add('show'); }
+}
+
+function pickID(field,val,btn,idx){
+  const isSelected = btn.classList.contains('selected');
+  // Deselect all first
+  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>{
+    b.classList.remove('selected');
+    const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
+  });
+  if(isSelected){
+    // Toggle off
+    FD[field]='';
+    const wrap=document.getElementById('id-fields-wrap');
+    if(wrap) wrap.classList.remove('show');
+    autoSave();
+    return;
+  }
+  // Select new
+  FD[field]=val;
+  btn.classList.add('selected');
+  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+  clearErr(field);
+  autoSave();
+  const wrap=document.getElementById('id-fields-wrap');
+  if(wrap) wrap.classList.add('show');
+  const cfg=ID_CFG[val]||{fields:['number']};
+  document.getElementById('id-issue-wrap').style.display=cfg.fields.includes('issue')?'block':'none';
+  document.getElementById('id-expiry-wrap').style.display=cfg.fields.includes('expiry')?'block':'none';
+  setTimeout(()=>{ const el=document.getElementById('s1IDNumber'); if(el) el.focus(); },100);
+}
+
+function pickSalary(val,btn){
+  FD['salaryPayments']=val;
+  document.querySelectorAll('#choices-salary .choice-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+  autoSave();
+  const empWrap=document.getElementById('employees-wrap');
+  const okBtn=document.getElementById('salary-ok-btn');
+  if(val==='Yes'){
+    if(empWrap) empWrap.style.display='block';
+    if(okBtn) okBtn.style.display='inline-flex';
+  } else {
+    if(empWrap) empWrap.style.display='none';
+    if(okBtn) okBtn.style.display='none';
+  }
+}
+
+function toggleSameAsBusiness(label){
+  const check=document.getElementById('same-biz-check');
+  check.checked=!check.checked;
+  label.classList.toggle('active',check.checked);
+  const wrap=document.getElementById('res-fields-wrap');
+  if(check.checked){
+    // Copy business address fields
+    FD['s1ResHousePlot']=FD['bizHousePlot']||'';
+    FD['s1ResStreet']=FD['bizAddr1']||'';
+    FD['s1ResBusStop']=FD['bizBusStop']||'';
+    FD['s1ResCity']=FD['bizCity']||'';
+    FD['s1ResLGA']=FD['bizLGA']||'';
+    FD['s1ResState']=FD['bizState']||'';
+    FD['sameAsBusiness']='Yes';
+    if(wrap) wrap.style.opacity='.4';
+    // Fill visible fields
+    ['s1ResHousePlot','s1ResStreet','s1ResBusStop','s1ResCity','s1ResLGA'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=FD[k]||'';});
+    const st=document.getElementById('s1ResState'); if(st)st.value=FD['bizState']||'';
+    autoSave();
+  } else {
+    FD['sameAsBusiness']='';
+    if(wrap) wrap.style.opacity='1';
+    autoSave();
+  }
+}
+
+function toggleSCUML(){
+  const v=document.getElementById('bizDNFIType').value;
+  const wrap=document.getElementById('scuml-input-wrap');
+  if(wrap) wrap.style.display=v?'block':'none';
+}
+
+function addSigHere(){
+  const w=document.getElementById('sig-warning'); if(w) w.style.display='block';
+  alert('Signatory 2 form — coming in next build! For now, your officer will add this at the branch.');
+  goNext();
+}
+function sendSigLink(){
+  const w=document.getElementById('sig-warning'); if(w) w.style.display='block';
+  const s=document.getElementById('send-sig-wrap');
+  if(s) s.style.display='block';
+}
+function confirmSendLink(){
+  const n=FD['sig2LinkName']||'', c=FD['sig2LinkContact']||'';
+  if(!n||!c){alert('Please enter the signatory\'s name and contact.');return;}
+  const link=window.location.href.split('?')[0]+'?sig=2&ref='+btoa(n);
+  navigator.clipboard.writeText(link).then(()=>{
+    const el=document.getElementById('sig-link-copied');
+    if(el) el.style.display='block';
+  }).catch(()=>alert('Link: '+link));
+}
+
+function onBVNInput(field,idx){
+  const inp=document.getElementById(field);
+  const val=inp.value.replace(/\D/g,'');
+  inp.value=val;
+  FD[field]=val;
+  const ok=document.getElementById(field+'-ok');
+  if(ok) ok.classList.toggle('show',val.length===11);
+  if(val.length===11) clearErr(field);
+  autoSave();
+}
+
+function giveConsent(key,val,idx,required){
+  CONSENTS[key]=val;
+  FD['consent_'+key]=val;
+  document.getElementById('c-yes-'+key)?.classList.toggle('active',val==='accepted');
+  document.getElementById('c-no-'+key)?.classList.toggle('active',val==='declined');
+  const warn=document.getElementById('consent-warn-'+key);
+  if(required&&val==='declined'){ if(warn)warn.classList.add('show'); return; }
+  if(warn) warn.classList.remove('show');
+  autoSave();
+}
+
+// ── VALIDATION ─────────────────────────────────
+function validateSlide(s,idx){
+  if(!s) return true;
+  if(s.type==='references'){
+    if(!(FD.ref1Name||'').trim()||(!(FD.ref2Name||'').trim())){
+      const e=document.getElementById('err-refs'); if(e)e.classList.add('show'); return false;
+    }
+    return true;
+  }
+  if(s.type==='account-product'){
+    if(!(FD['bizAccountProduct']||'').trim()){ const e=document.getElementById('err-acct-product'); if(e)e.classList.add('show'); return false; }
+    return true;
+  }
+  if(s.type==='domiciliary') return true; // always optional
+  if(s.type==='text'){
+    const v=FD[s.id]||'';
+    if(s.required&&!v.trim()){showErr(s.id);return false;}
+    return true;
+  }
+  if(s.type==='bvn'){
+    const v=FD[s.id]||'';
+    if(s.required&&(!v||!/^\d{11}$/.test(v))){showErr(s.id);return false;}
+    return true;
+  }
+  if(s.type==='group'){
+    let ok=true;
+    (s.fields||[]).forEach(f=>{
+      if(f.required&&!(FD[f.id]||'').trim()){
+        const el=document.getElementById(f.id);
+        if(el) el.classList.add('err-i');
+        ok=false;
+      }
+    });
+    if(!ok){ const e=document.getElementById('err-group-'+idx); if(e)e.classList.add('show'); }
+    return ok;
+  }
+  if(s.type==='address'){
+    const street=(FD[s.prefix+'Street']||'').trim();
+    const city=(FD[s.prefix+'City']||'').trim();
+    const state=(FD[s.prefix+'State']||'').trim();
+    const sameCheck=document.getElementById('same-biz-check');
+    if(sameCheck&&sameCheck.checked) return true;
+    if(!street||!city||!state){ const e=document.getElementById('err-group-'+idx); if(e)e.classList.add('show'); return false; }
+    return true;
+  }
+  if(s.type==='id-select'){
+    if(!(FD[s.idField]||'').trim()){showErr(s.idField);return false;}
+    if(!(FD['s1IDNumber']||'').trim()){const el=document.getElementById('s1IDNumber');if(el)el.classList.add('err-i');return false;}
+    return true;
+  }
+  if(s.type==='nationality'){
+    if(!(FD[s.id]||'').trim()){showErr(s.id);return false;}
+    return true;
+  }
+  return true;
+}
+
+function showErr(field){ const e=document.getElementById('err-'+field); if(e)e.classList.add('show'); const i=document.getElementById(field); if(i)i.classList.add('err-i'); }
+function clearErr(field){ const e=document.getElementById('err-'+field); if(e)e.classList.remove('show'); const i=document.getElementById(field); if(i)i.classList.remove('err-i'); }
+
+// ── RESTORE VALUES ─────────────────────────────
+function restoreSlideValues(idx){
+  const s=SLIDES[idx]; if(!s) return;
+  if(s.type==='text'||s.type==='bvn'){
+    const el=document.getElementById(s.id); if(el&&FD[s.id]) el.value=FD[s.id];
+    if(s.type==='bvn'){ const ok=document.getElementById(s.id+'-ok'); if(ok) ok.classList.toggle('show',(FD[s.id]||'').length===11); }
+  }
+  if(s.type==='group'||s.type==='address'){
+    const fields=s.fields||[];
+    fields.forEach(f=>{ const el=document.getElementById(f.id); if(el&&FD[f.id]){if(f.type==='select')el.value=FD[f.id];else el.value=FD[f.id];} });
+    // address same toggle
+    if(s.type==='address'&&FD['sameAsBusiness']==='Yes'){
+      const chk=document.getElementById('same-biz-check');
+      const lbl=document.getElementById('same-biz-toggle');
+      const wrap=document.getElementById('res-fields-wrap');
+      if(chk){chk.checked=true;} if(lbl) lbl.classList.add('active'); if(wrap) wrap.style.opacity='.4';
+    }
+  }
+  if(s.type==='account-product'&&FD['bizAccountProduct']){
+    const pid=FD['bizAccountProduct'], vid=FD['bizAccountVariant'];
+    const grp=document.getElementById('acct-group-'+pid);
+    if(grp) grp.classList.add('selected');
+    const varWrap=document.getElementById('acct-variants-'+pid);
+    if(varWrap) varWrap.classList.add('show');
+    if(vid){
+      const vBtn=document.getElementById('acct-v-'+pid+'-'+vid);
+      if(vBtn) vBtn.classList.add('sel');
+    }
+  }
+  if(s.type==='domiciliary'&&MULTI['domiCurrencies']){
+    MULTI['domiCurrencies'].forEach(cid=>{
+      const chip=document.getElementById('domi-'+cid);
+      const check=document.getElementById('domi-check-'+cid);
+      if(chip) chip.classList.add('selected');
+      if(check) check.style.cssText='background:var(--orange);border-color:var(--orange);color:#fff';
+    });
+  }
+  if(s.type==='choice'&&FD[s.id]){
+    const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(FD[s.id])+'"]');
+    if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+  }
+  if(s.type==='references'){
+    [1,2].forEach(n=>{
+      ['Name','Type','Account','Phone','Email'].forEach(f=>{
+        const el=document.getElementById('ref'+n+f); if(el&&FD['ref'+n+f]) el.value=FD['ref'+n+f];
+      });
+    });
+  }
+  if(s.type==='terms'){
+    const tc=document.getElementById('terms-check'); if(tc&&CONSENTS.terms==='accepted'){tc.checked=true;document.getElementById('terms-consent-box')?.classList.add('accepted');}
+    const mc=document.getElementById('marketing-check'); if(mc&&CONSENTS.marketing==='accepted'){mc.checked=true;document.getElementById('marketing-consent-box')?.classList.add('accepted');}
+  }
+  if(s.type==='consent'&&CONSENTS[s.id]){
+    document.getElementById('c-yes-'+s.id)?.classList.toggle('active',CONSENTS[s.id]==='accepted');
+    document.getElementById('c-no-'+s.id)?.classList.toggle('active',CONSENTS[s.id]==='declined');
+  }
+  if(s.type==='nationality'&&FD['s1Nationality']){
+    const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(FD['s1Nationality'])+'"]');
+    if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+    if(FD['s1Nationality']==='Other'){const w=document.getElementById('other-country-wrap');if(w)w.classList.add('show');}
+  }
+  if(s.type==='id-select'&&FD[s.idField]){
+    const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(FD[s.idField])+'"]');
+    if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+    const wrap=document.getElementById('id-fields-wrap'); if(wrap)wrap.classList.add('show');
+    const cfg=ID_CFG[FD[s.idField]]||{fields:['number']};
+    const iw=document.getElementById('id-issue-wrap');const ew=document.getElementById('id-expiry-wrap');
+    if(iw)iw.style.display=cfg.fields.includes('issue')?'block':'none';
+    if(ew)ew.style.display=cfg.fields.includes('expiry')?'block':'none';
+    const numEl=document.getElementById('s1IDNumber'); if(numEl&&FD['s1IDNumber'])numEl.value=FD['s1IDNumber'];
+    const isEl=document.getElementById('s1IDIssue'); if(isEl&&FD['s1IDIssue'])isEl.value=FD['s1IDIssue'];
+    const exEl=document.getElementById('s1IDExpiry'); if(exEl&&FD['s1IDExpiry'])exEl.value=FD['s1IDExpiry'];
+  }
+  if(s.type==='signature'&&FD[s.id]){
+    const badge = document.getElementById('sig-ok-badge-'+idx);
+    const captBtns = document.getElementById('sig-capture-btns-'+idx);
+    if(badge) badge.classList.add('show');
+    if(captBtns) captBtns.style.display='none';
+    const cont = document.getElementById('sig-continue-'+idx);
+    if(cont) cont.style.display='inline-flex';
+    // Re-render cleaned signature on canvas
+    const img = new Image();
+    img.onload = function(){
+      const ac = document.getElementById('sig-after-'+idx);
+      if(ac){ ac.width=img.width; ac.height=img.height; ac.getContext('2d').drawImage(img,0,0); const pv=document.getElementById('sig-preview-'+idx); if(pv){pv.classList.add('show'); const cb=document.getElementById('sig-confirm-btns-'+idx); if(cb)cb.style.display='none';} }
+    };
+    img.src = FD[s.id];
+    window['_sigPending_'+idx] = FD[s.id];
+  }
+  if(s.type==='salary'&&FD['salaryPayments']){
+    const btn=document.querySelector('#choices-salary .choice-btn[data-val="'+FD['salaryPayments']+'"]');
+    if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+    if(FD['salaryPayments']==='Yes'){
+      const ew=document.getElementById('employees-wrap');if(ew)ew.style.display='block';
+      const ob=document.getElementById('salary-ok-btn');if(ob)ob.style.display='inline-flex';
+      const sc=document.getElementById('staffCount');if(sc&&FD['staffCount'])sc.value=FD['staffCount'];
+    }
+  }
+}
+
+// ── KEYBOARD ────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  const s=SLIDES[cur]; if(!s) return;
+  if(s.type==='choice'&&/^[A-Ea-e]$/.test(e.key)){
+    const o=s.opts.find(x=>x.key===e.key.toUpperCase());
+    if(o){ const b=document.querySelector(`#slide-${cur} .choice-btn[data-val="${CSS.escape(o.val)}"]`); if(b) pickChoice(s.id,o.val,b,true,cur); }
+    return;
+  }
+  if((e.key==='ArrowDown'||e.key==='PageDown')&&['section','welcome'].includes(s.type)){e.preventDefault();goNext();}
+  if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();goBack();}
+});
+
+let _wl=false;
+document.addEventListener('wheel',e=>{
+  const s=SLIDES[cur]; if(!s) return;
+  if(['review','group','consent','address','add-signatories','salary','id-select','scuml'].includes(s.type)) return;
+  if(_wl) return; _wl=true; setTimeout(()=>_wl=false,700);
+  if(e.deltaY>40&&['section','welcome','choice'].includes(s.type)) goNext();
+  if(e.deltaY<-40) goBack();
+},{passive:true});
+
+// ── AUTO-SAVE / RESTORE ────────────────────────
+function autoSave(){
+  try{
+    // Signatures are large — store separately so they don't bloat the main FD object in localStorage
+    const sigKeys = Object.keys(FD).filter(k=>k.endsWith('Signature'));
+    const sigs = {}; sigKeys.forEach(k=>{sigs[k]=FD[k]; delete FD[k];});
+    localStorage.setItem('gtb_fd',JSON.stringify(FD));
+    sigKeys.forEach(k=>FD[k]=sigs[k]); // restore
+    try{ localStorage.setItem('gtb_sigs',JSON.stringify(sigs)); }catch(e2){}
+    localStorage.setItem('gtb_multi',JSON.stringify(Object.fromEntries(Object.entries(MULTI).map(([k,v])=>[k,Array.from(v)]))));
+    localStorage.setItem('gtb_consents',JSON.stringify(CONSENTS));
+  }catch(e){}
+}
+function restoreFromStorage(){
+  try{
+    Object.assign(FD,JSON.parse(localStorage.getItem('gtb_fd')||'{}'));
+    Object.assign(FD,JSON.parse(localStorage.getItem('gtb_sigs')||'{}'));
+    const m=JSON.parse(localStorage.getItem('gtb_multi')||'{}');
+    Object.entries(m).forEach(([k,v])=>{MULTI[k]=new Set(v);FD[k]=v.join(', ');});
+    Object.assign(CONSENTS,JSON.parse(localStorage.getItem('gtb_consents')||'{}'));
+    if(CFG_CUSTOMER&&!FD.s1FirstName&&!FD.s1Surname){
+      const p=CFG_CUSTOMER.trim().split(' ');
+      FD.s1FirstName=p[0]||''; FD.s1Surname=p.slice(1).join(' ')||'';
+    }
+  }catch(e){}
+}
+
+// ── REVIEW BUILDER ─────────────────────────────
+function buildReview(){
+  const s1Name = [FD.s1FirstName,FD.s1Surname].filter(Boolean).join(' ') || 'Signatory 1';
+  const s2Name = [FD.s2FirstName,FD.s2Surname].filter(Boolean).join(' ');
+  const s3Name = [FD.s3FirstName,FD.s3Surname].filter(Boolean).join(' ');
+  const secs=[
+    {title:'🏢 Business Info',goTo:2,rows:[['Category',FD.bizCategory],['Account',FD.bizAccountVariantName||FD.bizAccountProductName],['Domiciliary',FD.domiCurrencies||'None'],['Business name',FD.bizName],['CAC number',FD.bizRegNumber],['Nature',FD.bizNature],['Sector',FD.bizSector],['Turnover',FD.bizTurnover],['TIN',FD.bizTIN],['Address',[FD.bizHousePlot,FD.bizAddr1,FD.bizCity,FD.bizState].filter(Boolean).join(', ')],['LGA',FD.bizLGA],['Mobile',FD.bizMobile],['Email',FD.bizEmail]]},
+    {title:'👤 Signatory 1 — '+s1Name,goTo:10,rows:[['Full name',[FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ')],['Gender',FD.s1Gender],['DOB',FD.s1DOB],['Nationality',FD.s1Nationality+(FD.s1NationalityCountry?' — '+FD.s1NationalityCountry:'')],['BVN',FD.s1BVN],['ID type',FD.s1IDType],['ID number',FD.s1IDNumber],['Mobile',FD.s1Mobile],['Email',FD.s1Email],['Residential address',[FD.s1ResHousePlot,FD.s1ResStreet,FD.s1ResCity,FD.s1ResState].filter(Boolean).join(', ')],['Signature',FD.s1Signature?'Captured ✅':'Not yet']]},
+    ...(s2Name?[{title:'👤 Signatory 2 — '+s2Name,goTo:21,rows:[['Full name',[FD.s2Title,FD.s2FirstName,FD.s2OtherNames,FD.s2Surname].filter(Boolean).join(' ')],['BVN',FD.s2BVN],['Mobile',FD.s2Mobile],['Email',FD.s2Email]]}]:[]),
+    ...(s3Name?[{title:'👤 Signatory 3 — '+s3Name,goTo:21,rows:[['Full name',[FD.s3Title,FD.s3FirstName,FD.s3OtherNames,FD.s3Surname].filter(Boolean).join(' ')],['BVN',FD.s3BVN],['Mobile',FD.s3Mobile],['Email',FD.s3Email]]}]:[]),
+    {title:'👨‍👩‍👧 Next of Kin',goTo:20,rows:[['Name',[FD.nokFirstName,FD.nokSurname].filter(Boolean).join(' ')],['Relationship',FD.nokRelationship],['Mobile',FD.nokMobile],['Address',[FD.nokStreet,FD.nokCity,FD.nokState].filter(Boolean).join(', ')]]},
+    {title:'⚙️ Account Services',goTo:23,rows:[['Online banking',FD.onlineBanking],['Statement',FD.stmtFreq],['Cheque book',FD.chequeBook],['Salary payments',FD.salaryPayments],['Employees',FD.staffCount]]},
+    {title:'📜 Consents',goTo:26,rows:[['Terms & Declaration',CONSENTS.terms==='accepted'?'Accepted':'Not accepted'],['Marketing',CONSENTS.marketing==='accepted'?'Opted in':'Not opted in']]},
+    {title:'🤝 References',goTo:29,rows:[['Ref 1',FD.ref1Name?`${FD.ref1Name}`:null],['Ref 2',FD.ref2Name?`${FD.ref2Name}`:null]]},
+  ];
+  let html='';
+  secs.forEach(sec=>{
+    const rows=sec.rows.filter(r=>r[1]);
+    if(!rows.length) return;
+    html+=`<div class="review-section"><div class="review-head"><span>${sec.title}</span><button class="review-edit" onclick="goToSlide(${sec.goTo},${SLIDES.length-2})">✏️ Edit</button></div><div class="review-rows">${rows.map(r=>`<div class="review-row"><span class="review-row-label">${r[0]}</span><span class="review-row-value">${r[1]}</span></div>`).join('')}</div></div>`;
+  });
+  const el=document.getElementById('review-content'); if(el) el.innerHTML=html;
+}
+
+// ── PDF ─────────────────────────────────────────
+async function generatePDF(){
+  const btn=document.getElementById('generate-btn');
+  if(btn){btn.disabled=true; btn.textContent='⏳ Generating…';}
+  try{
+    const{PDFDocument,StandardFonts,rgb}=PDFLib;
+    const doc=await PDFDocument.create();
+    const fR=await doc.embedFont(StandardFonts.Helvetica);
+    const fB=await doc.embedFont(StandardFonts.HelveticaBold);
+    const W=595,H=842,M=44,C2=260;
+    const OG=rgb(.91,.278,.039),OL=rgb(1,.941,.922),GR=rgb(.478,.431,.392),DK=rgb(.176,.141,.094),WH=rgb(1,1,1),RL=rgb(.918,.898,.875);
+    let page=doc.addPage([W,H]); let y=H-44;
+    function np(){page=doc.addPage([W,H]);y=H-44;}
+    function es(n){if(y<M+n)np();}
+    function dH(){
+      page.drawRectangle({x:0,y:H-76,width:W,height:76,color:OG});
+      page.drawText('GTBank',{x:M,y:H-30,size:20,font:fB,color:WH});
+      page.drawText('Business Account Opening — Sole Proprietorship / Partnership',{x:M,y:H-50,size:10,font:fR,color:rgb(1,.87,.85)});
+      page.drawText('Generated: '+new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'}),{x:W-190,y:H-50,size:8,font:fR,color:rgb(1,.87,.85)});
+      page.drawText('CONFIDENTIAL — For GTBank use only',{x:M,y:H-63,size:8,font:fR,color:rgb(1,.87,.85)});
+    }
+    function dS(t){es(40);y-=10;page.drawRectangle({x:M-6,y:y-4,width:W-(M*2)+12,height:20,color:OL});page.drawText(t.toUpperCase(),{x:M,y:y+3,size:8,font:fB,color:OG});y-=22;}
+    function dR(l,v){if(!v||v==='')return;es(24);page.drawText(l+':',{x:M,y,size:9,font:fR,color:GR});page.drawText(String(v),{x:C2,y,size:9,font:fB,color:DK});y-=20;page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.3,color:RL});y-=3;}
+    dH(); y=H-76-28;
+    dS('Business Details');
+    dR('Category',FD.bizCategory);
+    dR('Account Product',FD.bizAccountVariantName||FD.bizAccountProductName);
+    dR('Domiciliary Currencies',FD.domiCurrencies||'None requested');
+    dR('Business Name',FD.bizName);
+    dR('Registration No.',FD.bizRegNumber);dR('Date of Registration',FD.bizRegDate);dR('State of Reg.',FD.bizRegState);
+    dR('Nature of Business',FD.bizNature);dR('Sector',FD.bizSector);dR('Annual Turnover',FD.bizTurnover);
+    dR('TIN',FD.bizTIN);dR('CRM / Borrower Code',FD.bizCRM);dR('DNFI Type',FD.bizDNFIType);dR('SCUML No.',FD.bizSCUML);y-=6;
+    dS('Business Address & Contact');
+    dR('Operating Address',[FD.bizHousePlot,FD.bizAddr1,FD.bizBusStop,FD.bizCity].filter(Boolean).join(', '));
+    dR('LGA',FD.bizLGA);dR('State',FD.bizState);dR('Mobile',FD.bizMobile);dR('Email',FD.bizEmail);
+    dR('Phone',FD.bizPhone);dR('Website',FD.bizWebsite);y-=6;
+    dS('Signatory 1 — Personal Details');
+    dR('Full Name',[FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' '));
+    dR('Gender',FD.s1Gender);dR('Marital Status',FD.s1Marital);dR('Date of Birth',FD.s1DOB);
+    dR('Place of Birth',FD.s1PlaceOfBirth);dR("Mother's Maiden Name",FD.s1MothersName);
+    dR('State of Origin',FD.s1StateOrigin);dR('LGA of Origin',FD.s1LGAOrigin);
+    dR('Nationality',FD.s1Nationality+(FD.s1NationalityCountry?' — '+FD.s1NationalityCountry:''));
+    dR('Resident Permit',FD.s1ResidentPermit);dR('BVN',FD.s1BVN);dR('Personal TIN',FD.s1TIN);
+    dR('ID Type',FD.s1IDType);dR('ID Number',FD.s1IDNumber);dR('ID Issue Date',FD.s1IDIssue);dR('ID Expiry Date',FD.s1IDExpiry);
+    dR('Occupation',FD.s1Occupation);dR('Job Title',FD.s1JobTitle);dR('Position',FD.s1Position);y-=6;
+    dS('Signatory 1 — Contact & Address');
+    dR('Mobile',FD.s1Mobile);dR('Phone',FD.s1Phone);dR('Email',FD.s1Email);
+    dR('Same as business addr',FD.sameAsBusiness);
+    dR('House/Plot',FD.s1ResHousePlot);dR('Street',FD.s1ResStreet);dR('Bus Stop/Landmark',FD.s1ResBusStop);
+    dR('City/Town',FD.s1ResCity);dR('LGA',FD.s1ResLGA);dR('State',FD.s1ResState);y-=6;
+    // Embed signature image if captured
+    if(FD.s1Signature){
+      try{
+        dS('Signatory 1 — Signature');
+        es(80);
+        const sigDataUrl=FD.s1Signature;
+        const sigB64=sigDataUrl.split(',')[1];
+        const sigBytes=Uint8Array.from(atob(sigB64),c=>c.charCodeAt(0));
+        const sigImg=await doc.embedPng(sigBytes);
+        const sigDims=sigImg.scale(1);
+        const maxW=200, maxH=60;
+        const scale=Math.min(maxW/sigDims.width, maxH/sigDims.height, 1);
+        const sw=sigDims.width*scale, sh=sigDims.height*scale;
+        y-=sh+8;
+        page.drawImage(sigImg,{x:M,y,width:sw,height:sh});
+        y-=10;
+        page.drawLine({start:{x:M,y},end:{x:M+sw+20,y},thickness:.5,color:GR});
+        y-=12;
+        page.drawText('Signature of '+([FD.s1Title,FD.s1FirstName,FD.s1Surname].filter(Boolean).join(' ')||'Signatory 1'),{x:M,y,size:8,font:fR,color:GR});
+        y-=16;
+      }catch(sigErr){ dR('Signature','Captured (see original document)'); }
+    }
+    y-=6;
+    dS('Account Services');
+    dR('Online Banking',FD.onlineBanking);dR('Statement Freq.',FD.stmtFreq);dR('Cheque Book',FD.chequeBook);
+    dR('Salary Payments',FD.salaryPayments);dR('Employees on Payroll',FD.staffCount);y-=6;
+    dS('Next of Kin');
+    dR('Full Name',[FD.nokFirstName,FD.nokOtherNames,FD.nokSurname].filter(Boolean).join(' '));
+    dR('Relationship',FD.nokRelationship);dR('DOB',FD.nokDOB);dR('Gender',FD.nokGender);
+    dR('Mobile',FD.nokMobile);dR('Address',[FD.nokStreet,FD.nokCity,FD.nokState].filter(Boolean).join(', '));y-=6;
+    dS('References');
+    dR('Referee 1',[FD.ref1Name,FD.ref1Type,FD.ref1Account].filter(Boolean).join(' · '));
+    dR('Referee 1 Phone',FD.ref1Phone); dR('Referee 1 Email',FD.ref1Email);
+    dR('Referee 2',[FD.ref2Name,FD.ref2Type,FD.ref2Account].filter(Boolean).join(' · '));
+    dR('Referee 2 Phone',FD.ref2Phone); dR('Referee 2 Email',FD.ref2Email); y-=6;
+    dS('Consents & Declaration');
+    dR('Terms, Privacy & GSI',CONSENTS.terms==='accepted'?'ACCEPTED':'Not accepted');
+    dR('Marketing Communications',CONSENTS.marketing==='accepted'?'Opted in':'Not opted in');y-=20;
+    // Blank signature lines (only show Sig1 line if no captured digital signature)
+    es(80);y-=10;
+    if(!FD.s1Signature){
+      page.drawLine({start:{x:M,y},end:{x:M+160,y},thickness:.7,color:GR});
+      y-=14;
+      page.drawText('Signatory 1 — Signature & Date',{x:M,y,size:8,font:fR,color:GR});
+      y-=4;
+    }
+    page.drawLine({start:{x:W-M-160,y},end:{x:W-M,y},thickness:.7,color:GR});
+    y-=14;
+    page.drawText('Signatory 2 — Signature & Date',{x:W-M-160,y,size:8,font:fR,color:GR});
+    for(let i=0;i<doc.getPageCount();i++){
+      const pg=doc.getPage(i);
+      pg.drawLine({start:{x:M,y:38},end:{x:W-M,y:38},thickness:.4,color:RL});
+      pg.drawText('Guaranty Trust Bank Ltd — RC 152321  |  Generated via FormPilot',{x:M,y:24,size:7,font:fR,color:GR});
+      pg.drawText('Page '+(i+1)+' of '+doc.getPageCount()+'  |  Confidential — For bank use only',{x:M,y:12,size:7,font:fR,color:GR});
+    }
+    const bytes=await doc.save();
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const name=(FD.bizName||FD.s1Surname||'gtbank').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    a.href=url; a.download=name+'_account-opening.pdf';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    const biz=FD.bizName||'your business';
+    const og=CFG_OFFICER?`Hi ${CFG_OFFICER.split(' ')[0]},`:'Hi,';
+    const waMsg=encodeURIComponent(`${og}\n\nCompleted GTBank form for ${biz}. PDF attached.\n\nRegards,\n${CFG_CUSTOMER||FD.s1FirstName||''}`);
+    const emailHref=`mailto:?subject=Completed: GTBank Account Opening — ${biz}&body=${encodeURIComponent(og+'\n\nCompleted form for '+biz+'.\nPDF attached.\n\n'+(CFG_SESSION?'Ref: '+CFG_SESSION+'\n\n':'')+'Regards,\n'+(CFG_CUSTOMER||FD.s1FirstName||''))}`;
+    // Update done slide links (it may not be in DOM yet — store for when it renders)
+    window._doneWA=waMsg; window._doneEmail=emailHref;
+    const waEl=document.getElementById('wa-btn'); if(waEl) waEl.href='https://wa.me/?text='+waMsg;
+    const emEl=document.getElementById('email-btn'); if(emEl) emEl.href=emailHref;
+  }catch(err){
+    console.error(err);
+    const b=document.getElementById('generate-btn');
+    if(b){b.disabled=false;b.textContent='🚀 Try again';}
+  }
+}
+
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

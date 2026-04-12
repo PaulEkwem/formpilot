@@ -1,0 +1,1343 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fill your form — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      :root {
+        --primary:      #2563eb;
+        --primary-dark: #1d4ed8;
+        --primary-light:#eff6ff;
+        --accent:       #10b981;
+        --text:         #0f172a;
+        --muted:        #64748b;
+        --border:       #e2e8f0;
+        --bg:           #f8fafc;
+        --card:         #ffffff;
+        --radius:       14px;
+      }
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+      }
+
+      /* NAV */
+      .fill-nav {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        padding: .9rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .logo { display: flex; align-items: center; gap: .5rem; text-decoration: none; color: var(--text); }
+      .logo-mark {
+        width: 30px; height: 30px;
+        background: var(--primary);
+        color: #fff; font-weight: 800; font-size: .72rem;
+        border-radius: 7px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .logo-text { font-weight: 700; font-size: .95rem; }
+      .fill-nav-meta { font-size: .8rem; color: var(--muted); text-align: right; }
+      .fill-nav-meta strong { display: block; color: var(--text); font-weight: 600; font-size: .85rem; }
+
+      /* CONTEXT BANNER */
+      .context-banner {
+        background: var(--primary-light);
+        border-bottom: 1px solid #bfdbfe;
+        padding: .75rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        font-size: .875rem;
+      }
+      .context-banner .cb-icon { font-size: 1.1rem; }
+      .context-banner strong { color: var(--primary); font-weight: 600; }
+
+      /* MAIN */
+      .fill-wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2.5rem 1.25rem 5rem;
+      }
+
+      /* Progress */
+      .progress-header { margin-bottom: 2rem; }
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .6rem;
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .progress-bar {
+        height: 6px;
+        background: var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
+        transition: width .4s ease;
+      }
+
+      /* Step card */
+      .step-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+        padding: 2rem 1.75rem;
+        margin-bottom: 1rem;
+      }
+      .step-eyebrow {
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: var(--primary);
+        margin-bottom: .6rem;
+      }
+      .step-card h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: .4rem;
+        line-height: 1.25;
+      }
+      .step-card .step-desc {
+        font-size: .875rem;
+        color: var(--muted);
+        margin-bottom: 1.75rem;
+        line-height: 1.6;
+      }
+
+      /* Form groups */
+      .field-group  { display: flex; flex-direction: column; gap: 1.25rem; }
+      .form-field   { display: flex; flex-direction: column; gap: .4rem; }
+      .form-field label {
+        font-size: .825rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .form-field .field-hint {
+        font-size: .75rem;
+        color: var(--muted);
+        margin-top: -.2rem;
+      }
+      .form-field input,
+      .form-field select,
+      .form-field textarea {
+        width: 100%;
+        padding: .7rem .9rem;
+        font-family: inherit;
+        font-size: .95rem;
+        border: 1.5px solid var(--border);
+        border-radius: 9px;
+        background: #fafcff;
+        color: var(--text);
+        outline: none;
+        transition: border-color .2s, box-shadow .2s, background .2s;
+        appearance: none;
+      }
+      .form-field input:focus,
+      .form-field select:focus,
+      .form-field textarea:focus {
+        border-color: var(--primary);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+      }
+      .form-field input::placeholder,
+      .form-field textarea::placeholder { color: #cbd5e1; }
+      .form-field textarea { resize: vertical; min-height: 80px; }
+
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+      /* Error state */
+      .form-field.has-error input,
+      .form-field.has-error select,
+      .form-field.has-error textarea {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239,68,68,.1);
+      }
+      .field-error {
+        font-size: .75rem;
+        color: #dc2626;
+        font-weight: 500;
+        display: none;
+      }
+      .form-field.has-error .field-error { display: block; }
+
+      /* BVN helper */
+      .bvn-wrap { position: relative; }
+      .bvn-check {
+        position: absolute;
+        right: .75rem; top: 50%;
+        transform: translateY(-50%);
+        font-size: .8rem;
+        font-weight: 700;
+        color: var(--accent);
+        pointer-events: none;
+        display: none;
+      }
+      .bvn-wrap.valid .bvn-check { display: block; }
+
+      /* Radio Cards — for primary choice (entity type) */
+      .radio-cards { display: flex; flex-direction: column; gap: .65rem; }
+      .radio-card {
+        display: flex;
+        align-items: flex-start;
+        gap: .85rem;
+        padding: 1rem 1.1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s, box-shadow .2s;
+        user-select: none;
+      }
+      .radio-card:hover { border-color: var(--primary); background: #f5f9ff; }
+      .radio-card.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+      .radio-card input[type=radio] {
+        accent-color: var(--primary);
+        width: 17px; height: 17px;
+        flex-shrink: 0;
+        margin-top: .15rem;
+        cursor: pointer;
+      }
+      .rc-text .rc-label { font-size: .9rem; font-weight: 700; color: var(--text); }
+      .rc-text .rc-desc  { font-size: .78rem; color: var(--muted); margin-top: .15rem; }
+
+      /* Radio Chips — for compact choices (gender, yes/no, etc.) */
+      .radio-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+      .radio-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .5rem 1rem;
+        border: 1.5px solid var(--border);
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: .85rem;
+        font-weight: 600;
+        color: var(--muted);
+        transition: all .2s;
+        user-select: none;
+      }
+      .radio-chip:hover { border-color: var(--primary); color: var(--primary); }
+      .radio-chip input[type=radio] { display: none; }
+      .radio-chip.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+      /* Section divider within a step */
+      .field-section {
+        margin-top: .5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border);
+      }
+      .field-section-label {
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        color: var(--muted);
+        margin-bottom: .75rem;
+      }
+
+      /* Navigation buttons */
+      .step-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        gap: 1rem;
+      }
+      .btn-back {
+        background: none;
+        border: 1.5px solid var(--border);
+        color: var(--muted);
+        font-family: inherit;
+        font-size: .9rem;
+        font-weight: 600;
+        padding: .7rem 1.3rem;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: border-color .2s, color .2s;
+      }
+      .btn-back:hover { border-color: var(--text); color: var(--text); }
+      .btn-next {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        font-family: inherit;
+        font-size: .95rem;
+        font-weight: 700;
+        padding: .75rem 1.75rem;
+        border-radius: 9px;
+        cursor: pointer;
+        flex: 1;
+        max-width: 280px;
+        margin-left: auto;
+        transition: background .2s, transform .1s;
+      }
+      .btn-next:hover { background: var(--primary-dark); transform: translateY(-1px); }
+      .btn-next:disabled { opacity: .6; transform: none; cursor: not-allowed; }
+
+      /* Review */
+      .review-section { margin-bottom: 1.5rem; }
+      .review-section-title {
+        font-size: .72rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--muted);
+        margin-bottom: .5rem;
+        padding-bottom: .4rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .review-grid { display: flex; flex-direction: column; gap: 0; }
+      .review-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        padding: .6rem .1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: .875rem;
+      }
+      .review-row:last-child { border-bottom: none; }
+      .review-label { color: var(--muted); flex-shrink: 0; max-width: 45%; }
+      .review-value { font-weight: 600; text-align: right; word-break: break-word; }
+
+      /* Done screen */
+      .done-screen {
+        text-align: center;
+        padding: 2.5rem 1.75rem;
+      }
+      .done-icon {
+        width: 72px; height: 72px;
+        background: #f0fdf4;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1.5rem;
+      }
+      .done-screen h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: .5rem; }
+      .done-screen p  { font-size: .9rem; color: var(--muted); margin-bottom: 2rem; line-height: 1.6; }
+
+      .notify-card {
+        background: var(--primary-light);
+        border: 1px solid #bfdbfe;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+      }
+      .notify-card h3 { font-size: .95rem; font-weight: 700; margin-bottom: .35rem; }
+      .notify-card p  { font-size: .825rem; color: var(--muted); margin-bottom: 1rem; }
+      .notify-btns { display: flex; flex-wrap: wrap; gap: .6rem; }
+      .btn-whatsapp {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: #25d366; color: #fff;
+        font-family: inherit; font-size: .85rem; font-weight: 700;
+        padding: .6rem 1.1rem;
+        border-radius: 8px; border: none; cursor: pointer;
+        text-decoration: none;
+        transition: background .2s;
+      }
+      .btn-whatsapp:hover { background: #1ebe5d; }
+      .btn-email {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: #fff; color: var(--text);
+        font-family: inherit; font-size: .85rem; font-weight: 600;
+        padding: .6rem 1.1rem;
+        border-radius: 8px; border: 1.5px solid var(--border); cursor: pointer;
+        text-decoration: none;
+        transition: border-color .2s;
+      }
+      .btn-email:hover { border-color: var(--primary); color: var(--primary); }
+
+      .privacy-note {
+        font-size: .775rem;
+        color: var(--muted);
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: .65rem .9rem;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+      }
+
+      /* Loading */
+      .loading-state {
+        text-align: center;
+        padding: 4rem 1.5rem;
+        color: var(--muted);
+        font-size: .9rem;
+      }
+      .loading-spinner {
+        width: 32px; height: 32px;
+        border: 3px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        margin: 0 auto 1rem;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* Invalid link */
+      .invalid-state {
+        text-align: center;
+        padding: 4rem 1.5rem;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      .invalid-state .inv-icon { font-size: 3rem; margin-bottom: 1rem; }
+      .invalid-state h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .5rem; }
+      .invalid-state p  { font-size: .9rem; color: var(--muted); line-height: 1.6; }
+
+      /* Optional badge */
+      .opt-badge { font-weight: 400; color: var(--muted); }
+
+      @media (max-width: 520px) {
+        .fill-wrap { padding: 1.5rem .9rem 4rem; }
+        .step-card { padding: 1.5rem 1.25rem; }
+        .two-col { grid-template-columns: 1fr; }
+        .step-card h2 { font-size: 1.15rem; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="fill-nav">
+      <a href="index.html" class="logo">
+        <span class="logo-mark">FP</span>
+        <span class="logo-text">FormPilot</span>
+      </a>
+      <div class="fill-nav-meta" id="navMeta">
+        <strong id="navBank">—</strong>
+        <span id="navFormType">—</span>
+      </div>
+    </nav>
+
+    <!-- CONTEXT BANNER -->
+    <div class="context-banner" id="contextBanner" style="display:none">
+      <span class="cb-icon">👋</span>
+      <span id="contextText"></span>
+    </div>
+
+    <!-- MAIN -->
+    <div class="fill-wrap" id="fillWrap">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        Loading your form…
+      </div>
+    </div>
+
+    <script>
+    // ── Constants ──────────────────────────────────────────────
+    const STATES = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue',
+      'Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo',
+      'Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa',
+      'Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe',
+      'Zamfara','FCT'];
+
+    const TITLES = ['Mr','Mrs','Miss','Ms','Dr','Prof','Alhaji','Alhaja','Chief',
+      'Otunba','Engr','Barr','Hon','Deacon','Deaconess'];
+
+    const SECTORS = ['Agriculture','Construction','Education','Finance & Insurance',
+      'Healthcare','Hospitality & Tourism','ICT & Technology','Manufacturing',
+      'Oil & Gas','Real Estate','Retail & Trade','Transport & Logistics','Other'];
+
+    // ── Parse config from URL ──────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    let config = {};
+    try {
+      const raw = params.get('config');
+      if (raw) config = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    } catch (e) {}
+
+    const BANK          = config.bank         || '';
+    const FORM_TYPE     = config.formType      || '';
+    const CUSTOMER      = config.customer      || '';
+    const OFFICER       = config.officer       || '';
+    const OFFICER_EMAIL = config.officerEmail  || '';
+    const OFFICER_PHONE = config.officerPhone  || '';
+    const SESSION_ID    = config.sessionId     || '';
+
+    // ── Render nav meta ───────────────────────────────────────
+    document.getElementById('navBank').textContent     = BANK     || 'FormPilot';
+    document.getElementById('navFormType').textContent = FORM_TYPE || 'Form';
+
+    if (OFFICER || BANK) {
+      const banner = document.getElementById('contextBanner');
+      const text   = OFFICER
+        ? `<strong>${OFFICER}</strong> from ${BANK} sent you this form to fill. It takes about 5 minutes.`
+        : `You've been sent a <strong>${FORM_TYPE}</strong> form from ${BANK}.`;
+      document.getElementById('contextText').innerHTML = text;
+      banner.style.display = 'flex';
+    }
+
+    // ── Form step definitions ─────────────────────────────────
+    function getFormSteps(bank, formType) {
+      // GTBank Sole Proprietorship / Partnership
+      if (bank === 'GTBank' && (formType.includes('Sole Proprietorship') || formType.includes('Partnership') || formType.includes('Sole Prop'))) {
+        return gtbankSolePropSteps();
+      }
+      // GTBank Corporate
+      if (bank === 'GTBank' && formType.includes('Corporate')) {
+        return gtbankCorporateSteps();
+      }
+      // GTBank KYC Update
+      if (bank === 'GTBank' && formType.includes('KYC')) {
+        return kycUpdateSteps(bank);
+      }
+      // Generic fallback for any other bank/form
+      return genericSteps();
+    }
+
+    // ── GTBank Sole Proprietorship / Partnership Steps ────────
+    function gtbankSolePropSteps() {
+      return [
+        {
+          id: 'acct-type',
+          title: 'Account type selection',
+          eyebrow: 'Business Entity',
+          desc: 'Select your business structure and the type of account you want to open.',
+          fields: [
+            {
+              id: 'entityType', label: 'Business entity type',
+              type: 'radio-cards', required: true,
+              options: [
+                { value: 'Sole Proprietorship', label: 'Sole Proprietorship', desc: 'Owned and operated by one individual' },
+                { value: 'Partnership', label: 'Partnership', desc: 'Owned by two or more people sharing profits & liabilities' },
+              ]
+            },
+            {
+              id: 'accountType', label: 'Account type',
+              type: 'radio-chips', required: true,
+              options: ['Current', 'Domiciliary', 'Others']
+            },
+          ]
+        },
+        {
+          id: 'business-details',
+          title: 'Business details',
+          eyebrow: 'Business Information',
+          desc: 'These details will appear exactly as written on your GTBank account opening form.',
+          fields: [
+            { id: 'bizName',    label: 'Business name', type: 'text', placeholder: 'As registered with CAC', required: true },
+            { id: 'cacNumber',  label: 'CAC registration number', type: 'text', placeholder: 'BN/RC/IT number', required: false },
+            { id: 'regDate',    label: 'Date of registration', type: 'date', required: false },
+            { id: 'jurisdiction', label: 'State of registration (jurisdiction)', type: 'select', required: false,
+              options: ['Select state', ...STATES] },
+            { id: 'natureOfBiz', label: 'Nature / type of business', type: 'text', placeholder: 'e.g. Retail trading, Consulting, Food production', required: true },
+            { id: 'sector',     label: 'Sector / industry', type: 'select', required: false,
+              options: ['Select sector', ...SECTORS] },
+            { id: 'annualTurnover', label: 'Estimated annual turnover', type: 'radio-chips', required: false,
+              options: ['Below ₦5M', '₦5M – ₦50M', '₦50M – ₦500M', 'Above ₦500M'] },
+            { id: 'tin',        label: 'Business TIN (Tax Identification Number)', type: 'text', placeholder: 'e.g. 1234567890', required: false },
+            { id: 'scuml',      label: 'SCUML Registration Number', type: 'text', placeholder: 'If applicable', required: false,
+              hint: 'Required for DNFIs: lawyers, accountants, estate agents, car dealers, etc.' },
+          ]
+        },
+        {
+          id: 'business-address',
+          title: 'Business address & contact',
+          eyebrow: 'Business Contact',
+          desc: 'Your principal operating address as it should appear on the account opening form.',
+          fields: [
+            { id: 'bizAddr1',  label: 'Operating address', type: 'text', placeholder: '12 Broad Street', required: true },
+            { id: 'bizAddr2',  label: 'Address line 2', type: 'text', placeholder: 'Victoria Island, Lagos', required: false },
+            { id: 'bizLGA',    label: 'LGA', type: 'text', placeholder: 'Local government area', required: false },
+            { id: 'bizState',  label: 'State', type: 'select', required: true, options: ['Select state', ...STATES] },
+            { id: 'bizMobile', label: 'Business mobile number', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 'bizPhone',  label: 'Office phone (landline)', type: 'tel', placeholder: 'Optional', required: false },
+            { id: 'bizEmail',  label: 'Business email address', type: 'email', placeholder: 'contact@yourbusiness.com', required: false },
+            { id: 'bizWebsite', label: 'Website', type: 'text', placeholder: 'www.yourbusiness.com', required: false },
+            { id: 'employees', label: 'Number of employees', type: 'select', required: false,
+              options: ['Select range', '1 – 10', '11 – 50', '51 – 200', '201 – 1,000', 'Above 1,000'] },
+          ]
+        },
+        {
+          id: 'sig1-personal',
+          title: 'Principal owner / first signatory',
+          eyebrow: 'Signatory 1 — Personal Details',
+          desc: 'Personal details of the business owner or primary signatory on the account.',
+          fields: [
+            { id: 's1Title',     label: 'Title', type: 'select', required: false,
+              options: ['Select title', ...TITLES] },
+            { id: 's1Surname',   label: 'Surname', type: 'text', placeholder: 'Okonkwo', required: true },
+            { id: 's1FirstName', label: 'First name', type: 'text', placeholder: 'Ada', required: true },
+            { id: 's1OtherNames',label: 'Other names', type: 'text', placeholder: 'Optional', required: false },
+            { id: 's1Gender',    label: 'Gender', type: 'radio-chips', required: true, options: ['Male', 'Female'] },
+            { id: 's1Marital',   label: 'Marital status', type: 'radio-chips', required: false,
+              options: ['Single', 'Married', 'Divorced', 'Widowed'] },
+            { id: 's1DOB',       label: 'Date of birth', type: 'date', required: true },
+            { id: 's1PlaceBirth',label: 'Place of birth', type: 'text', placeholder: 'City / town', required: false },
+            { id: 's1CountryBirth', label: 'Country of birth', type: 'text', placeholder: 'Nigeria', required: false },
+            { id: 's1Nationality', label: 'Nationality', type: 'text', placeholder: 'Nigerian', required: true },
+            { id: 's1MotherMaiden', label: "Mother's maiden name", type: 'text', placeholder: "Your mother's surname at birth", required: false },
+          ]
+        },
+        {
+          id: 'sig1-identity',
+          title: 'Identity & KYC',
+          eyebrow: 'Signatory 1 — KYC',
+          desc: 'Required for Know Your Customer compliance. Your data is generated on your device — never stored on our servers.',
+          fields: [
+            { id: 's1StateOrigin', label: 'State of origin', type: 'select', required: false,
+              options: ['Select state', ...STATES] },
+            { id: 's1LGAOrigin',   label: 'LGA of origin', type: 'text', placeholder: 'Local government area', required: false },
+            { id: 's1BVN',         label: 'BVN (Bank Verification Number)', type: 'text',
+              placeholder: '12345678901', hint: '11-digit number printed on your BVN slip',
+              required: true, pattern: /^\d{11}$/, errorMsg: 'BVN must be exactly 11 digits.' },
+            { id: 's1TIN',         label: 'Personal TIN', type: 'text', placeholder: 'Optional', required: false },
+            { id: 's1IDType',      label: 'Means of identification', type: 'select', required: true,
+              options: ['Select ID type', 'National ID (NIN Slip)', "Driver's Licence", 'International Passport', "Voter's Card", 'FRSC Certificate'] },
+            { id: 's1IDNumber',    label: 'ID number', type: 'text', placeholder: 'Your ID number', required: true },
+            { id: 's1IDIssue',     label: 'ID issue date', type: 'date', required: false },
+            { id: 's1IDExpiry',    label: 'ID expiry date', type: 'date', required: false },
+            { id: 's1Occupation',  label: 'Occupation', type: 'text', placeholder: 'e.g. Business owner', required: false },
+            { id: 's1JobTitle',    label: 'Position / job title', type: 'text', placeholder: 'e.g. Managing Director', required: false },
+          ]
+        },
+        {
+          id: 'sig1-contact',
+          title: 'Your residential address & contact',
+          eyebrow: 'Signatory 1 — Contact',
+          desc: 'Your personal contact details as they will appear on the form.',
+          fields: [
+            { id: 's1ResAddr',  label: 'Residential address', type: 'textarea',
+              placeholder: '12 Broad Street, Victoria Island, Lagos', required: true },
+            { id: 's1MailAddr', label: 'Mailing address (if different)', type: 'textarea',
+              placeholder: 'Leave blank if same as above', required: false },
+            { id: 's1Mobile',   label: 'Mobile number', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 's1Phone',    label: 'Alternate phone', type: 'tel', placeholder: 'Optional', required: false },
+            { id: 's1Email',    label: 'Personal email', type: 'email', placeholder: 'your@email.com', required: false },
+          ]
+        },
+        {
+          id: 'account-services',
+          title: 'Account services',
+          eyebrow: 'Account Preferences',
+          desc: 'Choose the services you want on this business account.',
+          fields: [
+            { id: 'onlineBanking',  label: 'Internet / online banking', type: 'radio-chips', required: false,
+              options: ['GAPS (Full access)', 'GAPS-Lite', 'Not required'] },
+            { id: 'chequeBook',     label: 'Cheque book required?', type: 'radio-chips', required: false,
+              options: ['Yes', 'No'] },
+            { id: 'stmtFreq',       label: 'Account statement frequency', type: 'radio-chips', required: false,
+              options: ['Monthly', 'Quarterly', 'Half-yearly', 'Annually'] },
+            { id: 'debitCard',      label: 'Debit card?', type: 'radio-chips', required: false,
+              options: ['Yes', 'No'] },
+            { id: 'salaryPayments', label: 'Will this account be used for salary payments?', type: 'radio-chips', required: false,
+              options: ['Yes', 'No'] },
+          ]
+        },
+        {
+          id: 'review',
+          title: 'Review your details',
+          eyebrow: 'Final Review',
+          desc: 'Check everything below before generating your GTBank account opening form.',
+          fields: [],
+        }
+      ];
+    }
+
+    // ── GTBank Corporate Steps ────────────────────────────────
+    function gtbankCorporateSteps() {
+      return [
+        {
+          id: 'company-type',
+          title: 'Company type',
+          eyebrow: 'Entity Type',
+          desc: 'Select your company category as it is registered.',
+          fields: [
+            {
+              id: 'entityType', label: 'Company category', type: 'radio-cards', required: true,
+              options: [
+                { value: 'Private Limited Company', label: 'Private Limited Company (Ltd)', desc: 'Registered under CAMA with limited liability' },
+                { value: 'Public Limited Company', label: 'Public Limited Company (Plc)', desc: 'Publicly traded or eligible to offer shares to the public' },
+                { value: 'Government Parastatal', label: 'Government Parastatal / Agency', desc: 'Federal, state, or local government body' },
+              ]
+            },
+            {
+              id: 'accountType', label: 'Account type', type: 'radio-chips', required: true,
+              options: ['Current', 'Domiciliary', 'Others']
+            },
+          ]
+        },
+        {
+          id: 'company-details',
+          title: 'Company details',
+          eyebrow: 'Company Information',
+          desc: 'Enter your company details exactly as they appear in your CAC documents.',
+          fields: [
+            { id: 'bizName',    label: 'Company name', type: 'text', placeholder: 'As registered with CAC', required: true },
+            { id: 'cacNumber',  label: 'RC Number (CAC registration)', type: 'text', placeholder: 'RC 123456', required: true },
+            { id: 'regDate',    label: 'Date of incorporation', type: 'date', required: false },
+            { id: 'jurisdiction', label: 'State of registration', type: 'select', required: false,
+              options: ['Select state', ...STATES] },
+            { id: 'natureOfBiz', label: 'Principal business activity', type: 'text',
+              placeholder: 'e.g. Software development, Oil trading, Real estate', required: true },
+            { id: 'sector',     label: 'Sector / industry', type: 'select', required: false,
+              options: ['Select sector', ...SECTORS] },
+            { id: 'tin',        label: 'Company TIN', type: 'text', placeholder: '10-digit TIN', required: false },
+            { id: 'annualTurnover', label: 'Estimated annual turnover', type: 'radio-chips', required: false,
+              options: ['Below ₦5M', '₦5M – ₦50M', '₦50M – ₦500M', 'Above ₦500M'] },
+          ]
+        },
+        {
+          id: 'company-address',
+          title: 'Registered address & contact',
+          eyebrow: 'Company Contact',
+          desc: 'Use the address in your CAC certificate.',
+          fields: [
+            { id: 'bizAddr1',  label: 'Registered / operating address', type: 'text', placeholder: '12 Broad Street', required: true },
+            { id: 'bizAddr2',  label: 'Address line 2', type: 'text', placeholder: 'Lagos Island, Lagos', required: false },
+            { id: 'bizState',  label: 'State', type: 'select', required: true, options: ['Select state', ...STATES] },
+            { id: 'bizMobile', label: 'Company phone / mobile', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 'bizEmail',  label: 'Company email address', type: 'email', placeholder: 'info@company.com', required: false },
+            { id: 'bizWebsite', label: 'Website', type: 'text', placeholder: 'www.company.com', required: false },
+            { id: 'employees', label: 'Number of employees', type: 'select', required: false,
+              options: ['Select range', '1 – 10', '11 – 50', '51 – 200', '201 – 1,000', 'Above 1,000'] },
+          ]
+        },
+        {
+          id: 'director-personal',
+          title: 'Director / authorised signatory',
+          eyebrow: 'Signatory Details',
+          desc: 'Details of the first authorised signatory or director named on the account.',
+          fields: [
+            { id: 's1Title',     label: 'Title', type: 'select', required: false, options: ['Select title', ...TITLES] },
+            { id: 's1Surname',   label: 'Surname', type: 'text', placeholder: 'Okonkwo', required: true },
+            { id: 's1FirstName', label: 'First name', type: 'text', placeholder: 'Ada', required: true },
+            { id: 's1OtherNames',label: 'Other names', type: 'text', placeholder: 'Optional', required: false },
+            { id: 's1Gender',    label: 'Gender', type: 'radio-chips', required: true, options: ['Male', 'Female'] },
+            { id: 's1DOB',       label: 'Date of birth', type: 'date', required: true },
+            { id: 's1Nationality', label: 'Nationality', type: 'text', placeholder: 'Nigerian', required: false },
+            { id: 's1BVN',       label: 'BVN', type: 'text', placeholder: '12345678901',
+              hint: '11-digit Bank Verification Number', required: true,
+              pattern: /^\d{11}$/, errorMsg: 'BVN must be exactly 11 digits.' },
+            { id: 's1IDType',    label: 'Means of identification', type: 'select', required: true,
+              options: ['Select ID type', 'National ID (NIN Slip)', "Driver's Licence", 'International Passport', "Voter's Card"] },
+            { id: 's1IDNumber',  label: 'ID number', type: 'text', placeholder: 'ID number', required: true },
+            { id: 's1IDExpiry',  label: 'ID expiry date', type: 'date', required: false },
+          ]
+        },
+        {
+          id: 'director-contact',
+          title: "Director's contact & address",
+          eyebrow: 'Signatory Contact',
+          desc: 'Residential and contact details for the authorised signatory.',
+          fields: [
+            { id: 's1ResAddr',  label: 'Residential address', type: 'textarea',
+              placeholder: '12 Broad Street, Victoria Island, Lagos', required: true },
+            { id: 's1Mobile',   label: 'Mobile number', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 's1Email',    label: 'Personal email', type: 'email', placeholder: 'name@email.com', required: false },
+            { id: 's1JobTitle', label: 'Job title / position', type: 'text', placeholder: 'e.g. CEO, Finance Director', required: false },
+          ]
+        },
+        {
+          id: 'account-services',
+          title: 'Account services',
+          eyebrow: 'Account Preferences',
+          desc: 'Choose the services you need on this corporate account.',
+          fields: [
+            { id: 'onlineBanking', label: 'Online banking', type: 'radio-chips', required: false,
+              options: ['GAPS (Full access)', 'GAPS-Lite', 'Not required'] },
+            { id: 'chequeBook',    label: 'Cheque book', type: 'radio-chips', required: false, options: ['Yes', 'No'] },
+            { id: 'stmtFreq',      label: 'Statement frequency', type: 'radio-chips', required: false,
+              options: ['Monthly', 'Quarterly', 'Half-yearly', 'Annually'] },
+          ]
+        },
+        {
+          id: 'review',
+          title: 'Review your details',
+          eyebrow: 'Final Review',
+          desc: 'Check everything before we generate your GTBank corporate account opening form.',
+          fields: [],
+        }
+      ];
+    }
+
+    // ── KYC Update Steps ──────────────────────────────────────
+    function kycUpdateSteps(bank) {
+      return [
+        {
+          id: 'personal',
+          title: 'Your personal details',
+          eyebrow: 'Personal Information',
+          desc: 'Provide your current personal details for the KYC update.',
+          fields: [
+            { id: 's1Title',     label: 'Title', type: 'select', required: false, options: ['Select title', ...TITLES] },
+            { id: 's1Surname',   label: 'Surname', type: 'text', placeholder: 'Okonkwo', required: true },
+            { id: 's1FirstName', label: 'First name', type: 'text', placeholder: 'Ada', required: true },
+            { id: 's1OtherNames',label: 'Other names', type: 'text', placeholder: 'Optional', required: false },
+            { id: 's1Gender',    label: 'Gender', type: 'radio-chips', required: true, options: ['Male', 'Female'] },
+            { id: 's1DOB',       label: 'Date of birth', type: 'date', required: true },
+            { id: 's1Nationality', label: 'Nationality', type: 'text', placeholder: 'Nigerian', required: false },
+          ]
+        },
+        {
+          id: 'identity',
+          title: 'Identity & KYC',
+          eyebrow: 'KYC Details',
+          desc: 'Provide your current identification details.',
+          fields: [
+            { id: 's1BVN',      label: 'BVN', type: 'text', placeholder: '12345678901',
+              hint: '11-digit Bank Verification Number', required: true,
+              pattern: /^\d{11}$/, errorMsg: 'BVN must be exactly 11 digits.' },
+            { id: 's1NIN',      label: 'NIN (National Identification Number)', type: 'text',
+              placeholder: '11-digit NIN', required: false },
+            { id: 's1IDType',   label: 'Means of identification', type: 'select', required: true,
+              options: ['Select ID type', 'National ID (NIN Slip)', "Driver's Licence", 'International Passport', "Voter's Card"] },
+            { id: 's1IDNumber', label: 'ID number', type: 'text', placeholder: 'ID number', required: true },
+            { id: 's1IDIssue',  label: 'ID issue date', type: 'date', required: false },
+            { id: 's1IDExpiry', label: 'ID expiry date', type: 'date', required: false },
+          ]
+        },
+        {
+          id: 'contact',
+          title: 'Current contact details',
+          eyebrow: 'Contact Information',
+          desc: 'Your up-to-date contact and address information.',
+          fields: [
+            { id: 's1ResAddr',  label: 'Residential address', type: 'textarea',
+              placeholder: '12 Broad Street, Victoria Island, Lagos', required: true },
+            { id: 's1Mobile',   label: 'Mobile number', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 's1Email',    label: 'Email address', type: 'email', placeholder: 'your@email.com', required: false },
+            { id: 's1Occupation', label: 'Occupation', type: 'text', placeholder: 'e.g. Banker, Trader', required: false },
+            { id: 's1Employer',   label: 'Employer / business name', type: 'text', placeholder: 'Optional', required: false },
+          ]
+        },
+        {
+          id: 'review',
+          title: 'Review your details',
+          eyebrow: 'Review',
+          desc: 'Check everything before generating your KYC update form.',
+          fields: [],
+        }
+      ];
+    }
+
+    // ── Generic Steps (fallback) ──────────────────────────────
+    function genericSteps() {
+      return [
+        {
+          id: 'personal',
+          title: 'Your personal details',
+          eyebrow: 'Personal',
+          desc: 'We need a few basic details to fill your form correctly.',
+          fields: [
+            { id: 's1Title',     label: 'Title', type: 'select', required: false, options: ['Select title', ...TITLES] },
+            { id: 's1Surname',   label: 'Surname', type: 'text', placeholder: 'Okonkwo', required: true },
+            { id: 's1FirstName', label: 'First name', type: 'text', placeholder: 'Ada', required: true },
+            { id: 's1Gender',    label: 'Gender', type: 'radio-chips', required: true, options: ['Male', 'Female'] },
+            { id: 's1DOB',       label: 'Date of birth', type: 'date', required: true },
+            { id: 's1Marital',   label: 'Marital status', type: 'radio-chips', required: false,
+              options: ['Single', 'Married', 'Divorced', 'Widowed'] },
+          ]
+        },
+        {
+          id: 'contact',
+          title: 'Contact information',
+          eyebrow: 'Contact',
+          desc: 'Your phone and address as they should appear on the form.',
+          fields: [
+            { id: 's1Mobile',   label: 'Mobile number', type: 'tel', placeholder: '08012345678', required: true },
+            { id: 's1Email',    label: 'Email address', type: 'email', placeholder: 'your@email.com', required: false },
+            { id: 's1ResAddr',  label: 'Residential address', type: 'textarea',
+              placeholder: '12 Broad Street, Lagos', required: true },
+            { id: 'bizState',   label: 'State', type: 'select', required: true,
+              options: ['Select state', ...STATES] },
+          ]
+        },
+        {
+          id: 'identity',
+          title: 'Identity & KYC',
+          eyebrow: 'Identity',
+          desc: 'Required for Know Your Customer verification.',
+          fields: [
+            { id: 's1BVN',      label: 'BVN (Bank Verification Number)', type: 'text',
+              placeholder: '12345678901', hint: '11-digit number',
+              required: true, pattern: /^\d{11}$/, errorMsg: 'BVN must be exactly 11 digits.' },
+            { id: 's1IDType',   label: 'Means of identification', type: 'select', required: true,
+              options: ['Select ID type', 'National ID (NIN Slip)', "Driver's Licence", 'International Passport', "Voter's Card"] },
+            { id: 's1IDNumber', label: 'ID number', type: 'text', placeholder: 'ID number', required: true },
+            { id: 's1IDExpiry', label: 'ID expiry date', type: 'date', required: false },
+          ]
+        },
+        {
+          id: 'review',
+          title: 'Review your details',
+          eyebrow: 'Review',
+          desc: 'Make sure everything looks right before we generate your form.',
+          fields: [],
+        }
+      ];
+    }
+
+    // ── State ─────────────────────────────────────────────────
+    const STEPS        = getFormSteps(BANK, FORM_TYPE);
+    const TOTAL        = STEPS.length;
+    const formData     = {};
+    let   currentStep  = 0;
+
+    // ── Field Rendering ───────────────────────────────────────
+    function renderField(f) {
+      const optBadge = f.required ? '' : ' <span class="opt-badge">(optional)</span>';
+
+      if (f.type === 'radio-cards') {
+        const cards = f.options.map(opt => `
+          <label class="radio-card${formData[f.id] === opt.value ? ' selected' : ''}">
+            <input type="radio" name="${f.id}" value="${opt.value}"${formData[f.id] === opt.value ? ' checked' : ''} />
+            <div class="rc-text">
+              <div class="rc-label">${opt.label}</div>
+              <div class="rc-desc">${opt.desc}</div>
+            </div>
+          </label>`).join('');
+        return `<div class="form-field" id="wrap-${f.id}">
+          <label>${f.label}${optBadge}</label>
+          <div class="radio-cards">${cards}</div>
+          <span class="field-error" id="err-${f.id}">Please select an option.</span>
+        </div>`;
+      }
+
+      if (f.type === 'radio-chips') {
+        const chips = f.options.map(opt => `
+          <label class="radio-chip${formData[f.id] === opt ? ' selected' : ''}">
+            <input type="radio" name="${f.id}" value="${opt}"${formData[f.id] === opt ? ' checked' : ''} />
+            ${opt}
+          </label>`).join('');
+        return `<div class="form-field" id="wrap-${f.id}">
+          <label>${f.label}${optBadge}</label>
+          <div class="radio-chips">${chips}</div>
+          <span class="field-error" id="err-${f.id}">Please select an option.</span>
+        </div>`;
+      }
+
+      if (f.type === 'select') {
+        const opts = f.options.map((o, i) => `<option value="${i === 0 ? '' : o}"${formData[f.id] === o ? ' selected' : ''}>${o}</option>`).join('');
+        return `<div class="form-field" id="wrap-${f.id}">
+          <label for="${f.id}">${f.label}${optBadge}</label>
+          <select id="${f.id}">${opts}</select>
+          <span class="field-error" id="err-${f.id}">${f.errorMsg || 'Please select an option.'}</span>
+        </div>`;
+      }
+
+      if (f.type === 'textarea') {
+        return `<div class="form-field" id="wrap-${f.id}">
+          <label for="${f.id}">${f.label}${optBadge}</label>
+          ${f.hint ? `<span class="field-hint">${f.hint}</span>` : ''}
+          <textarea id="${f.id}" rows="3" placeholder="${f.placeholder || ''}">${formData[f.id] || ''}</textarea>
+          <span class="field-error" id="err-${f.id}">${f.errorMsg || 'This field is required.'}</span>
+        </div>`;
+      }
+
+      // Default: text/email/tel/date
+      const isBVN = f.id.includes('BVN') || f.id.includes('bvn');
+      const bvnClass = isBVN ? 'bvn-wrap' : '';
+      return `<div class="form-field" id="wrap-${f.id}">
+        <label for="${f.id}">${f.label}${optBadge}</label>
+        ${f.hint ? `<span class="field-hint">${f.hint}</span>` : ''}
+        <div class="${bvnClass}" style="${isBVN ? 'position:relative' : ''}">
+          <input type="${f.type}" id="${f.id}" placeholder="${f.placeholder || ''}" value="${formData[f.id] || ''}" />
+          ${isBVN ? '<span class="bvn-check">✓ Valid</span>' : ''}
+        </div>
+        <span class="field-error" id="err-${f.id}">${f.errorMsg || 'This field is required.'}</span>
+      </div>`;
+    }
+
+    // ── Main Render ───────────────────────────────────────────
+    function render() {
+      if (currentStep >= TOTAL) { renderDone(); return; }
+      const step = STEPS[currentStep];
+
+      if (step.id === 'review') { renderReview(); return; }
+
+      const pct = Math.round((currentStep / (TOTAL - 1)) * 100);
+      const isLast = currentStep === TOTAL - 2;
+
+      document.getElementById('fillWrap').innerHTML = `
+        <div class="progress-header">
+          <div class="progress-meta">
+            <span>${BANK ? BANK + ' · ' : ''}${step.eyebrow}</span>
+            <span>${currentStep + 1} / ${TOTAL}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-eyebrow">${step.eyebrow}</div>
+          <h2>${step.title}</h2>
+          <p class="step-desc">${step.desc}</p>
+          <div class="field-group" id="fieldGroup">
+            ${step.fields.map(f => renderField(f)).join('')}
+          </div>
+        </div>
+        <div class="step-actions">
+          ${currentStep > 0 ? '<button class="btn-back" id="backBtn">← Back</button>' : '<span></span>'}
+          <button class="btn-next" id="nextBtn">${isLast ? 'Review my answers →' : 'Continue →'}</button>
+        </div>
+      `;
+
+      // Wire up radio cards / chips interactivity
+      document.querySelectorAll('.radio-card input, .radio-chip input').forEach(input => {
+        input.addEventListener('change', () => {
+          // Update selected class on siblings
+          const name = input.name;
+          document.querySelectorAll(`input[name="${name}"]`).forEach(i => {
+            i.closest('.radio-card, .radio-chip')?.classList.remove('selected');
+          });
+          input.closest('.radio-card, .radio-chip')?.classList.add('selected');
+          // Clear error
+          document.getElementById('wrap-' + name)?.classList.remove('has-error');
+        });
+      });
+
+      // BVN live validation
+      document.querySelectorAll('input[id*="BVN"], input[id*="bvn"]').forEach(bvnEl => {
+        const wrap = bvnEl.closest('.bvn-wrap');
+        bvnEl.addEventListener('input', () => {
+          if (wrap) wrap.classList.toggle('valid', /^\d{11}$/.test(bvnEl.value));
+        });
+        // Trigger on load if value present
+        if (bvnEl.value && wrap) wrap.classList.toggle('valid', /^\d{11}$/.test(bvnEl.value));
+      });
+
+      document.getElementById('nextBtn').addEventListener('click', handleNext);
+      document.getElementById('backBtn')?.addEventListener('click', () => { currentStep--; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    }
+
+    // ── Validation & Next ─────────────────────────────────────
+    function handleNext() {
+      const step  = STEPS[currentStep];
+      let   valid = true;
+
+      step.fields.forEach(f => {
+        const wrap = document.getElementById('wrap-' + f.id);
+        if (!wrap) return;
+        wrap.classList.remove('has-error');
+
+        let val = '';
+
+        if (f.type === 'radio-cards' || f.type === 'radio-chips') {
+          const checked = document.querySelector(`input[name="${f.id}"]:checked`);
+          val = checked ? checked.value : '';
+          if (f.required && !val) {
+            wrap.classList.add('has-error');
+            valid = false;
+          }
+          if (val) formData[f.id] = val;
+          return;
+        }
+
+        const el = document.getElementById(f.id);
+        if (!el) return;
+        val = el.value.trim();
+
+        if (f.required && !val) {
+          wrap.classList.add('has-error');
+          valid = false;
+        } else if (f.pattern && val && !f.pattern.test(val)) {
+          wrap.classList.add('has-error');
+          valid = false;
+        }
+
+        if (val) formData[f.id] = val;
+      });
+
+      if (!valid) {
+        // Scroll to first error
+        const firstErr = document.querySelector('.has-error');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      currentStep++;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Review Screen ─────────────────────────────────────────
+    function renderReview() {
+      // Group fields by step for display
+      const sections = STEPS.filter(s => s.id !== 'review').map(s => ({
+        title: s.eyebrow,
+        rows: s.fields
+          .filter(f => formData[f.id])
+          .map(f => ({ label: f.label, value: formData[f.id] }))
+      })).filter(s => s.rows.length > 0);
+
+      const sectionsHTML = sections.map(s => `
+        <div class="review-section">
+          <div class="review-section-title">${s.title}</div>
+          <div class="review-grid">
+            ${s.rows.map(r => `
+              <div class="review-row">
+                <span class="review-label">${r.label}</span>
+                <span class="review-value">${r.value}</span>
+              </div>`).join('')}
+          </div>
+        </div>`).join('');
+
+      document.getElementById('fillWrap').innerHTML = `
+        <div class="progress-header">
+          <div class="progress-meta">
+            <span>${BANK ? BANK + ' · ' : ''}Review</span>
+            <span>${TOTAL} / ${TOTAL}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:100%"></div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-eyebrow">Final Review</div>
+          <h2>Does everything look right?</h2>
+          <p class="step-desc">Check your details carefully. You can go back to correct anything before generating your form.</p>
+          ${sectionsHTML}
+          <div class="privacy-note">
+            🔒 Your information is never sent to our servers. The PDF is generated entirely on your device.
+          </div>
+        </div>
+        <div class="step-actions">
+          <button class="btn-back" id="backBtn">← Edit</button>
+          <button class="btn-next" id="nextBtn">Generate my form →</button>
+        </div>
+      `;
+
+      document.getElementById('nextBtn').addEventListener('click', generatePDF);
+      document.getElementById('backBtn').addEventListener('click', () => { currentStep--; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    }
+
+    // ── Done Screen ───────────────────────────────────────────
+    function renderDone() {
+      const customerName   = formData['s1FirstName']
+        ? (formData['s1FirstName'] + ' ' + (formData['s1Surname'] || '')).trim()
+        : CUSTOMER || 'there';
+      const officerDisplay = OFFICER || 'your account officer';
+
+      const wa_msg = encodeURIComponent(
+        `Hi${OFFICER ? ' ' + OFFICER.split(' ')[0] : ''}, I've completed the ${FORM_TYPE || 'bank form'} you sent via FormPilot. Please find the filled form attached. — ${customerName}`
+      );
+      const wa_url = OFFICER_PHONE
+        ? `https://wa.me/${OFFICER_PHONE.replace(/\D/g, '')}?text=${wa_msg}`
+        : `https://wa.me/?text=${wa_msg}`;
+
+      const mail_subject = encodeURIComponent(`Completed: ${FORM_TYPE || 'Bank form'} — ${customerName}`);
+      const mail_body    = encodeURIComponent(
+        `Hi ${officerDisplay},\n\nI have completed the ${FORM_TYPE || 'bank form'} you sent me via FormPilot.\nPlease find the filled PDF attached to this email.\n\nBest regards,\n${customerName}`
+      );
+      const mail_url = OFFICER_EMAIL
+        ? `mailto:${OFFICER_EMAIL}?subject=${mail_subject}&body=${mail_body}`
+        : `mailto:?subject=${mail_subject}&body=${mail_body}`;
+
+      document.getElementById('fillWrap').innerHTML = `
+        <div class="step-card done-screen">
+          <div class="done-icon">🎉</div>
+          <h2>Your form is ready!</h2>
+          <p>
+            Your ${BANK ? BANK + ' ' : ''}${FORM_TYPE || 'bank form'} has been filled and downloaded to your device.
+            Now let ${officerDisplay} know you're done — attach the PDF to your message.
+          </p>
+
+          <div class="notify-card">
+            <h3>Notify ${officerDisplay}</h3>
+            <p>Send them a quick message and attach the downloaded PDF so they can process your account.</p>
+            <div class="notify-btns">
+              <a href="${wa_url}" target="_blank" class="btn-whatsapp">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                WhatsApp officer
+              </a>
+              <a href="${mail_url}" class="btn-email">📧 Send email</a>
+            </div>
+          </div>
+
+          <div class="privacy-note">
+            🔒 No data from this form was stored on FormPilot servers. Your PDF lives on your device only.
+          </div>
+
+          <p style="margin-top:1.5rem; font-size:.8rem; color:var(--muted)">
+            Need to start over? <a href="${window.location.href}" style="color:var(--primary); font-weight:600">Re-open this form</a>
+          </p>
+        </div>
+      `;
+
+      // Signal completion to officer's dashboard (same-browser only)
+      if (SESSION_ID) {
+        try {
+          const store = JSON.parse(localStorage.getItem('fp_forms') || '[]');
+          const idx   = store.findIndex(f => f.sessionId === SESSION_ID);
+          if (idx > -1) {
+            store[idx].status      = 'complete';
+            store[idx].completedAt = new Date().toISOString();
+            localStorage.setItem('fp_forms', JSON.stringify(store));
+          }
+        } catch (e) {}
+      }
+    }
+
+    // ── PDF Generation ────────────────────────────────────────
+    async function generatePDF() {
+      const btn = document.getElementById('nextBtn');
+      btn.disabled    = true;
+      btn.textContent = 'Generating PDF…';
+
+      try {
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const doc  = await PDFDocument.create();
+
+        const fontReg  = await doc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
+
+        const PAGE_W = 595, PAGE_H = 842;
+        const MARGIN = 44;
+        const COL2   = 260;
+
+        // ── Primary colour ──
+        const BLUE   = rgb(0.145, 0.389, 0.922);
+        const BLUE_L = rgb(0.937, 0.953, 1);
+        const GREY   = rgb(0.388, 0.490, 0.624);
+        const DARK   = rgb(0.059, 0.090, 0.180);
+        const WHITE  = rgb(1, 1, 1);
+        const RULE   = rgb(0.882, 0.910, 0.949);
+
+        let page = doc.addPage([PAGE_W, PAGE_H]);
+        let y    = PAGE_H - 44;
+
+        // ── Helper: new page ──
+        function newPage() {
+          page = doc.addPage([PAGE_W, PAGE_H]);
+          y = PAGE_H - 44;
+        }
+
+        // ── Helper: ensure space ──
+        function ensureSpace(needed) {
+          if (y < MARGIN + needed) newPage();
+        }
+
+        // ── Header ──
+        page.drawRectangle({ x: 0, y: PAGE_H - 72, width: PAGE_W, height: 72, color: BLUE });
+        page.drawText('FormPilot', { x: MARGIN, y: PAGE_H - 30, size: 18, font: fontBold, color: WHITE });
+        page.drawText(`${BANK ? BANK + '  ·  ' : ''}${FORM_TYPE || 'Account Opening Form'}`, {
+          x: MARGIN, y: PAGE_H - 50, size: 11, font: fontReg, color: rgb(0.8, 0.88, 1)
+        });
+        const dateStr = new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
+        page.drawText(`Generated: ${dateStr}`, {
+          x: PAGE_W - 180, y: PAGE_H - 50, size: 9, font: fontReg, color: rgb(0.8, 0.88, 1)
+        });
+
+        y = PAGE_H - 72 - 28;
+
+        // ── Section header ──
+        function drawSection(title) {
+          ensureSpace(40);
+          y -= 8;
+          page.drawRectangle({ x: MARGIN - 6, y: y - 4, width: PAGE_W - (MARGIN * 2) + 12, height: 20, color: BLUE_L });
+          page.drawText(title.toUpperCase(), {
+            x: MARGIN, y: y + 3, size: 8, font: fontBold, color: BLUE
+          });
+          y -= 20;
+        }
+
+        // ── Field row ──
+        function drawRow(label, value) {
+          if (!value || value === '' || value === 'undefined') return;
+          ensureSpace(22);
+          page.drawText(label, { x: MARGIN, y, size: 9, font: fontReg, color: GREY });
+          page.drawText(String(value), { x: COL2, y, size: 9, font: fontBold, color: DARK });
+          y -= 20;
+          page.drawLine({ start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y }, thickness: 0.4, color: RULE });
+          y -= 3;
+        }
+
+        // ── Collect sections from steps ──
+        const stepSections = STEPS.filter(s => s.id !== 'review');
+        for (const step of stepSections) {
+          const rowsForStep = step.fields
+            .map(f => ({ label: f.label, value: formData[f.id] }))
+            .filter(r => r.value);
+          if (rowsForStep.length === 0) continue;
+
+          drawSection(step.eyebrow);
+          for (const r of rowsForStep) {
+            drawRow(r.label, r.value);
+          }
+          y -= 6;
+        }
+
+        // ── Footer on all pages ──
+        const totalPages = doc.getPageCount();
+        for (let i = 0; i < totalPages; i++) {
+          const pg = doc.getPage(i);
+          pg.drawLine({
+            start: { x: MARGIN, y: 44 }, end: { x: PAGE_W - MARGIN, y: 44 },
+            thickness: 0.5, color: RULE
+          });
+          pg.drawText(
+            'Generated via FormPilot — formpilot.app  |  A product of Syndra Technologies Limited',
+            { x: MARGIN, y: 30, size: 7, font: fontReg, color: GREY }
+          );
+          pg.drawText(
+            `🔒 No data was stored on FormPilot servers. This PDF was generated on the customer's device.  Page ${i + 1} of ${totalPages}`,
+            { x: MARGIN, y: 18, size: 7, font: fontReg, color: GREY }
+          );
+        }
+
+        const bytes = await doc.save();
+        const blob  = new Blob([bytes], { type: 'application/pdf' });
+        const url   = URL.createObjectURL(blob);
+        const a     = document.createElement('a');
+        const safeName  = (formData['s1FirstName'] || formData['bizName'] || CUSTOMER || 'form')
+          .replace(/\s+/g, '-').toLowerCase();
+        const safeForm  = (FORM_TYPE || 'bank-form').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+        a.href     = url;
+        a.download = `${safeName}_${safeForm}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        currentStep = TOTAL;
+        render();
+      } catch (err) {
+        console.error(err);
+        btn.disabled    = false;
+        btn.textContent = 'Try again';
+        alert('Could not generate PDF. Please try again or contact support.');
+      }
+    }
+
+    // ── Start ─────────────────────────────────────────────────
+    if (!BANK && !FORM_TYPE) {
+      document.getElementById('fillWrap').innerHTML = `
+        <div class="invalid-state">
+          <div class="inv-icon">🔗</div>
+          <h2>Invalid or expired link</h2>
+          <p>This form link doesn't appear to be valid. Please ask your account officer to send you a new link via FormPilot.</p>
+        </div>
+      `;
+    } else {
+      render();
+    }
+    </script>
+  </body>
+</html>

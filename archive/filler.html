@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GTBank Remote Onboarding</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Remote onboarding</span>
+          <h1>GTBank Business Account Opening</h1>
+          <p>
+            A guided digital journey that collects customer data once and
+            downloads it onto the original GTBank PDF form.
+          </p>
+        </div>
+
+        <div class="hero-card">
+          <div class="metric">
+            <strong>5</strong>
+            <span>supported template families</span>
+          </div>
+          <div class="metric">
+            <strong>4</strong>
+            <span>simple onboarding steps</span>
+          </div>
+          <div class="metric">
+            <strong>0</strong>
+            <span>print-and-scan stress</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="workspace-grid">
+        <aside class="side-panel">
+          <div class="panel-card">
+            <h2>What strong onboarding looks like</h2>
+            <ul class="feature-list">
+              <li>Progressive steps instead of one long form</li>
+              <li>Save draft automatically while the customer fills</li>
+              <li>Review screen before download</li>
+              <li>Original bank PDF preserved exactly</li>
+            </ul>
+          </div>
+
+          <div class="panel-card status-card">
+            <div class="card-heading">
+              <h3>Live status</h3>
+              <button type="button" id="clearDraftBtn" class="link-btn">
+                Clear draft
+              </button>
+            </div>
+            <div id="status" class="status info">
+              Start by selecting the GTBank template and uploading the bank PDF.
+            </div>
+          </div>
+        </aside>
+
+        <main class="form-panel">
+          <div class="info-banner">
+            <strong>Goal:</strong> keep the bank form visually identical while
+            guiding the customer through a cleaner experience.
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress-bar">
+              <span id="progressFill"></span>
+            </div>
+
+            <div class="steps" aria-label="Onboarding steps">
+              <button type="button" class="step active" data-step="0">
+                <span class="step-number">1</span>
+                <span>Template</span>
+              </button>
+              <button type="button" class="step" data-step="1">
+                <span class="step-number">2</span>
+                <span>Business</span>
+              </button>
+              <button type="button" class="step" data-step="2">
+                <span class="step-number">3</span>
+                <span>KYC</span>
+              </button>
+              <button type="button" class="step" data-step="3">
+                <span class="step-number">4</span>
+                <span>Review</span>
+              </button>
+            </div>
+          </div>
+
+          <form id="formFiller" novalidate>
+            <section class="form-step active" data-step="0">
+              <div class="section-header">
+                <h2>Select template</h2>
+                <p>
+                  Match the exact GTBank form first, then upload the bank PDF.
+                </p>
+              </div>
+
+              <div class="field-grid two-column">
+                <div class="form-group">
+                  <label for="formTemplate">GTBank form type</label>
+                  <select id="formTemplate" required>
+                    <option value="">Choose template</option>
+                    <option value="sole-proprietorship">
+                      Sole Proprietorship / Partnership
+                    </option>
+                    <option value="corporate">Corporate Account Opening</option>
+                    <option value="trustees">Trustees</option>
+                    <option value="unincorporated-society">
+                      Unincorporated Society
+                    </option>
+                    <option value="corporate-internet-banking">
+                      GAPS / Corporate Internet Banking
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="accountType">Requested account product</label>
+                  <select id="accountType" required>
+                    <option value="">Select product</option>
+                    <option value="Current Account">Current Account</option>
+                    <option value="Domiciliary Account">
+                      Domiciliary Account
+                    </option>
+                    <option value="Savings Account">Savings Account</option>
+                    <option value="Internet Banking">Internet Banking</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group upload-card">
+                <label for="pdfTemplate">Upload the original bank PDF</label>
+                <input type="file" id="pdfTemplate" accept=".pdf" required />
+                <small>
+                  Supported: GTBank account opening, trustees, society, and GAPS
+                  forms.
+                </small>
+              </div>
+            </section>
+
+            <section class="form-step" data-step="1" hidden>
+              <div class="section-header">
+                <h2>Business details</h2>
+                <p>
+                  Capture the organisation information once for the final PDF.
+                </p>
+              </div>
+
+              <div class="field-grid two-column">
+                <div class="form-group">
+                  <label for="businessName">Business / organisation name</label>
+                  <input type="text" id="businessName" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="businessType">Entity type</label>
+                  <select id="businessType" required>
+                    <option value="">Select entity type</option>
+                    <option value="Sole Proprietorship">
+                      Sole Proprietorship
+                    </option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Limited Company">Limited Company</option>
+                    <option value="Trustees">Trustees</option>
+                    <option value="Society / Association">
+                      Society / Association
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="registrationNumber"
+                    >RC / registration number</label
+                  >
+                  <input type="text" id="registrationNumber" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="tin">TIN</label>
+                  <input type="text" id="tin" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="address">Registered address</label>
+                <textarea id="address" rows="4" required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="accountPurpose">Purpose of account</label>
+                <textarea id="accountPurpose" rows="3"></textarea>
+              </div>
+            </section>
+
+            <section class="form-step" data-step="2" hidden>
+              <div class="section-header">
+                <h2>Primary contact & KYC</h2>
+                <p>
+                  Add the signatory or contact person details used on the form.
+                </p>
+              </div>
+
+              <div class="field-grid two-column">
+                <div class="form-group">
+                  <label for="contactName">Primary contact name</label>
+                  <input type="text" id="contactName" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="bvn">BVN</label>
+                  <input
+                    type="text"
+                    id="bvn"
+                    inputmode="numeric"
+                    pattern="\d{11}"
+                    required
+                  />
+                  <small>Enter the 11-digit Bank Verification Number.</small>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">Phone number</label>
+                  <input type="tel" id="phone" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email address</label>
+                  <input type="email" id="email" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="idType">Means of identification</label>
+                  <select id="idType" required>
+                    <option value="">Select ID type</option>
+                    <option value="National ID">National ID</option>
+                    <option value="Driver's License">Driver's License</option>
+                    <option value="International Passport">
+                      International Passport
+                    </option>
+                    <option value="Voter's Card">Voter's Card</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="idNumber">ID number</label>
+                  <input type="text" id="idNumber" required />
+                </div>
+              </div>
+            </section>
+
+            <section class="form-step" data-step="3" hidden>
+              <div class="section-header">
+                <h2>Review and download</h2>
+                <p>
+                  Confirm the captured information before generating the final
+                  GTBank PDF.
+                </p>
+              </div>
+
+              <div id="preview" class="summary-grid"></div>
+            </section>
+
+            <div class="step-actions">
+              <button type="button" id="prevBtn" class="secondary-btn">
+                Back
+              </button>
+
+              <div class="action-group">
+                <button type="button" id="previewBtn" class="ghost-btn">
+                  Review
+                </button>
+                <button type="button" id="nextBtn">Continue</button>
+                <button type="submit" id="fillBtn" hidden>
+                  Generate &amp; Download PDF
+                </button>
+              </div>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

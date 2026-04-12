@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us — FormPilot by Syndra Technologies</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+    <style>
+      /* ── About-page-specific styles ── */
+      .about-hero {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #fff;
+        text-align: center;
+        padding: 6rem 1.5rem 5rem;
+      }
+      .about-hero .eyebrow {
+        display: inline-block;
+        background: rgba(255,255,255,.15);
+        border: 1px solid rgba(255,255,255,.25);
+        font-size: .8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .1em;
+        padding: .35rem .9rem;
+        border-radius: 999px;
+        margin-bottom: 1.5rem;
+      }
+      .about-hero h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.25rem;
+        letter-spacing: -.025em;
+      }
+      .about-hero p {
+        font-size: 1.1rem;
+        opacity: .85;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.7;
+      }
+
+      /* ── Mission ── */
+      .mission-section {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 5rem 1.5rem;
+        text-align: center;
+      }
+      .mission-section h2 {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin-bottom: 1.25rem;
+      }
+      .mission-section p {
+        font-size: 1.05rem;
+        color: var(--muted);
+        line-height: 1.8;
+        margin-bottom: 1rem;
+      }
+      .mission-section p strong { color: var(--text); }
+
+      /* ── Problem & Solution ── */
+      .split-section {
+        background: var(--bg-alt);
+        padding: 5rem 1.5rem;
+      }
+      .split-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+      .split-inner h2 {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin-bottom: 1.25rem;
+      }
+      .split-inner p {
+        font-size: .975rem;
+        color: var(--muted);
+        line-height: 1.8;
+        margin-bottom: 1rem;
+      }
+      .problem-list {
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+        margin-top: 1.5rem;
+      }
+      .problem-item {
+        display: flex;
+        align-items: flex-start;
+        gap: .85rem;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+      }
+      .problem-item .pi-icon { font-size: 1.25rem; flex-shrink: 0; }
+      .problem-item .pi-text { font-size: .9rem; color: var(--muted); line-height: 1.5; }
+      .problem-item .pi-text strong { color: var(--text); display: block; margin-bottom: .2rem; font-size: .95rem; }
+
+      /* ── Stats ── */
+      .stats-strip {
+        background: var(--primary);
+        color: #fff;
+        padding: 3.5rem 1.5rem;
+      }
+      .stats-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+        text-align: center;
+      }
+      .stat-item big {
+        display: block;
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: .25rem;
+      }
+      .stat-item span {
+        font-size: .85rem;
+        opacity: .75;
+        line-height: 1.4;
+      }
+
+      /* ── Values ── */
+      .values-section {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 5rem 1.5rem;
+      }
+      .values-section .section-label { margin-bottom: .75rem; }
+      .values-section .section-title { margin-bottom: 3rem; }
+      .values-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+      .value-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem 1.75rem;
+        transition: box-shadow .2s, transform .2s;
+      }
+      .value-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+      .value-icon { font-size: 2rem; margin-bottom: 1rem; }
+      .value-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: .5rem; }
+      .value-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+
+      /* ── Syndra section ── */
+      .syndra-section {
+        background: var(--bg-alt);
+        padding: 5rem 1.5rem;
+      }
+      .syndra-inner {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .syndra-logo-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: .75rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: .75rem 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow);
+      }
+      .syndra-mark {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: .9rem;
+        letter-spacing: -.02em;
+        flex-shrink: 0;
+      }
+      .syndra-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.2;
+      }
+      .syndra-name small {
+        display: block;
+        font-size: .72rem;
+        font-weight: 500;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-top: .1rem;
+      }
+      .syndra-inner h2 {
+        font-size: clamp(1.5rem, 2.5vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin-bottom: 1.25rem;
+      }
+      .syndra-inner p {
+        font-size: 1rem;
+        color: var(--muted);
+        line-height: 1.8;
+        margin-bottom: 1rem;
+      }
+
+      /* ── CTA ── */
+      .about-cta {
+        text-align: center;
+        padding: 5rem 1.5rem;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      .about-cta h2 {
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin-bottom: 1rem;
+      }
+      .about-cta p {
+        font-size: 1rem;
+        color: var(--muted);
+        margin-bottom: 2rem;
+        line-height: 1.7;
+      }
+      .about-cta-btns {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 768px) {
+        .split-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+        .stats-inner { grid-template-columns: repeat(2, 1fr); }
+        .values-grid { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 480px) {
+        .stats-inner { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="/" class="logo">
+          <span class="logo-mark">FP</span>
+          <span class="logo-text">FormPilot</span>
+        </a>
+        <ul class="nav-links">
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#pricing">Pricing</a></li>
+          <li><a href="index.html#community">Community</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="login.html" class="btn-ghost">Log in</a>
+          <a href="signup.html" class="btn-primary">Get started</a>
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html#how-it-works">How it works</a>
+        <a href="index.html#features">Features</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#community">Community</a>
+        <a href="login.html">Log in</a>
+        <a href="signup.html" class="btn-primary">Get started</a>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="about-hero">
+      <span class="eyebrow">About FormPilot</span>
+      <h1>We're fixing one of banking's<br/>most persistent frustrations</h1>
+      <p>
+        Every day, customers walk into branches with incorrectly filled forms.
+        Every day, account officers send them home to try again.
+        We decided that was worth fixing.
+      </p>
+    </div>
+
+    <!-- MISSION -->
+    <section class="mission-section">
+      <div class="section-label">Our mission</div>
+      <h2>Make every bank form submission successful, the first time</h2>
+      <p>
+        Banking in Nigeria involves a lot of paperwork. Account opening, KYC updates, mandates,
+        indemnity forms — the list goes on. These forms were designed to be filled by hand,
+        and the instructions are rarely clear enough for the average customer.
+      </p>
+      <p>
+        <strong>FormPilot exists to bridge that gap.</strong> We give account officers a simple
+        tool to send their customers a guided, intelligent form experience — one that produces
+        a correctly filled, ready-to-submit PDF every single time, without storing a single
+        byte of sensitive data.
+      </p>
+    </section>
+
+    <!-- PROBLEM & SOLUTION -->
+    <div class="split-section">
+      <div class="split-inner">
+        <div>
+          <div class="section-label">The problem</div>
+          <h2>Forms are broken for everyone involved</h2>
+          <p>
+            The friction isn't laziness — it's poor design. Bank forms were built for a
+            different era and haven't kept up with how people actually communicate and work today.
+          </p>
+          <div class="problem-list">
+            <div class="problem-item">
+              <span class="pi-icon">😤</span>
+              <div class="pi-text">
+                <strong>Customers leave fields blank or wrong</strong>
+                Confusing labels, tiny print, unclear instructions — errors are almost inevitable.
+              </div>
+            </div>
+            <div class="problem-item">
+              <span class="pi-icon">🔁</span>
+              <div class="pi-text">
+                <strong>Multiple branch visits</strong>
+                Officers reject forms, customers go home, come back, make new errors.
+              </div>
+            </div>
+            <div class="problem-item">
+              <span class="pi-icon">🧾</span>
+              <div class="pi-text">
+                <strong>Print, scan, print again</strong>
+                Even when forms are available digitally, the experience is still painful.
+              </div>
+            </div>
+            <div class="problem-item">
+              <span class="pi-icon">⏱️</span>
+              <div class="pi-text">
+                <strong>Wasted officer time</strong>
+                Account officers spend valuable hours correcting forms instead of serving customers.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label">Our approach</div>
+          <h2>Guided, private, and built around real workflows</h2>
+          <p>
+            We don't replace the bank's form — we make it easier to fill correctly.
+            The output is always the original bank PDF, placed precisely, ready for submission.
+          </p>
+          <p>
+            Critically, <strong>we never store your customer's data.</strong>
+            The PDF is generated entirely in the customer's browser.
+            Your server never sees it. Neither does ours.
+          </p>
+          <p>
+            And because account officers are the ones who know which forms they need most,
+            our community lets them request and vote on what gets built next — so the form
+            library grows around real demand.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+      <div class="stats-inner">
+        <div class="stat-item">
+          <big>10+</big>
+          <span>Bank form templates supported</span>
+        </div>
+        <div class="stat-item">
+          <big>0</big>
+          <span>Customer data ever stored on our servers</span>
+        </div>
+        <div class="stat-item">
+          <big>5</big>
+          <span>Major Nigerian banks covered at launch</span>
+        </div>
+        <div class="stat-item">
+          <big>100%</big>
+          <span>Original bank PDF layout preserved</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VALUES -->
+    <section class="values-section">
+      <div class="section-label">What we stand for</div>
+      <h2 class="section-title">Our values</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🔒</div>
+          <h3>Privacy by design</h3>
+          <p>Customer data is never our business. We architect every feature so that sensitive information never leaves the customer's device.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🎯</div>
+          <h3>Precision over polish</h3>
+          <p>A beautiful interface that produces a wrong PDF is useless. We obsess over accuracy first — the form must be accepted when submitted.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🤝</div>
+          <h3>Built with the community</h3>
+          <p>Account officers know their work better than we do. We listen, take requests seriously, and build what's actually needed.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">💡</div>
+          <h3>Simplicity wins</h3>
+          <p>Banking can be complicated. Our job is to absorb that complexity so neither the officer nor the customer has to feel it.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🇳🇬</div>
+          <h3>Made for Nigeria</h3>
+          <p>Designed around how Nigerian banking actually works — the forms, the processes, the people, the devices customers actually use.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">⚡</div>
+          <h3>Move fast, stay reliable</h3>
+          <p>We ship new form templates quickly based on demand, without compromising the accuracy that account officers and their customers depend on.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYNDRA TECHNOLOGIES -->
+    <div class="syndra-section">
+      <div class="syndra-inner">
+        <div class="syndra-logo-wrap">
+          <div class="syndra-mark">ST</div>
+          <div class="syndra-name">
+            Syndra Technologies Limited
+            <small>Parent company</small>
+          </div>
+        </div>
+        <h2>FormPilot is a product of<br/>Syndra Technologies Limited</h2>
+        <p>
+          Syndra Technologies Limited is a Nigerian technology company building practical
+          digital tools for professionals in financial services. We focus on the problems
+          that sit between people and institutions — the friction, the paperwork, the
+          processes that slow things down — and we build software that removes it.
+        </p>
+        <p>
+          FormPilot is our first public product, but it reflects the core belief behind
+          everything we build: that good technology should make hard things feel simple,
+          especially when the stakes are high.
+        </p>
+        <p>
+          We are incorporated in Nigeria and committed to building for the Nigerian market,
+          with the privacy standards, reliability, and respect for users that Nigerian
+          professionals deserve.
+        </p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="about-cta">
+      <h2>Ready to try FormPilot?</h2>
+      <p>
+        Join account officers sending smarter form links to their customers.
+        Free for 14 days. No card required.
+      </p>
+      <div class="about-cta-btns">
+        <a href="signup.html" class="btn-primary btn-lg">Create free account</a>
+        <a href="mailto:hello@formpilot.app" class="btn-outline btn-lg">Get in touch</a>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="/" class="logo">
+            <span class="logo-mark">FP</span>
+            <span class="logo-text">FormPilot</span>
+          </a>
+          <p>Bank forms, made human.</p>
+          <p style="margin-top:.5rem; font-size:.78rem; color:#334155;">A product of Syndra Technologies Limited</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#how-it-works">How it works</a>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#pricing">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <a href="index.html#community">News &amp; updates</a>
+            <a href="index.html#community">Request a form</a>
+            <a href="index.html#community">Officer forum</a>
+          </div>
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About us</a>
+            <a href="#">Privacy policy</a>
+            <a href="mailto:hello@formpilot.app">Contact</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 FormPilot by Syndra Technologies Limited. All rights reserved.</span>
+        <span>Made with care in Nigeria 🇳🇬</span>
+      </div>
+    </footer>
+
+    <script>
+      const hamburger = document.getElementById('hamburger');
+      const mobileMenu = document.getElementById('mobileMenu');
+      hamburger.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        hamburger.classList.toggle('active');
+      });
+      window.addEventListener('scroll', () => {
+        document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 10);
+      });
+    </script>
+  </body>
+</html>

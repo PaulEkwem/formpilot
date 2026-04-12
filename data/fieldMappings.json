@@ -1,0 +1,49 @@
+{
+  "sole-proprietorship": {
+    "businessName": { "x": 92, "y": 665, "page": 0, "fontSize": 11 },
+    "registrationNumber": { "x": 318, "y": 665, "page": 0, "fontSize": 11 },
+    "contactName": { "x": 92, "y": 637, "page": 0, "fontSize": 11 },
+    "bvn": { "x": 318, "y": 637, "page": 0, "fontSize": 11 },
+    "phone": { "x": 92, "y": 609, "page": 0, "fontSize": 11 },
+    "email": { "x": 318, "y": 609, "page": 0, "fontSize": 11 },
+    "address": {
+      "x": 92,
+      "y": 575,
+      "page": 0,
+      "fontSize": 10,
+      "multiline": true,
+      "maxWidth": 420,
+      "lineHeight": 12
+    },
+    "accountType": { "x": 92, "y": 525, "page": 0, "fontSize": 11 },
+    "businessType": { "x": 318, "y": 525, "page": 0, "fontSize": 11 },
+    "idType": { "x": 92, "y": 497, "page": 0, "fontSize": 11 },
+    "idNumber": { "x": 318, "y": 497, "page": 0, "fontSize": 11 },
+    "tin": { "x": 92, "y": 468, "page": 0, "fontSize": 11 }
+  },
+  "corporate": {
+    "businessName": { "x": 96, "y": 684, "page": 0, "fontSize": 11 },
+    "registrationNumber": { "x": 328, "y": 684, "page": 0, "fontSize": 11 },
+    "contactName": { "x": 96, "y": 654, "page": 0, "fontSize": 11 },
+    "phone": { "x": 328, "y": 654, "page": 0, "fontSize": 11 },
+    "email": { "x": 96, "y": 624, "page": 0, "fontSize": 11 },
+    "bvn": { "x": 328, "y": 624, "page": 0, "fontSize": 11 },
+    "address": {
+      "x": 96,
+      "y": 590,
+      "page": 0,
+      "fontSize": 10,
+      "multiline": true,
+      "maxWidth": 430,
+      "lineHeight": 12
+    },
+    "accountType": { "x": 96, "y": 538, "page": 0, "fontSize": 11 },
+    "businessType": { "x": 328, "y": 538, "page": 0, "fontSize": 11 },
+    "idType": { "x": 96, "y": 510, "page": 0, "fontSize": 11 },
+    "idNumber": { "x": 328, "y": 510, "page": 0, "fontSize": 11 },
+    "tin": { "x": 96, "y": 482, "page": 0, "fontSize": 11 }
+  },
+  "trustees": {},
+  "unincorporated-society": {},
+  "corporate-internet-banking": {}
+}

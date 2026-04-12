@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+  </head>
+  <body class="auth-page">
+
+    <nav class="nav nav-minimal">
+      <div class="nav-inner">
+        <a href="/" class="logo">
+          <span class="logo-mark">FP</span>
+          <span class="logo-text">FormPilot</span>
+        </a>
+        <span class="auth-nav-hint">Already have an account? <a href="login.html">Log in</a></span>
+      </div>
+    </nav>
+
+    <div class="auth-layout">
+
+      <!-- LEFT PANEL — value prop -->
+      <div class="auth-panel auth-panel-left">
+        <div class="auth-panel-content">
+          <h2>Send smarter form links.<br/>Get forms back, right.</h2>
+          <p>Join account officers who've stopped chasing customers for incorrectly filled forms.</p>
+
+          <ul class="auth-benefits">
+            <li>
+              <span class="benefit-icon">🔗</span>
+              <div>
+                <strong>One link per customer</strong>
+                <span>Generate and share in seconds</span>
+              </div>
+            </li>
+            <li>
+              <span class="benefit-icon">✅</span>
+              <div>
+                <strong>Forms filled correctly</strong>
+                <span>Step-by-step guidance for every field</span>
+              </div>
+            </li>
+            <li>
+              <span class="benefit-icon">🔒</span>
+              <div>
+                <strong>No data privacy risk</strong>
+                <span>Customer data never touches our servers</span>
+              </div>
+            </li>
+            <li>
+              <span class="benefit-icon">📄</span>
+              <div>
+                <strong>Original bank PDF, preserved</strong>
+                <span>Submitted exactly as the bank expects</span>
+              </div>
+            </li>
+          </ul>
+
+          <div class="auth-quote">
+            <p>"I used to spend 30 minutes correcting forms. Now customers just use the link."</p>
+            <span>— Account Officer, Access Bank</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL — signup form -->
+      <div class="auth-panel auth-panel-right">
+        <div class="auth-form-wrap">
+          <div class="auth-form-header">
+            <h1>Create your account</h1>
+            <p>14-day free trial. No card required.</p>
+          </div>
+
+          <form id="signupForm" class="auth-form" novalidate>
+
+            <div class="form-row two-col">
+              <div class="form-group">
+                <label for="firstName">First name</label>
+                <input type="text" id="firstName" name="firstName" placeholder="Ada" required autocomplete="given-name" />
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last name</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Okonkwo" required autocomplete="family-name" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Work email</label>
+              <input type="email" id="email" name="email" placeholder="ada@accessbank.com" required autocomplete="email" />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone number</label>
+              <div class="input-prefix-wrap">
+                <span class="input-prefix">🇳🇬 +234</span>
+                <input type="tel" id="phone" name="phone" placeholder="8012345678" required autocomplete="tel" />
+              </div>
+            </div>
+
+            <div class="form-row two-col">
+              <div class="form-group">
+                <label for="bank">Your bank / institution</label>
+                <select id="bank" name="bank" required>
+                  <option value="">Select bank</option>
+                  <option>Access Bank</option>
+                  <option>First Bank</option>
+                  <option>GTBank</option>
+                  <option>UBA</option>
+                  <option>Zenith Bank</option>
+                  <option>Stanbic IBTC</option>
+                  <option>FCMB</option>
+                  <option>Fidelity Bank</option>
+                  <option>Union Bank</option>
+                  <option>Sterling Bank</option>
+                  <option>Polaris Bank</option>
+                  <option>Wema Bank</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="role">Your role</label>
+                <select id="role" name="role" required>
+                  <option value="">Select role</option>
+                  <option>Account Officer</option>
+                  <option>Relationship Manager</option>
+                  <option>Branch Manager</option>
+                  <option>Customer Service Officer</option>
+                  <option>Operations Officer</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="input-suffix-wrap">
+                <input type="password" id="password" name="password" placeholder="At least 8 characters" required autocomplete="new-password" minlength="8" />
+                <button type="button" class="toggle-password" id="togglePwd" aria-label="Show password">👁</button>
+              </div>
+              <div class="password-strength" id="strengthBar">
+                <div class="strength-fill" id="strengthFill"></div>
+              </div>
+              <small id="strengthLabel" class="strength-label"></small>
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="agree" name="agree" />
+                <span>I agree to the <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a></span>
+              </label>
+              <span id="agreeError" style="display:none;font-size:.78rem;color:#dc2626;font-weight:500;margin-top:.25rem">Please accept the terms to continue.</span>
+            </div>
+
+            <button type="submit" class="btn-primary btn-block btn-submit" id="submitBtn">
+              Create free account
+            </button>
+
+            <div class="auth-divider"><span>or</span></div>
+
+            <p class="auth-switch">Already have an account? <a href="login.html">Log in</a></p>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Toggle password visibility
+      document.getElementById('togglePwd').addEventListener('click', function () {
+        const pwd = document.getElementById('password');
+        const isText = pwd.type === 'text';
+        pwd.type = isText ? 'password' : 'text';
+        this.textContent = isText ? '👁' : '🙈';
+      });
+
+      // Password strength meter
+      document.getElementById('password').addEventListener('input', function () {
+        const val = this.value;
+        const fill = document.getElementById('strengthFill');
+        const label = document.getElementById('strengthLabel');
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        const colors = ['', '#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
+        const widths = ['0%', '25%', '50%', '75%', '100%'];
+
+        fill.style.width = widths[score];
+        fill.style.background = colors[score];
+        label.textContent = score > 0 ? levels[score] : '';
+        label.style.color = colors[score];
+      });
+
+      // Form submission
+      document.getElementById('signupForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+
+        if (!document.getElementById('agree').checked) {
+          document.getElementById('agreeError').style.display = 'block';
+          return;
+        }
+        document.getElementById('agreeError').style.display = 'none';
+
+        btn.textContent = 'Creating account…';
+        btn.disabled = true;
+
+        // Save session and redirect
+        setTimeout(() => {
+          const firstName = document.getElementById('firstName').value.trim();
+          const lastName  = document.getElementById('lastName').value.trim();
+          const email     = document.getElementById('email').value.trim();
+          const bank      = document.getElementById('bank').value;
+          const role      = document.getElementById('role').value;
+
+          const profile = {
+            name:  `${firstName} ${lastName}`,
+            email: email,
+            bank:  bank,
+            role:  role,
+          };
+
+          // Persist profile so login can look it up
+          const accounts = JSON.parse(localStorage.getItem('fp_accounts') || '{}');
+          accounts[email.toLowerCase()] = profile;
+          localStorage.setItem('fp_accounts', JSON.stringify(accounts));
+
+          // Start session
+          sessionStorage.setItem('fp_user', JSON.stringify(profile));
+
+          btn.textContent = 'Account created! Redirecting…';
+          window.location.href = 'dashboard.html';
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

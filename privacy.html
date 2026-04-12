@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — FormPilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/landing.css" />
+    <style>
+      .legal-hero {
+        background: var(--bg-alt);
+        border-bottom: 1px solid var(--border);
+        padding: 3.5rem 1.5rem 3rem;
+        text-align: center;
+      }
+      .legal-hero .eyebrow {
+        font-size: .78rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .1em; color: var(--primary); margin-bottom: .75rem;
+      }
+      .legal-hero h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: .5rem; }
+      .legal-hero p  { font-size: .9rem; color: var(--muted); }
+
+      .legal-layout {
+        max-width: 1000px; margin: 0 auto;
+        padding: 3rem 1.5rem 5rem;
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 3rem;
+        align-items: start;
+      }
+
+      /* TOC */
+      .toc {
+        position: sticky; top: 80px;
+        background: #fff; border: 1px solid var(--border);
+        border-radius: 12px; padding: 1.25rem;
+      }
+      .toc h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .85rem; }
+      .toc a {
+        display: block; font-size: .83rem; font-weight: 500;
+        color: var(--muted); padding: .3rem 0;
+        border-left: 2px solid transparent; padding-left: .6rem;
+        transition: color .15s, border-color .15s;
+      }
+      .toc a:hover { color: var(--primary); border-left-color: var(--primary); }
+
+      /* Content */
+      .legal-content h2 {
+        font-size: 1.2rem; font-weight: 800; margin: 2.5rem 0 .85rem;
+        padding-top: .5rem; scroll-margin-top: 80px;
+      }
+      .legal-content h2:first-child { margin-top: 0; }
+      .legal-content h3 { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 .5rem; }
+      .legal-content p  { font-size: .9rem; color: #374151; line-height: 1.8; margin-bottom: .85rem; }
+      .legal-content ul {
+        margin: .5rem 0 1rem 1.25rem;
+        display: flex; flex-direction: column; gap: .4rem;
+      }
+      .legal-content ul li { font-size: .9rem; color: #374151; line-height: 1.7; }
+      .legal-content a { color: var(--primary); }
+      .legal-content a:hover { text-decoration: underline; }
+
+      .highlight-box {
+        background: #f0fdf4; border: 1px solid #bbf7d0;
+        border-radius: 10px; padding: 1.1rem 1.25rem;
+        margin: 1rem 0;
+      }
+      .highlight-box p { margin: 0; color: #15803d; font-weight: 500; font-size: .875rem; }
+
+      .last-updated { font-size: .8rem; color: var(--muted); margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+
+      @media (max-width: 768px) {
+        .legal-layout { grid-template-columns: 1fr; }
+        .toc { position: static; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="logo"><span class="logo-mark">FP</span><span class="logo-text">FormPilot</span></a>
+        <ul class="nav-links">
+          <li><a href="index.html#how-it-works">How it works</a></li>
+          <li><a href="index.html#pricing">Pricing</a></li>
+          <li><a href="community.html">Community</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a href="login.html" class="btn-ghost">Log in</a>
+          <a href="signup.html" class="btn-primary">Get started</a>
+        </div>
+        <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html">Home</a><a href="login.html">Log in</a>
+        <a href="signup.html" class="btn-primary">Get started</a>
+      </div>
+    </nav>
+
+    <div class="legal-hero">
+      <div class="eyebrow">Legal</div>
+      <h1>Privacy Policy</h1>
+      <p>Last updated: March 31, 2026 &nbsp;·&nbsp; Effective: March 31, 2026</p>
+    </div>
+
+    <div class="legal-layout">
+
+      <!-- TOC -->
+      <nav class="toc">
+        <h3>On this page</h3>
+        <a href="#overview">Overview</a>
+        <a href="#who-we-are">Who we are</a>
+        <a href="#what-we-collect">What we collect</a>
+        <a href="#what-we-dont">What we don't collect</a>
+        <a href="#how-we-use">How we use your data</a>
+        <a href="#storage">Data storage & security</a>
+        <a href="#third-parties">Third parties</a>
+        <a href="#your-rights">Your rights</a>
+        <a href="#cookies">Cookies</a>
+        <a href="#children">Children</a>
+        <a href="#changes">Policy changes</a>
+        <a href="#contact">Contact us</a>
+      </nav>
+
+      <!-- Content -->
+      <div class="legal-content">
+
+        <div class="highlight-box">
+          <p>🔒 The short version: customers who fill forms via FormPilot links have zero data stored on our servers. The PDF is generated entirely on their device. We only collect basic account data from subscribing account officers.</p>
+        </div>
+
+        <h2 id="overview">Overview</h2>
+        <p>FormPilot is a product of Syndra Technologies Limited ("Syndra", "we", "us", "our"). This Privacy Policy explains how we collect, use, and protect information when you use FormPilot at formpilot.app and its related services.</p>
+        <p>We have designed FormPilot with privacy as a core principle — particularly for the customers of account officers who fill bank forms through our platform. This policy covers both account officers (subscribers) and customers (form fillers).</p>
+
+        <h2 id="who-we-are">Who we are</h2>
+        <p>Syndra Technologies Limited is a company incorporated in Nigeria. FormPilot is our primary product, built to digitise and simplify bank form completion for Nigerian financial services professionals.</p>
+        <p>Contact: <a href="mailto:privacy@formpilot.app">privacy@formpilot.app</a></p>
+
+        <h2 id="what-we-collect">What we collect</h2>
+
+        <h3>For account officers (subscribers)</h3>
+        <p>When you create an account as an account officer, we collect:</p>
+        <ul>
+          <li>Full name</li>
+          <li>Work email address</li>
+          <li>Phone number</li>
+          <li>Bank or financial institution name</li>
+          <li>Job role</li>
+          <li>Password (stored as a secure hash — never in plain text)</li>
+          <li>Subscription and billing information (processed by our payment provider, Paystack)</li>
+        </ul>
+        <p>When you use the Send Form feature, we log:</p>
+        <ul>
+          <li>The form type and bank selected</li>
+          <li>The customer's name and optional contact details you provide</li>
+          <li>The timestamp the link was generated</li>
+          <li>Whether the link was completed (a completion signal — not the form data itself)</li>
+        </ul>
+
+        <h3>For customers (form fillers)</h3>
+        <p>When a customer opens a FormPilot link and fills a form:</p>
+        <ul>
+          <li><strong>We collect nothing.</strong> All form data is processed entirely within the customer's web browser.</li>
+          <li>The PDF is generated on the customer's device using client-side JavaScript.</li>
+          <li>No form fields, no BVN, no ID numbers, no addresses — none of this is transmitted to our servers.</li>
+        </ul>
+
+        <h3>Usage data</h3>
+        <p>We collect standard web analytics data including pages visited, browser type, device type, and approximate geographic region. This is used to improve the product and is not linked to individual identities for customers.</p>
+
+        <h2 id="what-we-dont">What we don't collect</h2>
+        <p>We are explicit about what we do not do:</p>
+        <ul>
+          <li>We do not store any banking form data filled by customers (BVN, ID numbers, addresses, dates of birth, etc.)</li>
+          <li>We do not share customer data with banks or third parties</li>
+          <li>We do not sell data to advertisers</li>
+          <li>We do not use customer data for profiling or targeting</li>
+          <li>We do not read the content of generated PDFs</li>
+        </ul>
+
+        <h2 id="how-we-use">How we use your data</h2>
+        <p>For account officers, we use your data to:</p>
+        <ul>
+          <li>Create and manage your account</li>
+          <li>Process your subscription payments</li>
+          <li>Send you product updates, form availability notices, and banking news (you can opt out at any time)</li>
+          <li>Notify you when a customer completes a form you sent</li>
+          <li>Provide customer support</li>
+          <li>Improve the FormPilot platform</li>
+        </ul>
+
+        <h2 id="storage">Data storage &amp; security</h2>
+        <p>Officer account data is stored on secure servers hosted within the European Economic Area (EEA) using industry-standard encryption at rest and in transit (TLS 1.2+).</p>
+        <p>Customer form data is never transmitted to our servers — it stays entirely within the customer's browser session and is discarded when they close the tab or navigate away (except for the downloaded PDF, which remains on their device).</p>
+        <p>We implement access controls, audit logging, and regular security reviews on all systems that handle officer data.</p>
+
+        <h2 id="third-parties">Third parties</h2>
+        <p>We work with a small number of trusted third parties:</p>
+        <ul>
+          <li><strong>Paystack</strong> — payment processing for officer subscriptions. Paystack's privacy policy applies to payment data.</li>
+          <li><strong>Vercel</strong> — hosting and content delivery. Vercel processes request logs that may include IP addresses.</li>
+          <li><strong>Google Fonts</strong> — font delivery. Standard Google Fonts privacy terms apply.</li>
+        </ul>
+        <p>We do not use third-party advertising networks, social media tracking pixels, or data brokers.</p>
+
+        <h2 id="your-rights">Your rights</h2>
+        <p>As a data subject under Nigerian data protection law (NDPR) and applicable international standards, you have the right to:</p>
+        <ul>
+          <li>Access the personal data we hold about you</li>
+          <li>Correct inaccurate data</li>
+          <li>Request deletion of your account and associated data</li>
+          <li>Object to or restrict certain processing</li>
+          <li>Receive a copy of your data in a portable format</li>
+          <li>Withdraw consent for marketing communications at any time</li>
+        </ul>
+        <p>To exercise any of these rights, email us at <a href="mailto:privacy@formpilot.app">privacy@formpilot.app</a>. We respond to all requests within 14 days.</p>
+
+        <h2 id="cookies">Cookies</h2>
+        <p>We use a minimal set of cookies:</p>
+        <ul>
+          <li><strong>Session cookies</strong> — to keep you logged in as an account officer. These expire when you close your browser or after 30 days if you select "Keep me logged in".</li>
+          <li><strong>Preference cookies</strong> — to remember display preferences (optional).</li>
+        </ul>
+        <p>We do not use tracking cookies, advertising cookies, or third-party analytics cookies that identify individuals.</p>
+
+        <h2 id="children">Children</h2>
+        <p>FormPilot is not intended for use by anyone under the age of 18. We do not knowingly collect personal data from minors. If you believe we have inadvertently collected such data, please contact us and we will delete it promptly.</p>
+
+        <h2 id="changes">Policy changes</h2>
+        <p>We may update this policy from time to time. When we do, we will update the "Last updated" date at the top and notify account officers via email if the changes are material. Continued use of FormPilot after changes constitutes acceptance of the updated policy.</p>
+
+        <h2 id="contact">Contact us</h2>
+        <p>For any privacy-related questions, data requests, or concerns:</p>
+        <ul>
+          <li>Email: <a href="mailto:privacy@formpilot.app">privacy@formpilot.app</a></li>
+          <li>General: <a href="mailto:hello@formpilot.app">hello@formpilot.app</a></li>
+        </ul>
+        <p>Syndra Technologies Limited, Nigeria.</p>
+
+        <p class="last-updated">This policy was last updated on March 31, 2026.</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <a href="/" class="logo"><span class="logo-mark">FP</span><span class="logo-text">FormPilot</span></a>
+          <p>Bank forms, made human.</p>
+          <p style="margin-top:.5rem;font-size:.78rem;color:#334155;">A product of Syndra Technologies Limited</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="index.html#how-it-works">How it works</a>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#pricing">Pricing</a>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <a href="community.html">News &amp; updates</a>
+            <a href="community.html">Request a form</a>
+            <a href="community.html">Officer forum</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy policy</a>
+            <a href="terms.html">Terms of service</a>
+            <a href="about.html">About us</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 FormPilot by Syndra Technologies Limited. All rights reserved.</span>
+        <span>Made with care in Nigeria 🇳🇬</span>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById('hamburger').addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('open');
+        document.getElementById('hamburger').classList.toggle('active');
+      });
+      window.addEventListener('scroll', () => {
+        document.querySelector('.nav').classList.toggle('scrolled', window.scrollY > 10);
+      });
+    </script>
+  </body>
+</html>
