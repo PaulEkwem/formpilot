@@ -51,9 +51,12 @@ const session = (() => {
   try { return JSON.parse(sessionStorage.getItem('fp_user') || '{}'); } catch(e) { return {}; }
 })();
 
-const OFFICER_NAME  = session.name  || 'Ada Okonkwo';
-const OFFICER_EMAIL = session.email || 'ada@accessbank.com';
-const OFFICER_BANK  = session.bank  || 'Access Bank';
+// Guard — redirect to login if no session
+if (!session.name) { window.location.href = 'login.html'; }
+
+const OFFICER_NAME  = session.name  || '';
+const OFFICER_EMAIL = session.email || '';
+const OFFICER_BANK  = session.bank  || '';
 
 // Update profile display
 document.querySelectorAll('.profile-info strong').forEach(el => el.textContent = OFFICER_NAME);
