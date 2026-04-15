@@ -359,15 +359,12 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
 
   const method = document.querySelector('input[name="sendMethod"]:checked').value;
   const waBtn  = document.getElementById('whatsappBtn');
+  const expiryLabels2 = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
+  const expiryLabel = expiryLabels2[expiryHours] || expiryHours + ' hours';
+
   if (method === 'email' && custEmail) {
     waBtn.textContent = '📧 Send email now';
-    waBtn.onclick = () => {
-      const subj = encodeURIComponent(`Your ${bank} ${formType} — fill it here`);
-      const body = encodeURIComponent(
-        `Hi ${first},\n\nI've prepared a guided form for you to fill online.\n\nPlease use this link:\n${link}\n\nIt takes about 3 minutes. Once done, you'll download a PDF to share with me.\n\n${note ? 'Note: ' + note + '\n\n' : ''}Regards,\n${OFFICER_NAME}\n${bank}`
-      );
-      window.location.href = `mailto:${custEmail}?subject=${subj}&body=${body}`;
-    };
+    waBtn.onclick = () => sendViaEmailJS({ first, last, custEmail, bank, link, accessCode, note, expiryLabel });
   } else {
     const waMsg = encodeURIComponent(
       `Hi ${first}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
@@ -409,6 +406,33 @@ function copyAccessCode() {
   navigator.clipboard.writeText(code).then(() => {
     showToast('Access code copied — share it with your customer separately');
   }).catch(() => { prompt('Access code:', code); });
+}
+
+function sendViaEmailJS({ first, last, custEmail, bank, link, accessCode, note, expiryLabel }) {
+  const btn = document.getElementById('whatsappBtn');
+  btn.textContent = '⏳ Sending...';
+  btn.disabled = true;
+
+  emailjs.send('service_vancprr', 'template_oeqmbz5', {
+    to_email:      custEmail,
+    customer_name: `${first} ${last}`,
+    officer_name:  OFFICER_NAME,
+    bank:          bank,
+    form_link:     link,
+    access_code:   accessCode,
+    note:          note || '',
+    expiry:        expiryLabel,
+  })
+  .then(() => {
+    btn.textContent = '✅ Email sent!';
+    showToast(`Email sent to ${custEmail}`);
+  })
+  .catch((err) => {
+    console.error('EmailJS error:', err);
+    btn.textContent = '📧 Retry send';
+    btn.disabled = false;
+    showToast('Failed to send email — check your EmailJS setup');
+  });
 }
 
 function copyFormLink(sessionId) {
