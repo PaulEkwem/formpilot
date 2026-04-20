@@ -1,10 +1,15 @@
-<!DOCTYPE html>
+    CTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GTBank — Business Account Opening</title>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('QK8T4uVIZyC-K8OsU');</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -86,6 +91,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .inline-fields{margin-top:16px;display:none;flex-direction:column;gap:16px;padding:16px;background:#F8F6F4;border-radius:10px}
 .inline-fields.show{display:flex}
 .inline-fields label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block}
+[id^="id-number-wrap-"]{margin-top:12px}
 
 /* OK BUTTON */
 .ok-btn{display:inline-flex;align-items:center;gap:7px;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .2s}
@@ -200,7 +206,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .sig-canvas-box{flex:1;min-width:120px}
 .sig-canvas-box p{font-size:11px;color:var(--muted);margin-bottom:4px;text-align:center}
 .sig-canvas-box canvas{width:100%;border-radius:8px;border:1px solid var(--line);background:#F8F6F4;display:block}
-.sig-canvas-box canvas.clean-bg{background:#fff}
+.sig-canvas-box canvas.clean-bg{background:transparent;background-image:linear-gradient(45deg,#e8e8e8 25%,transparent 25%),linear-gradient(-45deg,#e8e8e8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8e8e8 75%),linear-gradient(-45deg,transparent 75%,#e8e8e8 75%);background-size:10px 10px;background-position:0 0,0 5px,5px -5px,-5px 0}
 .sig-confirm-btns{display:flex;gap:10px}
 .sig-confirm-btn{flex:1;padding:11px;border-radius:8px;border:1.5px solid var(--line);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s}
 .sig-confirm-btn.accept{border-color:var(--success);background:var(--success-bg);color:var(--success)}
@@ -209,6 +215,16 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .sig-accepted-badge.show{display:flex}
 .sig-processing{display:none;font-size:13px;color:var(--muted);margin-bottom:12px;align-items:center;gap:8px}
 .sig-processing.show{display:flex}
+/* CROPPER */
+.sig-crop-wrap{display:none;margin-bottom:16px}
+.sig-crop-wrap.show{display:block}
+.sig-crop-hint{font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.sig-crop-stage{position:relative;width:100%;touch-action:none;border-radius:8px;overflow:hidden;background:#000;cursor:crosshair}
+.sig-crop-stage canvas{display:block;width:100%;height:auto}
+.sig-crop-box{position:absolute;border:2px solid var(--orange);box-shadow:0 0 0 2000px rgba(0,0,0,.45);pointer-events:none}
+.sig-crop-btns{display:flex;gap:10px;margin-top:10px}
+.sig-crop-btn{flex:1;padding:11px;border-radius:8px;border:1.5px solid var(--line);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:#fff;color:var(--ink)}
+.sig-crop-btn.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
 
 /* TERMS PAGE */
 .terms-block{margin-bottom:18px}
@@ -294,6 +310,65 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   .slide-q{font-size:22px}
   .welcome-title{font-size:26px}
 }
+
+/* ── PREVIEW TOGGLE BUTTON ───────────────────── */
+#preview-btn{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  display:flex;align-items:center;gap:8px;
+  background:#1A1208;color:#fff;border:none;border-radius:99px;
+  padding:10px 18px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;
+  cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:all .2s;
+}
+#preview-btn:hover{background:#333;transform:translateY(-1px)}
+#preview-btn.active{background:#E8470A}
+
+/* ── SIDE-BY-SIDE LAYOUT ─────────────────────── */
+body.preview-open{overflow:hidden}
+body.preview-open #slides{right:50%} /* form takes left half */
+
+#preview-panel{
+  position:fixed;top:0;right:0;bottom:0;width:50%;z-index:400;
+  background:#2a2a2a;display:none;flex-direction:column;
+  border-left:2px solid #E8470A;
+}
+body.preview-open #preview-panel{display:flex}
+
+#preview-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:#1a1a1a;flex-shrink:0;
+}
+#preview-topbar h3{font-size:12px;font-weight:700;color:#fff;letter-spacing:.04em}
+#preview-page-label{font-size:11px;color:#E8470A;font-weight:600}
+#preview-close{
+  background:none;border:1px solid #555;border-radius:6px;
+  padding:4px 12px;font-size:11px;font-weight:600;color:#aaa;
+  cursor:pointer;font-family:'DM Sans',sans-serif;
+}
+#preview-close:hover{border-color:#E8470A;color:#fff}
+
+#preview-page-nav{
+  display:flex;align-items:center;gap:6px;padding:8px 16px;
+  background:#222;flex-shrink:0;overflow-x:auto;
+}
+.pnav-btn{
+  flex-shrink:0;background:#333;border:1px solid #444;border-radius:6px;
+  padding:4px 10px;font-size:11px;color:#aaa;cursor:pointer;font-family:'DM Sans',sans-serif;
+  white-space:nowrap;
+}
+.pnav-btn.active{background:#E8470A;border-color:#E8470A;color:#fff}
+
+#preview-scroll{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:16px}
+#preview-canvas-wrap{position:relative;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+#preview-canvas{display:block}
+#preview-overlay-canvas{position:absolute;top:0;left:0;pointer-events:none}
+
+#preview-loading{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#aaa;font-size:13px;padding:40px;text-align:center;gap:8px;
+}
+
+/* keep old .pf class in case anything refs it */
+.pf{position:absolute;font-family:Arial,sans-serif;font-size:9px;color:#1A1208;white-space:nowrap;overflow:hidden}
 </style>
 </head>
 <body>
@@ -349,12 +424,65 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 <div id="counter"></div>
 <div id="slides"></div>
 
+<!-- ── PREVIEW TOGGLE BUTTON ───────────────────── -->
+<button id="preview-btn" onclick="togglePreview()" title="Preview form side by side">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  <span id="preview-btn-label">Show PDF</span>
+</button>
+
+<!-- ── SIDE PREVIEW PANEL ──────────────────────── -->
+<div id="preview-panel">
+  <div id="preview-topbar">
+    <div>
+      <h3>GTBank Form — Live Preview</h3>
+      <div id="preview-page-label">Page 3 — Entity Details</div>
+    </div>
+    <button id="preview-close" onclick="togglePreview()">✕ Close</button>
+  </div>
+  <div id="preview-page-nav">
+    <span style="font-size:11px;color:#777;flex-shrink:0">Jump to:</span>
+    <button class="pnav-btn active" onclick="previewGoTo(3)" data-page="3">Pg 3 Business</button>
+    <button class="pnav-btn" onclick="previewGoTo(4)" data-page="4">Pg 4 Services</button>
+    <button class="pnav-btn" onclick="previewGoTo(5)" data-page="5">Pg 5 Sig 1</button>
+    <button class="pnav-btn" onclick="previewGoTo(6)" data-page="6">Pg 6 Sig 2</button>
+    <button class="pnav-btn" onclick="previewGoTo(7)" data-page="7">Pg 7 Sig 3</button>
+    <button class="pnav-btn" onclick="previewGoTo(8)" data-page="8">Pg 8 NOK</button>
+    <button class="pnav-btn" onclick="previewGoTo(9)" data-page="9">Pg 9 Debit Auth</button>
+    <button class="pnav-btn" onclick="previewGoTo(10)" data-page="10">Pg 10 Mandate</button>
+    <button class="pnav-btn" onclick="previewGoTo(16)" data-page="16">Pg 16 Privacy/Decl</button>
+    <div style="display:flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0">
+      <button onclick="previewPrev()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:13px;color:#555" title="Previous page">◀</button>
+      <span id="preview-pnum" style="font-size:11px;color:#555;white-space:nowrap">3 / 20</span>
+      <button onclick="previewNext()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:3px 9px;cursor:pointer;font-size:13px;color:#555" title="Next page">▶</button>
+    </div>
+  </div>
+  <div id="preview-scroll">
+    <div id="preview-canvas-wrap">
+      <canvas id="preview-canvas"></canvas>
+      <canvas id="preview-overlay-canvas"></canvas>
+    </div>
+    <div id="preview-loading">
+      <div style="font-size:28px">📄</div>
+      <div>Loading PDF preview…</div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── URL CONFIG ──────────────────────────────────
 const _p = new URLSearchParams(window.location.search);
 let _cfg = {};
 try { const r=_p.get('config'); if(r) _cfg=JSON.parse(decodeURIComponent(escape(atob(r)))); } catch(e){}
 const CFG_CUSTOMER=_cfg.customer||'', CFG_OFFICER=_cfg.officer||'', CFG_SESSION=_cfg.sessionId||'';
+
+// ── SUPABASE ────────────────────────────────────
+const SUPA_URL='https://dlpbnucipzudsrsbvodp.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
+const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+
+// ── S2 ROLE DETECTION ───────────────────────────
+const S2_ROLE=_p.get('role')==='s2';
+const S2_SESSION=_p.get('session')||'';
 
 // ── GATE / EXPIRY CHECK ─────────────────────────
 (function initGate(){
@@ -451,6 +579,7 @@ const SEC = {
   BIZ:'📋 Business Info',
   ADDR:'📍 Address & Contact',
   SIG1:'👤 About You',
+  SIG2:'👤 Signatory 2',
   SIGS:'👥 Signatories',
   SVCS:'⚙️ Account Services',
   NOK:'👨‍👩‍👧 Next of Kin',
@@ -468,7 +597,8 @@ const SLIDES=[
   {key:'A',val:'Sole Proprietorship',label:'Sole Proprietorship',sub:'Owned by one individual'},
   {key:'B',val:'Partnership',label:'Partnership',sub:'Two or more people sharing ownership'},
 ]},
-{type:'account-product',sec:SEC.BIZ,emoji:'🏦',q:'Which account would\nyou like to open?',sub:'Choose your naira account. Optionally add a domiciliary account below.',required:true},
+{type:'account-product',sec:SEC.BIZ,emoji:'🏦',q:'Which account would\nyou like to open?',sub:'Choose your naira account.',required:true},
+{type:'domiciliary',sec:SEC.BIZ,emoji:'💱',q:'Add a domiciliary\naccount?',sub:'Optional — select the currencies you\'d like. No extra documents needed.'},
 {type:'group',sec:SEC.BIZ,emoji:'📋',q:'Business name & registration',sub:'Exactly as registered with CAC.',fields:[
   {id:'bizName',label:'Business name *',placeholder:'e.g. Adeyemi Ventures',type:'text',required:true},
   {id:'bizRegNumber',label:'CAC number (BN / RC)',placeholder:'e.g. BN 1234567',type:'text',required:false},
@@ -478,10 +608,10 @@ const SLIDES=[
 {type:'group',sec:SEC.BIZ,emoji:'💼',q:'Business activity & size',sub:'',fields:[
   {id:'bizNature',label:'Type / nature of business *',placeholder:'e.g. Retail trading, IT consulting',type:'text',required:true},
   {id:'bizSector',label:'Sector / industry',type:'select',opts:['Select sector',...SECTORS],required:false},
-  {id:'bizTurnover',label:'Estimated annual turnover',type:'select',opts:['Select range','Less than ₦50M','₦50M – ₦500M','₦500M – ₦5B','Above ₦5B'],required:false},
+  {id:'bizTurnover',label:'Estimated annual turnover',type:'select',opts:['Select range','Less than ₦50M','₦50M – ₦500M','₦500M – ₦5B','Above ₦5B'],required:false,matchAs:'exact'},
 ]},
 {type:'group',sec:SEC.BIZ,emoji:'🔢',q:'Tax & compliance',sub:'',fields:[
-  {id:'bizTIN',label:'Tax Identification Number (TIN) *',placeholder:'e.g. 1234567890',type:'text',required:true},
+  {id:'bizTIN',label:'Tax Identification Number (TIN) *',placeholder:'e.g. 2522535865787',type:'text',required:true,hint:'Don\'t know your TIN? <a href="https://taxid.nrs.gov.ng/" target="_blank" rel="noopener" style="color:var(--orange)">Look it up here →</a>'},
   {id:'bizCRM',label:'CRM No / Borrower\'s code',placeholder:'Where applicable',type:'text',required:false},
 ],extraId:'scuml-block'},
 {type:'group',sec:SEC.ADDR,emoji:'🏠',q:'Business operating address',sub:'Your registered operating address.',fields:[
@@ -492,6 +622,16 @@ const SLIDES=[
   {id:'bizLGA',label:'LGA (Local Govt. Area)',placeholder:'e.g. Lagos Island',type:'text',required:false},
   {id:'bizState',label:'State *',type:'select',opts:['Select state',...STATES],required:true},
 ]},
+{type:'choice',sec:SEC.ADDR,emoji:'📋',q:'Is the address on your CAC the same as your operating address?',sub:'Check your CAC certificate.',id:'sameAsOpAddr',opts:[
+  {key:'A',val:'YES',label:'Yes — same address'},
+  {key:'B',val:'NO', label:'No — different address'},
+]},
+{type:'group',sec:SEC.ADDR,emoji:'🏢',q:'Registered Business Address',sub:'Enter exactly as it appears on your CAC certificate — one line.',
+  skip:()=>FD.sameAsOpAddr!=='NO',
+  fields:[
+    {id:'bizRegAddress',label:'Registered address *',placeholder:'e.g. 1 Yaya Close, Casco, Lagos State',type:'text',required:true},
+  ]
+},
 {type:'group',sec:SEC.ADDR,emoji:'📞',q:'Business contact details',sub:'GTBank uses these for account notifications.',fields:[
   {id:'bizMobile',label:'Business mobile number *',placeholder:'e.g. 08012345678',type:'tel',required:true},
   {id:'bizEmail',label:'Business email address *',placeholder:'contact@yourbusiness.com',type:'email',required:true},
@@ -516,9 +656,10 @@ const SLIDES=[
   {id:'s1StateOrigin',label:'State of origin',type:'select',opts:['Select state',...STATES],required:false},
   {id:'s1LGAOrigin',label:'LGA of origin',placeholder:'e.g. Onitsha North',type:'text',required:false},
 ]},
-{type:'nationality',sec:SEC.SIG1,id:'s1Nationality',emoji:'🌍',q:'What is your nationality?',required:true},
+{type:'nationality',sec:SEC.SIG1,id:'s1Nationality',prefix:'s1',emoji:'🌍',q:'What is your nationality?',required:true},
+{type:'other-residency',sec:SEC.SIG1,id:'s1OtherResidency',prefix:'s1',emoji:'🌐',q:'Do you have residency\nin any other country?',required:false},
 {type:'bvn',sec:SEC.SIG1,id:'s1BVN',emoji:'🔐',q:'Your Bank Verification\nNumber (BVN)',sub:'Your 11-digit BVN — dial *565*0# on your registered phone to confirm.',placeholder:'Enter 11-digit BVN',required:true},
-{type:'id-select',sec:SEC.SIG1,idField:'s1IDType',emoji:'🪪',q:'Which ID document\nwill you use?',sub:'Choose your valid, unexpired ID.',required:true},
+{type:'id-select',sec:SEC.SIG1,idField:'s1IDType',prefix:'s1',emoji:'🪪',q:'Which ID document\nwill you use?',sub:'Choose your valid, unexpired ID.',required:true},
 {type:'group',sec:SEC.SIG1,emoji:'📱',q:'Contact & role',sub:'',fields:[
   {id:'s1Mobile',label:'Mobile number *',placeholder:'08012345678',type:'tel',required:true},
   {id:'s1Phone',label:'Alternate phone',placeholder:'Optional landline',type:'tel',required:false},
@@ -528,7 +669,19 @@ const SLIDES=[
   {id:'s1Position',label:'Position in the firm',placeholder:'e.g. Sole Proprietor',type:'text',required:false},
   {id:'s1TIN',label:'Personal TIN (if available)',placeholder:'Tax ID number',type:'text',required:false},
 ]},
-{type:'address',sec:SEC.SIG1,prefix:'s1Res',emoji:'🏡',q:'Your residential address',sub:'Your home address. Toggle below if same as business address.',required:true},
+{type:'address',sec:SEC.SIG1,prefix:'s1Res',sigPfx:'s1',emoji:'🏡',q:'Your residential address',sub:'Your home address. Toggle below if same as business address.',required:true},
+{type:'choice',sec:SEC.SIG1,emoji:'📬',id:'s1SameMailAddr',q:'Is your mailing address\nthe same as your residential?',sub:'Where GTBank will send physical correspondence.',required:true,opts:[
+  {key:'A',val:'YES',label:'Yes — same address'},
+  {key:'B',val:'NO', label:'No — different address'},
+]},
+{type:'group',sec:SEC.SIG1,emoji:'📮',q:'Mailing address',sub:'Enter the address where you\'d like to receive mail.',
+  skip:()=>FD.s1SameMailAddr!=='NO',
+  fields:[
+    {id:'s1MailHouse', label:'House / plot number', placeholder:'e.g. 12', type:'text', required:false},
+    {id:'s1MailStreet',label:'Street name *', placeholder:'e.g. Broad Street', type:'text', required:true},
+    {id:'s1MailCity',  label:'City / town', placeholder:'e.g. Lagos', type:'text', required:false},
+    {id:'s1MailState', label:'State', type:'select', opts:['Select state',...STATES], required:false},
+]},
 {type:'signature',sec:SEC.SIG1,id:'s1Signature',emoji:'✍️',q:'Your signature',sub:'Sign on plain white paper, take a clear photo. We\'ll clean it up.'},
 
 // ══════════ NEXT OF KIN (17–18) ══════════
@@ -541,6 +694,8 @@ const SLIDES=[
   {id:'nokDOB',label:'Date of birth',type:'date',required:false},
   {id:'nokGender',label:'Gender',type:'select',opts:['Select','Male','Female'],required:false},
   {id:'nokMobile',label:'Mobile number',placeholder:'08012345678',type:'tel',required:false},
+]},
+{type:'group',sec:SEC.NOK,emoji:'🏠',q:'Next of kin address',sub:'',fields:[
   {id:'nokHousePlot',label:'House / plot number',placeholder:'e.g. 12',type:'text',required:false},
   {id:'nokStreet',label:'Street name',placeholder:'e.g. Broad Street',type:'text',required:false},
   {id:'nokCity',label:'City / town',placeholder:'e.g. Lagos',type:'text',required:false},
@@ -551,7 +706,67 @@ const SLIDES=[
 // ══════════ SIGNATORIES (19) ══════════
 {type:'add-signatories',sec:SEC.SIGS},
 
-// ══════════ ACCOUNT SERVICES (21–24) ══════════
+// ══════════ SIGNATORY 2 (28–39) — shown if _hasS2 or S2_ROLE ══════════
+{type:'section',sec:SEC.SIG2,emoji:'👤',s2slide:true,q:'Signatory 2 details',sub:'Personal details of the second account signatory.',
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'group',sec:SEC.SIG2,s2slide:true,prefix:'s2',emoji:'✍️',q:'Signatory 2 full name',sub:'As it appears on their valid ID.',
+  skip:()=>!S2_ROLE&&!FD._hasS2,
+  fields:[
+  {id:'s2Title',label:'Title',type:'select',opts:['Select title',...TITLES],required:false},
+  {id:'s2Surname',label:'Surname *',placeholder:'e.g. Okonkwo',type:'text',required:true},
+  {id:'s2FirstName',label:'First name *',placeholder:'e.g. Ada',type:'text',required:true},
+  {id:'s2OtherNames',label:'Other names',placeholder:'Middle name(s)',type:'text',required:false},
+]},
+{type:'group',sec:SEC.SIG2,s2slide:true,prefix:'s2',emoji:'🧑',q:'Personal details',sub:'',
+  skip:()=>!S2_ROLE&&!FD._hasS2,
+  fields:[
+  {id:'s2Gender',label:'Gender *',type:'select',opts:['Select','Male','Female'],required:true},
+  {id:'s2Marital',label:'Marital status',type:'select',opts:['Select','Single','Married','Divorced','Widowed'],required:false},
+  {id:'s2DOB',label:'Date of birth *',type:'date',required:true},
+  {id:'s2PlaceOfBirth',label:'Place of birth',placeholder:'e.g. Lagos',type:'text',required:false},
+  {id:'s2MothersName',label:"Mother's maiden name",placeholder:"Your mother's surname at birth",type:'text',required:false},
+  {id:'s2StateOrigin',label:'State of origin',type:'select',opts:['Select state',...STATES],required:false},
+  {id:'s2LGAOrigin',label:'LGA of origin',placeholder:'e.g. Onitsha North',type:'text',required:false},
+]},
+{type:'nationality',sec:SEC.SIG2,s2slide:true,id:'s2Nationality',prefix:'s2',emoji:'🌍',q:'Nationality of Signatory 2?',required:true,
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'other-residency',sec:SEC.SIG2,s2slide:true,id:'s2OtherResidency',prefix:'s2',emoji:'🌐',q:'Does Signatory 2 have residency\nin any other country?',required:false,
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'bvn',sec:SEC.SIG2,s2slide:true,id:'s2BVN',emoji:'🔐',q:'Signatory 2 BVN',sub:'Their 11-digit Bank Verification Number.',placeholder:'Enter 11-digit BVN',required:true,
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'id-select',sec:SEC.SIG2,s2slide:true,idField:'s2IDType',prefix:'s2',emoji:'🪪',q:'Which ID document\nwill Signatory 2 use?',sub:'Choose their valid, unexpired ID.',required:true,
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'group',sec:SEC.SIG2,s2slide:true,prefix:'s2',emoji:'📱',q:'Contact & role',sub:'',
+  skip:()=>!S2_ROLE&&!FD._hasS2,
+  fields:[
+  {id:'s2Mobile',label:'Mobile number *',placeholder:'08012345678',type:'tel',required:true},
+  {id:'s2Phone',label:'Alternate phone',placeholder:'Optional landline',type:'tel',required:false},
+  {id:'s2Email',label:'Personal email',placeholder:'their@email.com',type:'email',required:false},
+  {id:'s2Occupation',label:'Occupation',placeholder:'e.g. Business owner',type:'text',required:false},
+  {id:'s2JobTitle',label:'Job title / status',placeholder:'e.g. Director',type:'text',required:false},
+  {id:'s2Position',label:'Position in the firm',placeholder:'e.g. Partner',type:'text',required:false},
+  {id:'s2TIN',label:'Personal TIN (if available)',placeholder:'Tax ID number',type:'text',required:false},
+]},
+{type:'address',sec:SEC.SIG2,s2slide:true,prefix:'s2Res',sigPfx:'s2',emoji:'🏡',q:'Signatory 2 residential address',sub:'Their home address.',required:true,
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+{type:'choice',sec:SEC.SIG2,s2slide:true,emoji:'📬',id:'s2SameMailAddr',q:'Is their mailing address\nthe same as residential?',sub:'Where GTBank will send their correspondence.',required:true,
+  skip:()=>!S2_ROLE&&!FD._hasS2,
+  opts:[
+  {key:'A',val:'YES',label:'Yes — same address'},
+  {key:'B',val:'NO', label:'No — different address'},
+]},
+{type:'group',sec:SEC.SIG2,s2slide:true,emoji:'📮',q:'Signatory 2 mailing address',sub:'Enter their mailing address.',
+  skip:()=>(!S2_ROLE&&!FD._hasS2)||FD.s2SameMailAddr!=='NO',
+  fields:[
+    {id:'s2MailHouse', label:'House / plot number', placeholder:'e.g. 12', type:'text', required:false},
+    {id:'s2MailStreet',label:'Street name *', placeholder:'e.g. Broad Street', type:'text', required:true},
+    {id:'s2MailCity',  label:'City / town', placeholder:'e.g. Lagos', type:'text', required:false},
+    {id:'s2MailState', label:'State', type:'select', opts:['Select state',...STATES], required:false},
+]},
+{type:'signature',sec:SEC.SIG2,s2slide:true,id:'s2Signature',emoji:'✍️',q:'Signatory 2 signature',sub:'They should sign on plain white paper and take a clear photo.',
+  skip:()=>!S2_ROLE&&!FD._hasS2},
+
+// ══════════ ACCOUNT SERVICES (40–43) ══════════
 {type:'section',sec:SEC.SVCS,emoji:'⚙️',q:'Account services',sub:'Set up online banking, choose your statement frequency, cheque book, and salary payment preferences.'},
 {type:'choice',sec:SEC.SVCS,id:'onlineBanking',emoji:'💻',q:'Do you need\nonline banking?',optional:true,opts:[
   {key:'A',val:'GAPS-Lite',label:'GAPS-Lite',sub:'Single user, simple access'},
@@ -596,8 +811,9 @@ function renderSlide(s,idx){
     case 'text':         div.innerHTML=renderText(s,idx); break;
     case 'group':        div.innerHTML=renderGroup(s,idx); break;
     case 'bvn':          div.innerHTML=renderBVN(s,idx); break;
-    case 'nationality':  div.innerHTML=renderNationality(s,idx); break;
-    case 'id-select':    div.innerHTML=renderIDSelect(s,idx); break;
+    case 'nationality':      div.innerHTML=renderNationality(s,idx); break;
+    case 'other-residency':  div.innerHTML=renderOtherResidency(s,idx); break;
+    case 'id-select':        div.innerHTML=renderIDSelect(s,idx); break;
     case 'address':      div.innerHTML=renderAddress(s,idx); break;
     case 'signature':    div.innerHTML=renderSignature(s,idx); break;
     case 'salary':       div.innerHTML=renderSalary(s,idx); break;
@@ -627,6 +843,19 @@ function okRow(idx,s){
 }
 
 function renderWelcome(){
+  if(S2_ROLE){
+    return `<div class="slide-inner">
+      <div class="welcome-badge">🏦 GTBank Business Account Opening</div>
+      <h1 class="welcome-title">👋 You've been invited<br>to co-sign as <em>Signatory 2</em></h1>
+      <p class="welcome-sub">Please fill in your personal details and signature. Takes about 5 minutes.</p>
+      <div class="welcome-pills">
+        <div class="w-pill">⏱️ About 5 minutes</div>
+        <div class="w-pill">🔒 Secure & private</div>
+        <div class="w-pill">📱 Works on your phone</div>
+      </div>
+      <button class="start-btn" onclick="goNext()">Let's go <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>`;
+  }
   const name=CFG_CUSTOMER?CFG_CUSTOMER.split(' ')[0]:'';
   const greeting=name?`Hi ${name}! 👋`:'👋 Welcome';
   const sentBy=CFG_OFFICER?`<div class="w-pill">🏦 Sent by <strong style="margin-left:4px">${CFG_OFFICER}</strong> · GTBank</div>`:'';
@@ -692,7 +921,7 @@ function renderGroup(s,idx){
       const opts=f.opts.map((o,i)=>`<option value="${i===0?'':o}">${o}</option>`).join('');
       return `<div class="group-field"><label for="${f.id}">${f.label}</label><select class="tally-select" id="${f.id}" onchange="FD['${f.id}']=this.value;autoSave()">${opts}</select></div>`;
     }
-    return `<div class="group-field"><label for="${f.id}">${f.label}</label><input class="tally-input" type="${f.type||'text'}" id="${f.id}" placeholder="${f.placeholder||''}" oninput="FD['${f.id}']=this.value;autoSave()"></div>`;
+    return `<div class="group-field"><label for="${f.id}">${f.label}</label><input class="tally-input" type="${f.type||'text'}" id="${f.id}" placeholder="${f.placeholder||''}" oninput="FD['${f.id}']=this.value;autoSave()">${f.hint?`<div style="font-size:12px;margin-top:4px;color:var(--muted)">${f.hint}</div>`:''}</div>`;
   }).join('');
   const extra=s.extraId===`scuml-block`?renderSCUMLInline():'';
   return `<div class="slide-inner">
@@ -922,54 +1151,74 @@ function renderBVN(s,idx){
   </div>`;
 }
 
+function lbl(text){ return `<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block">${text}</label>`; }
+
 function renderNationality(s,idx){
-  const countryOpts=COUNTRIES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const px=s.prefix||'s1';
   return `<div class="slide-inner">
     <span class="slide-emoji">${s.emoji}</span>
     <h2 class="slide-q">${s.q}</h2>
     <div class="choices" id="choices-${s.id}">
-      <button class="choice-btn" data-val="Nigerian" onclick="pickNationality('Nigerian',this,${idx})">
+      <button class="choice-btn" data-val="Nigerian" onclick="pickNationality('Nigerian',this,${idx},'${px}')">
         <span class="choice-key">A</span><span class="choice-label">Nigerian 🇳🇬</span>
       </button>
-      <button class="choice-btn" data-val="Other" onclick="pickNationality('Other',this,${idx})">
+      <button class="choice-btn" data-val="Other" onclick="pickNationality('Other',this,${idx},'${px}')">
         <span class="choice-key">B</span><span class="choice-label">Other nationality</span>
       </button>
     </div>
-    <div class="inline-country" id="other-country-wrap">
-      <div class="group-field" style="margin-bottom:8px">
-        <label>Select your country</label>
-        <select class="tally-select" id="s1NationalityCountry" onchange="FD['s1NationalityCountry']=this.value;autoSave()">
-          <option value="">Select country</option>${countryOpts}
-        </select>
+    <div class="inline-fields" id="other-country-wrap-${px}">
+      <div>${lbl('Country of nationality *')}<input class="tally-input" type="text" id="${px}NationalityCountry" placeholder="e.g. Ghana, United Kingdom…" oninput="FD['${px}NationalityCountry']=this.value;autoSave()"></div>
+      <div>${lbl('Resident permit number')}<input class="tally-input" type="text" id="${px}ResidentPermit" placeholder="Permit number" oninput="FD['${px}ResidentPermit']=this.value;autoSave()"></div>
+      <div>${lbl('Social security number')}<input class="tally-input" type="text" id="${px}SocialSecurity" placeholder="SSN (if applicable)" oninput="FD['${px}SocialSecurity']=this.value;autoSave()"></div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">${lbl('Permit issue date')}<input class="tally-input" type="date" id="${px}PermitIssue" oninput="FD['${px}PermitIssue']=this.value;autoSave()"></div>
+        <div style="flex:1">${lbl('Permit expiry date')}<input class="tally-input" type="date" id="${px}PermitExpiry" oninput="FD['${px}PermitExpiry']=this.value;autoSave()"></div>
       </div>
-      <div class="group-fields" style="margin-bottom:16px">
-        <div class="group-field"><label>Resident permit number</label><input class="tally-input" type="text" id="s1ResidentPermit" placeholder="Permit number" oninput="FD['s1ResidentPermit']=this.value;autoSave()"></div>
-        <div class="group-field"><label>Social security number</label><input class="tally-input" type="text" id="s1SocialSecurity" placeholder="SSN" oninput="FD['s1SocialSecurity']=this.value;autoSave()"></div>
-        <div class="group-field"><label>Permit issue date</label><input class="tally-input" type="date" id="s1PermitIssue" oninput="FD['s1PermitIssue']=this.value;autoSave()"></div>
-        <div class="group-field"><label>Permit expiry date</label><input class="tally-input" type="date" id="s1PermitExpiry" oninput="FD['s1PermitExpiry']=this.value;autoSave()"></div>
-      </div>
-      <button class="ok-btn" onclick="tryAdvance(${idx})">OK ✓</button>
     </div>
     <div class="err-msg" id="err-${s.id}">Please select your nationality.</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:4px" id="nat-ok-row">
-      <button class="ok-btn" onclick="tryAdvance(${idx})">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <span class="press-hint">or <strong>Enter ↵</strong></span>
+    ${okRow(idx,s)}
+  </div>`;
+}
+
+function renderOtherResidency(s,idx){
+  const px=s.prefix||'s1';
+  return `<div class="slide-inner">
+    <span class="slide-emoji">${s.emoji}</span>
+    <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
+    <div class="choices" id="choices-${s.id}">
+      <button class="choice-btn" data-val="YES" onclick="pickOtherRes('YES',this,${idx},'${px}')">
+        <span class="choice-key">A</span><span class="choice-label">Yes</span>
+      </button>
+      <button class="choice-btn" data-val="NO" onclick="pickOtherRes('NO',this,${idx},'${px}')">
+        <span class="choice-key">B</span><span class="choice-label">No</span>
+      </button>
     </div>
+    <div class="inline-fields" id="other-res-wrap-${px}">
+      <div>${lbl('Which country?')}<input class="tally-input" type="text" id="${px}OtherResCountry" placeholder="e.g. United Kingdom" oninput="FD['${px}OtherResCountry']=this.value;autoSave()"></div>
+      <div>${lbl('Resident permit number')}<input class="tally-input" type="text" id="${px}ResidentPermit2" placeholder="Permit number" oninput="FD['${px}ResidentPermit2']=this.value;autoSave()"></div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">${lbl('Permit issue date')}<input class="tally-input" type="date" id="${px}PermitIssue2" oninput="FD['${px}PermitIssue2']=this.value;autoSave()"></div>
+        <div style="flex:1">${lbl('Permit expiry date')}<input class="tally-input" type="date" id="${px}PermitExpiry2" oninput="FD['${px}PermitExpiry2']=this.value;autoSave()"></div>
+      </div>
+    </div>
+    <div class="err-msg" id="err-${s.id}"></div>
+    ${okRow(idx,s)}
   </div>`;
 }
 
 // ID types and which fields they need
 const ID_CFG={
-  "National ID (NIN Slip)":    {fields:['number']},
-  "Driver's Licence":          {fields:['number','issue','expiry']},
-  "International Passport":    {fields:['number','issue','expiry']},
-  "Voter's Card":              {fields:['number']},
+  "National ID (NIN)":   {fields:['number']},
+  "Driver's Licence":    {fields:['number','issue','expiry']},
+  "International Passport": {fields:['number','issue','expiry']},
+  "Voter's Card":        {fields:['number']},
 };
 const ID_KEYS=Object.keys(ID_CFG);
 
 function renderIDSelect(s,idx){
+  const px=s.prefix||'s1';
   const opts=ID_KEYS.map((k,i)=>`
-    <button class="choice-btn" data-val="${k}" onclick="pickID('${s.idField}','${escQ(k)}',this,${idx})">
+    <button class="choice-btn" data-val="${k}" data-kidx="${i}" onclick="pickID('${s.idField}',${i},this,${idx},'${px}')">
       <span class="choice-key">${String.fromCharCode(65+i)}</span>
       <span class="choice-label">${k}</span>
     </button>`).join('');
@@ -978,28 +1227,29 @@ function renderIDSelect(s,idx){
     <h2 class="slide-q">${s.q.replace(/\n/g,'<br>')}</h2>
     <p class="slide-sub">${s.sub}</p>
     <div class="choices" id="choices-${s.idField}">${opts}</div>
-    <div class="inline-fields" id="id-fields-wrap">
-      <div id="id-number-wrap"><label>ID number *</label><input class="tally-input" type="text" id="s1IDNumber" placeholder="Your ID number" oninput="FD['s1IDNumber']=this.value;autoSave()"></div>
-      <div id="id-issue-wrap" style="display:none"><label>Issue date</label><input class="tally-input" type="date" id="s1IDIssue" oninput="FD['s1IDIssue']=this.value;autoSave()"></div>
-      <div id="id-expiry-wrap" style="display:none"><label>Expiry date</label><input class="tally-input" type="date" id="s1IDExpiry" oninput="FD['s1IDExpiry']=this.value;autoSave()"></div>
-      <button class="ok-btn" onclick="tryAdvance(${idx})" style="margin-top:4px">OK ✓</button>
+    <div id="id-number-wrap-${px}" style="display:none"><label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block">ID number *</label><input class="tally-input" type="text" id="${px}IDNumber" placeholder="ID number" oninput="FD['${px}IDNumber']=this.value;autoSave()"></div>
+    <div class="inline-fields" id="id-fields-wrap-${px}">
+      <div><label>Issue date</label><input class="tally-input" type="date" id="${px}IDIssue" oninput="FD['${px}IDIssue']=this.value;autoSave()"></div>
+      <div><label>Expiry date</label><input class="tally-input" type="date" id="${px}IDExpiry" oninput="FD['${px}IDExpiry']=this.value;autoSave()"></div>
     </div>
     <div class="err-msg" id="err-${s.idField}">Please select an ID type.</div>
+    ${okRow(idx,s)}
   </div>`;
 }
 
 function renderAddress(s,idx){
   const pre=s.prefix;
+  const spfx=s.sigPfx||s.prefix.replace('Res','')||'s1';
   const stateOpts=['Select state',...STATES].map((o,i)=>`<option value="${i===0?'':o}">${o}</option>`).join('');
   return `<div class="slide-inner">
     <span class="slide-emoji">${s.emoji}</span>
     <h2 class="slide-q">${s.q}</h2>
     <p class="slide-sub">${s.sub}</p>
-    <label class="same-toggle" id="same-biz-toggle" onclick="toggleSameAsBusiness(this)">
-      <input type="checkbox" id="same-biz-check" style="pointer-events:none">
-      <span>Same as my business address</span>
+    <label class="same-toggle" id="same-biz-toggle-${spfx}" onclick="toggleSameAsBusiness(this,'${spfx}')">
+      <input type="checkbox" id="same-biz-check-${spfx}" style="pointer-events:none">
+      <span>Same as business address</span>
     </label>
-    <div id="res-fields-wrap" class="group-fields" style="margin-bottom:20px">
+    <div id="res-fields-wrap-${spfx}" class="group-fields" style="margin-bottom:20px">
       <div class="group-field"><label>House / plot number</label><input class="tally-input" type="text" id="${pre}HousePlot" placeholder="e.g. 12" oninput="FD['${pre}HousePlot']=this.value;autoSave()"></div>
       <div class="group-field"><label>Street name *</label><input class="tally-input" type="text" id="${pre}Street" placeholder="e.g. Broad Street" oninput="FD['${pre}Street']=this.value;autoSave()"></div>
       <div class="group-field"><label>Nearest bus stop / landmark</label><input class="tally-input" type="text" id="${pre}BusStop" placeholder="e.g. Near Shoprite" oninput="FD['${pre}BusStop']=this.value;autoSave()"></div>
@@ -1032,13 +1282,27 @@ function renderSignature(s,idx){
 
     <input type="file" id="sig-input-${idx}" accept="image/*" capture="environment" style="display:none" onchange="processSignatureFile(${idx},this)">
 
-    <div class="sig-processing" id="sig-proc-${idx}">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"/></svg>
-      Removing background…
+    <!-- STEP 2: Crop -->
+    <div class="sig-crop-wrap" id="sig-crop-${idx}">
+      <p class="sig-crop-hint">✨ <strong>Auto-detected your signature</strong> — drag the box to adjust if needed, then tap Crop &amp; clean</p>
+      <div class="sig-crop-stage" id="sig-crop-stage-${idx}">
+        <canvas id="sig-crop-canvas-${idx}"></canvas>
+        <div class="sig-crop-box" id="sig-crop-box-${idx}" style="display:none"></div>
+      </div>
+      <div class="sig-crop-btns">
+        <button class="sig-crop-btn" onclick="retakeSignature(${idx})">↩ Retake</button>
+        <button class="sig-crop-btn primary" onclick="confirmCrop(${idx})">✂️ Crop &amp; clean</button>
+      </div>
     </div>
 
-    <div class="sig-accepted-badge" id="sig-ok-badge-${idx}">
-      ✅ Signature captured — looking clean!
+    <div class="sig-processing" id="sig-proc-${idx}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"/></svg>
+      Cleaning signature…
+    </div>
+
+    <div class="sig-accepted-badge" id="sig-ok-badge-${idx}" style="justify-content:space-between">
+      <span>✅ Signature captured — looking clean!</span>
+      <button onclick="retakeSignature(${idx})" style="background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;font-weight:600;text-decoration:underline">Redo</button>
     </div>
 
     <div class="sig-preview-wrap" id="sig-preview-${idx}">
@@ -1071,59 +1335,262 @@ function openSignatureCapture(idx, mode){
   inp.click();
 }
 
+function autoDetectInkRegion(img, w, h){
+  // Work on a small thumbnail for speed (~150px wide)
+  const THUMB = 150;
+  const tw = THUMB, th = Math.round(h * THUMB / w);
+  const tc = document.createElement('canvas');
+  tc.width=tw; tc.height=th;
+  const tctx = tc.getContext('2d');
+  tctx.drawImage(img, 0, 0, tw, th);
+  const id = tctx.getImageData(0, 0, tw, th);
+  const px = id.data;
+
+  // Compute median brightness to find the background level
+  const brightness = new Uint8Array(tw*th);
+  for(let i=0;i<tw*th;i++)
+    brightness[i] = Math.round(px[i*4]*0.299 + px[i*4+1]*0.587 + px[i*4+2]*0.114);
+
+  // Sort a sample to get median (background is the most common bright value)
+  const sample = Array.from(brightness).sort((a,b)=>a-b);
+  const median = sample[Math.floor(sample.length*0.7)]; // 70th percentile = background
+  const inkThresh = Math.max(30, median * 0.72); // ink is significantly darker than background
+
+  // Find bounding box of ink pixels on thumbnail
+  let minX=tw, maxX=0, minY=th, maxY=0, found=false;
+  for(let y=0;y<th;y++){
+    for(let x=0;x<tw;x++){
+      if(brightness[y*tw+x] < inkThresh){
+        if(x<minX) minX=x; if(x>maxX) maxX=x;
+        if(y<minY) minY=y; if(y>maxY) maxY=y;
+        found=true;
+      }
+    }
+  }
+
+  if(!found){
+    // Fallback: centre 80% of image
+    return {x:Math.round(w*0.05), y:Math.round(h*0.1), w:Math.round(w*0.9), h:Math.round(h*0.8)};
+  }
+
+  // Scale back to full image coords and add generous padding (15% each side)
+  const scaleX = w/tw, scaleY = h/th;
+  const padX = Math.round(w*0.08), padY = Math.round(h*0.08);
+  let rx = Math.max(0, Math.round(minX*scaleX) - padX);
+  let ry = Math.max(0, Math.round(minY*scaleY) - padY);
+  let rx2 = Math.min(w, Math.round(maxX*scaleX) + padX);
+  let ry2 = Math.min(h, Math.round(maxY*scaleY) + padY);
+
+  // Enforce minimum size
+  if(rx2-rx < 40) { rx=Math.max(0,rx-20); rx2=Math.min(w,rx2+20); }
+  if(ry2-ry < 20) { ry=Math.max(0,ry-10); ry2=Math.min(h,ry2+10); }
+
+  return {x:rx, y:ry, w:rx2-rx, h:ry2-ry};
+}
+
 function processSignatureFile(idx, inputEl){
   const file = inputEl.files[0];
   if(!file) return;
-  const proc = document.getElementById('sig-proc-'+idx);
-  const preview = document.getElementById('sig-preview-'+idx);
-  const badge = document.getElementById('sig-ok-badge-'+idx);
-  const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
-  if(proc) proc.classList.add('show');
-  if(preview) preview.classList.remove('show');
-  if(badge) badge.classList.remove('show');
+  // Hide everything, show crop UI
+  const cropWrap = document.getElementById('sig-crop-'+idx);
+  const captBtns = document.getElementById('sig-capture-btns-'+idx);
+  const preview  = document.getElementById('sig-preview-'+idx);
+  const badge    = document.getElementById('sig-ok-badge-'+idx);
+  if(captBtns) captBtns.style.display='none';
+  if(preview)  preview.classList.remove('show');
+  if(badge)    badge.classList.remove('show');
 
   const reader = new FileReader();
   reader.onload = function(e){
     const img = new Image();
     img.onload = function(){
-      const MAX = 600;
-      let w = img.width, h = img.height;
-      if(w > MAX){ h = Math.round(h * MAX/w); w = MAX; }
-      if(h > MAX){ w = Math.round(w * MAX/h); h = MAX; }
+      // Scale to max 1200px for crop canvas (higher res = better clean)
+      const MAX = 1200;
+      let w=img.width, h=img.height;
+      if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
+      if(h>MAX){ w=Math.round(w*MAX/h); h=MAX; }
 
-      // Draw "before" canvas
-      const bc = document.getElementById('sig-before-'+idx);
-      if(bc){ bc.width=w; bc.height=h; bc.getContext('2d').drawImage(img,0,0,w,h); }
+      // Store original scaled image for crop
+      window['_sigOrigImg_'+idx] = {img, w, h};
 
-      // Process: remove background — clean black ink on white
-      const ac = document.getElementById('sig-after-'+idx);
-      if(ac){
-        ac.width=w; ac.height=h;
-        const ctx = ac.getContext('2d');
-        ctx.fillStyle='#ffffff';
-        ctx.fillRect(0,0,w,h);
-        ctx.drawImage(img,0,0,w,h);
-        const id = ctx.getImageData(0,0,w,h);
-        const px = id.data;
-        for(let i=0;i<px.length;i+=4){
-          const bright = (px[i]*299 + px[i+1]*587 + px[i+2]*114)/1000;
-          if(bright > 160){
-            px[i]=255; px[i+1]=255; px[i+2]=255; px[i+3]=255;
-          } else {
-            px[i]=0; px[i+1]=0; px[i+2]=0; px[i+3]=255;
-          }
-        }
-        ctx.putImageData(id,0,0);
-        window['_sigPending_'+idx] = ac.toDataURL('image/png');
-      }
+      // Draw on crop canvas
+      const cc = document.getElementById('sig-crop-canvas-'+idx);
+      cc.width=w; cc.height=h;
+      cc.getContext('2d').drawImage(img,0,0,w,h);
 
-      if(proc) proc.classList.remove('show');
-      if(preview) preview.classList.add('show');
-      if(confirmBtns){ confirmBtns.style.display='flex'; confirmBtns.style.flexDirection='column'; }
+      // Auto-detect ink region, then show crop UI pre-filled
+      const detected = autoDetectInkRegion(img, w, h);
+      window['_sigCrop_'+idx] = detected;
+      updateCropBox(idx);
+      setupCropDrag(idx);
+      if(cropWrap) cropWrap.classList.add('show');
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function updateCropBox(idx){
+  const cc = document.getElementById('sig-crop-canvas-'+idx);
+  const box = document.getElementById('sig-crop-box-'+idx);
+  if(!cc||!box) return;
+  const crop = window['_sigCrop_'+idx];
+  if(!crop) return;
+  // Canvas display size vs actual size ratio
+  const scaleX = cc.offsetWidth / cc.width;
+  const scaleY = cc.offsetHeight / cc.height;
+  box.style.display='block';
+  box.style.left   = Math.round(crop.x*scaleX)+'px';
+  box.style.top    = Math.round(crop.y*scaleY)+'px';
+  box.style.width  = Math.round(crop.w*scaleX)+'px';
+  box.style.height = Math.round(crop.h*scaleY)+'px';
+}
+
+function setupCropDrag(idx){
+  const stage = document.getElementById('sig-crop-stage-'+idx);
+  const cc    = document.getElementById('sig-crop-canvas-'+idx);
+  if(!stage||!cc) return;
+
+  function getPos(e){
+    const rect = cc.getBoundingClientRect();
+    const scaleX = cc.width / cc.offsetWidth;
+    const scaleY = cc.height / cc.offsetHeight;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY};
+  }
+
+  let startPos=null, startCrop=null;
+
+  function onDown(e){
+    e.preventDefault();
+    const pos = getPos(e);
+    const crop = window['_sigCrop_'+idx];
+    // Start new drag-to-draw
+    startPos={x:pos.x,y:pos.y};
+    startCrop=null;
+    window['_sigCrop_'+idx]={x:pos.x,y:pos.y,w:1,h:1};
+    updateCropBox(idx);
+  }
+  function onMove(e){
+    e.preventDefault();
+    if(!startPos) return;
+    const pos = getPos(e);
+    const orig = window['_sigOrigImg_'+idx];
+    const x = Math.min(startPos.x, pos.x);
+    const y = Math.min(startPos.y, pos.y);
+    const w = Math.max(10, Math.abs(pos.x - startPos.x));
+    const h = Math.max(10, Math.abs(pos.y - startPos.y));
+    window['_sigCrop_'+idx]={
+      x:Math.max(0,x), y:Math.max(0,y),
+      w:Math.min(w, orig.w-x), h:Math.min(h, orig.h-y)
+    };
+    updateCropBox(idx);
+  }
+  function onUp(e){
+    startPos=null;
+  }
+
+  stage.addEventListener('mousedown', onDown);
+  stage.addEventListener('mousemove', onMove);
+  stage.addEventListener('mouseup',   onUp);
+  stage.addEventListener('touchstart', onDown, {passive:false});
+  stage.addEventListener('touchmove',  onMove, {passive:false});
+  stage.addEventListener('touchend',   onUp);
+  window['_sigCropListeners_'+idx]={stage,onDown,onMove,onUp};
+}
+
+function confirmCrop(idx){
+  const crop = window['_sigCrop_'+idx];
+  const orig = window['_sigOrigImg_'+idx];
+  if(!crop||!orig) return;
+
+  const cropWrap = document.getElementById('sig-crop-'+idx);
+  const proc     = document.getElementById('sig-proc-'+idx);
+  if(cropWrap) cropWrap.classList.remove('show');
+  if(proc) proc.classList.add('show');
+
+  // Use requestAnimationFrame so the spinner renders before heavy processing
+  requestAnimationFrame(()=>setTimeout(()=>cleanAndShowSignature(idx, orig.img, crop), 30));
+}
+
+function cleanAndShowSignature(idx, img, crop){
+  const proc       = document.getElementById('sig-proc-'+idx);
+  const preview    = document.getElementById('sig-preview-'+idx);
+  const confirmBtns= document.getElementById('sig-confirm-btns-'+idx);
+  const bc         = document.getElementById('sig-before-'+idx);
+  const ac         = document.getElementById('sig-after-'+idx);
+
+  // Clamp crop to image bounds
+  const cw = Math.max(4, Math.min(crop.w, img.width - crop.x));
+  const ch = Math.max(4, Math.min(crop.h, img.height - crop.y));
+
+  // Draw cropped region on before canvas
+  if(bc){ bc.width=cw; bc.height=ch; bc.getContext('2d').drawImage(img, crop.x,crop.y,cw,ch, 0,0,cw,ch); }
+
+  // Sauvola on just the cropped region
+  if(ac){
+    ac.width=cw; ac.height=ch;
+    const ctx=ac.getContext('2d');
+    ctx.drawImage(img, crop.x,crop.y,cw,ch, 0,0,cw,ch);
+    const id=ctx.getImageData(0,0,cw,ch);
+    const px=id.data;
+    const N=cw*ch;
+    const gray=new Float32Array(N);
+    for(let i=0;i<N;i++) gray[i]=px[i*4]*0.299+px[i*4+1]*0.587+px[i*4+2]*0.114;
+
+    const W1=cw+1;
+    const S=new Float64Array((cw+1)*(ch+1));
+    const S2=new Float64Array((cw+1)*(ch+1));
+    for(let y=1;y<=ch;y++){
+      for(let x=1;x<=cw;x++){
+        const v=gray[(y-1)*cw+(x-1)];
+        S [y*W1+x]=v   +S [(y-1)*W1+x]+S [y*W1+(x-1)]-S [(y-1)*W1+(x-1)];
+        S2[y*W1+x]=v*v +S2[(y-1)*W1+x]+S2[y*W1+(x-1)]-S2[(y-1)*W1+(x-1)];
+      }
+    }
+    const WS=Math.max(20,Math.round(Math.min(cw,ch)*0.12));
+    const k=0.34, R=128;
+    for(let y=0;y<ch;y++){
+      for(let x=0;x<cw;x++){
+        const x1=Math.min(x+WS,cw),y1=Math.min(y+WS,ch);
+        const x0=Math.max(x-WS,0),y0=Math.max(y-WS,0);
+        const area=(x1-x0)*(y1-y0);
+        const sum =S [y1*W1+x1]-S [y0*W1+x1]-S [y1*W1+x0]+S [y0*W1+x0];
+        const sum2=S2[y1*W1+x1]-S2[y0*W1+x1]-S2[y1*W1+x0]+S2[y0*W1+x0];
+        const mean=sum/area;
+        const std=Math.sqrt(Math.max(0,sum2/area-mean*mean));
+        const thresh=mean*(1+k*(std/R-1));
+        const isInk=gray[y*cw+x]<thresh;
+        const i=y*cw+x;
+        px[i*4]=0;px[i*4+1]=0;px[i*4+2]=0;px[i*4+3]=isInk?220:0;
+      }
+    }
+    ctx.putImageData(id,0,0);
+
+    // Auto-trim to ink bounding box
+    let minX=cw,maxX=0,minY=ch,maxY=0;
+    for(let y2=0;y2<ch;y2++)
+      for(let x2=0;x2<cw;x2++)
+        if(px[(y2*cw+x2)*4+3]>10){
+          if(x2<minX)minX=x2;if(x2>maxX)maxX=x2;
+          if(y2<minY)minY=y2;if(y2>maxY)maxY=y2;
+        }
+    const PAD=4;
+    minX=Math.max(0,minX-PAD);minY=Math.max(0,minY-PAD);
+    maxX=Math.min(cw-1,maxX+PAD);maxY=Math.min(ch-1,maxY+PAD);
+    const tw=maxX-minX+1,th=maxY-minY+1;
+    const tc=document.createElement('canvas');
+    tc.width=tw;tc.height=th;
+    tc.getContext('2d').drawImage(ac,minX,minY,tw,th,0,0,tw,th);
+    ac.width=tw;ac.height=th;
+    ac.getContext('2d').drawImage(tc,0,0);
+    window['_sigPending_'+idx]=tc.toDataURL('image/png');
+  }
+
+  if(proc) proc.classList.remove('show');
+  if(preview) preview.classList.add('show');
+  if(confirmBtns){confirmBtns.style.display='flex';confirmBtns.style.flexDirection='column';}
 }
 
 function acceptSignature(idx){
@@ -1131,26 +1598,44 @@ function acceptSignature(idx){
   if(!sigData) return;
   const s = SLIDES[idx];
   FD[s.id] = sigData;
+  // Cache sig image for preview overlay
+  if(s.id==='s1Signature'){ _sigImg=new Image(); _sigImg.onload=()=>{ if(_previewOpen) drawPreviewOverlay(); }; _sigImg.src=sigData; _sigImgSrc=sigData; }
+  if(s.id==='s2Signature'){ _sigImg2=new Image(); _sigImg2.onload=()=>{ if(_previewOpen) drawPreviewOverlay(); }; _sigImg2.src=sigData; }
   autoSave();
-  // Hide confirm, show badge
   const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
+  const captBtns = document.getElementById('sig-capture-btns-'+idx);
   const badge = document.getElementById('sig-ok-badge-'+idx);
-  if(confirmBtns) confirmBtns.style.display='none';
-  if(badge) badge.classList.add('show');
   const cont = document.getElementById('sig-continue-'+idx);
+  if(confirmBtns) confirmBtns.style.display='none';
+  if(captBtns) captBtns.style.display='none';
+  if(badge) badge.classList.add('show');
   if(cont) cont.style.display='inline-flex';
   clearErr(s.id);
 }
 
 function retakeSignature(idx){
-  const inp = document.getElementById('sig-input-'+idx);
-  const preview = document.getElementById('sig-preview-'+idx);
-  const badge = document.getElementById('sig-ok-badge-'+idx);
-  const confirmBtns = document.getElementById('sig-confirm-btns-'+idx);
-  if(preview) preview.classList.remove('show');
-  if(badge) badge.classList.remove('show');
-  if(confirmBtns) confirmBtns.style.display='flex';
-  if(inp){ inp.value=''; inp.click(); }
+  try{
+    const s=SLIDES[idx];
+    if(s){
+      delete FD[s.id];
+      try{ const sigs=JSON.parse(localStorage.getItem('gtb_sigs')||'{}'); delete sigs[s.id]; localStorage.setItem('gtb_sigs',JSON.stringify(sigs)); }catch(e){}
+      try{ autoSave(); }catch(e){}
+    }
+    const preview  = document.getElementById('sig-preview-'+idx);
+    const badge    = document.getElementById('sig-ok-badge-'+idx);
+    const cont     = document.getElementById('sig-continue-'+idx);
+    const captBtns = document.getElementById('sig-capture-btns-'+idx);
+    const cropWrap = document.getElementById('sig-crop-'+idx);
+    const proc     = document.getElementById('sig-proc-'+idx);
+    const inp      = document.getElementById('sig-input-'+idx);
+    if(preview)  preview.classList.remove('show');
+    if(badge)    badge.classList.remove('show');
+    if(cont)     cont.style.display='none';
+    if(cropWrap) cropWrap.classList.remove('show');
+    if(proc)     proc.classList.remove('show');
+    if(captBtns){ captBtns.style.display='flex'; }
+    if(inp) inp.value='';
+  }catch(e){ console.error('retakeSignature error:',e); }
 }
 
 function renderSalary(s,idx){
@@ -1187,33 +1672,41 @@ function renderSCUML(s,idx){
 }
 
 function renderAddSig(s,idx){
+  const hasSent=!!FD._s2SessionId;
+  const hasS2=!!FD._hasS2||!!(FD.s2Surname);
   return `<div class="slide-inner">
     <span class="slide-emoji">👥</span>
     <h2 class="slide-q">Do you need to add\nanother signatory?</h2>
-    <p class="slide-sub">Add co-signatories here or send them a private link to fill their own details, attach their signature and passport photo.</p>
-    <div id="sig-warning" style="display:none;padding:10px 14px;background:#FFF8F0;border:1px solid #FDDFD0;border-radius:8px;font-size:12px;color:#8B4513;margin-bottom:16px;line-height:1.6">
-      ⚠️ <strong>Note:</strong> You cannot submit this form until all required signatories have completed their section. Send them the link early so they don't delay your application.
-    </div>
+    <p class="slide-sub">For partnerships you need at least 2 signatories. Add them here or send a private link for them to fill on their own device.</p>
+    ${hasS2?`<div style="padding:12px 16px;background:var(--success-bg);border:1px solid var(--success);border-radius:10px;font-size:13px;color:var(--success);margin-bottom:16px">
+      ✅ <strong>Signatory 2${FD.s2Surname?' — '+FD.s2FirstName+' '+FD.s2Surname:''} added.</strong>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="ok-btn" style="font-size:12px;padding:6px 12px" onclick="FD._hasS2=true;autoSave();goToSlide(SLIDES.findIndex(s=>s.s2slide),cur)">Edit Signatory 2 →</button>
+        <button class="ok-btn" style="font-size:12px;padding:6px 12px;background:var(--muted)" onclick="goNext()">Continue ↓</button>
+      </div>
+    </div>`:``}
+    <div id="s2-status-badge" style="margin-bottom:16px"></div>
     <div style="margin-bottom:20px">
       <div class="sig-option-card" onclick="addSigHere()">
-        <div class="sig-option-title">➕ Add signatory here</div>
-        <div class="sig-option-sub">You have their information and can fill it yourself</div>
+        <div class="sig-option-title">➕ Fill Signatory 2 here</div>
+        <div class="sig-option-sub">You have their info — fill it in yourself on this device</div>
       </div>
       <div class="sig-option-card" onclick="sendSigLink()">
-        <div class="sig-option-title">📨 Send them a link</div>
-        <div class="sig-option-sub">They fill their own details, upload signature & passport photo from their phone</div>
+        <div class="sig-option-title">📨 Send them a private link</div>
+        <div class="sig-option-sub">They fill on their own phone — signature, photo, everything</div>
       </div>
       <div class="sig-option-card" onclick="goNext()">
         <div class="sig-option-title">⏭️ Skip — sole proprietorship</div>
         <div class="sig-option-sub">Only one signatory needed</div>
       </div>
     </div>
-    <div id="send-sig-wrap" style="display:none;padding:16px;background:#F8F6F4;border-radius:10px;margin-bottom:16px">
-      <div class="group-field" style="margin-bottom:12px"><label>Signatory's name</label><input class="tally-input" type="text" id="sig2LinkName" placeholder="Full name" oninput="FD['sig2LinkName']=this.value"></div>
-      <div class="group-field" style="margin-bottom:12px"><label>Their phone number or email</label><input class="tally-input" type="text" id="sig2LinkContact" placeholder="08012345678 or email" oninput="FD['sig2LinkContact']=this.value"></div>
-      <button class="ok-btn" onclick="confirmSendLink()">📨 Generate & copy link</button>
+    <div id="send-sig-wrap" style="display:${hasSent?'none':'none'};padding:16px;background:#F8F6F4;border-radius:10px;margin-bottom:16px">
+      <div class="group-field" style="margin-bottom:12px"><label>Signatory 2 full name</label><input class="tally-input" type="text" id="sig2LinkName" placeholder="Full name" value="${FD.sig2LinkName||''}" oninput="FD['sig2LinkName']=this.value"></div>
+      <div class="group-field" style="margin-bottom:12px"><label>Their email address *</label><input class="tally-input" type="email" id="sig2LinkEmail" placeholder="signatory@email.com" value="${FD.sig2LinkEmail||''}" oninput="FD['sig2LinkEmail']=this.value"></div>
+      <button id="send-link-btn" class="ok-btn" onclick="confirmSendLink()">📨 Send link via email</button>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">A unique secure link will be emailed to them. Only valid for 7 days.</div>
     </div>
-    <div id="sig-link-copied" style="display:none;font-size:13px;color:var(--success);font-weight:500;margin-bottom:12px">✅ Link copied! Send it to them via WhatsApp or SMS.</div>
+    ${hasSent?`<div style="margin-bottom:16px;font-size:13px;color:var(--muted)">Link already sent. <button style="background:none;border:none;color:var(--orange);cursor:pointer;font-size:13px;text-decoration:underline" onclick="checkS2Status()">Check if submitted →</button></div>`:''}
   </div>`;
 }
 
@@ -1886,6 +2379,16 @@ function startProcessing(){
 }
 
 function renderReview(){
+  if(S2_ROLE){
+    return `<div class="slide-inner" style="max-width:660px">
+      <span class="slide-emoji">🔍</span>
+      <h2 class="slide-q">Review your details</h2>
+      <p class="slide-sub">Check your information before submitting. The account officer will be notified when you submit.</p>
+      <div id="review-content" style="margin-bottom:24px"></div>
+      <p class="privacy-note" style="margin-bottom:18px">🔒 Your data is sent securely. Only the account officer can access it.</p>
+      <button id="s2-submit-btn" class="ok-btn" style="font-size:16px;padding:15px 30px" onclick="submitS2Data()">✅ Submit my details</button>
+    </div>`;
+  }
   return `<div class="slide-inner" style="max-width:660px">
     <span class="slide-emoji">🔍</span>
     <h2 class="slide-q">Review your details</h2>
@@ -1946,10 +2449,14 @@ function init(){
   const container=document.getElementById('slides');
   SLIDES.forEach((s,i)=>{ container.appendChild(renderSlide(s,i)); });
 
-  // Officer attribution shown on gate screen only — banner removed
-
   restoreFromStorage();
-  goToSlide(0,0);
+
+  if(S2_ROLE){
+    // S2 mode: start at welcome, which will lead to S2 slides only
+    goToSlide(0,0);
+  } else {
+    goToSlide(0,0);
+  }
 }
 
 // ── NAVIGATION ─────────────────────────────────
@@ -1962,6 +2469,12 @@ function goToSlide(to,from){
   cur=to;
   updateChrome();
   setTimeout(()=>{ autoFocus(to); restoreSlideValues(to); }, 460);
+  // Auto-switch preview page to match current slide
+  if(_previewOpen){
+    const suggested=SLIDE_PAGE_MAP[to];
+    if(suggested && suggested!==_previewPage) renderPreviewPage(suggested);
+    else if(_previewOpen) drawPreviewOverlay();
+  }
   if(SLIDES[to].type==='review') buildReview();
   if(SLIDES[to].type==='checklist'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderChecklist();el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
   if(SLIDES[to].type==='documents'){ const el=document.getElementById('slide-'+to); if(el){el.innerHTML=renderDocuments(to);el.className='slide pos-active';setTimeout(()=>el.scrollTop=0,50);} }
@@ -1978,8 +2491,24 @@ function goToSlide(to,from){
     },100);
   }
 }
-function goNext(){ if(cur<SLIDES.length-1) goToSlide(cur+1,cur); }
-function goBack(){ if(cur>0) goToSlide(cur-1,cur); }
+function _shouldSkipSlide(n){
+  const s=SLIDES[n];
+  if(S2_ROLE){
+    // In S2 role: only show S2 slides + review + done
+    if(!s.s2slide && !['review','processing','done'].includes(s.type)) return true;
+  }
+  return s.skip && s.skip();
+}
+function goNext(){
+  let n=cur+1;
+  while(n<SLIDES.length-1 && _shouldSkipSlide(n)) n++;
+  if(n<SLIDES.length) goToSlide(n,cur);
+}
+function goBack(){
+  let n=cur-1;
+  while(n>0 && _shouldSkipSlide(n)) n--;
+  if(n>=0) goToSlide(n,cur);
+}
 function skipSlide(){ goNext(); }
 
 function tryAdvance(idx){
@@ -2021,58 +2550,90 @@ function pickChoice(field,val,btn,autoAdv,idx){
   autoSave();
 }
 
-function pickNationality(val,btn,idx){
-  const isSelected = btn.classList.contains('selected');
-  // Deselect all first
-  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>{
-    b.classList.remove('selected');
-    const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
-  });
-  const wrap=document.getElementById('other-country-wrap');
-  if(isSelected){
-    // Toggle off
-    FD['s1Nationality']='';
-    if(wrap) wrap.classList.remove('show');
-    autoSave();
-    return;
-  }
-  // Select new
-  FD['s1Nationality']=val;
-  btn.classList.add('selected');
-  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
-  clearErr('s1Nationality');
-  autoSave();
-  if(val==='Nigerian'){ if(wrap) wrap.classList.remove('show'); }
-  else { if(wrap) wrap.classList.add('show'); }
+function _toggleInline(wrapId, show){
+  const wrap=document.getElementById(wrapId);
+  if(wrap){ wrap.style.display=show?'flex':'none'; if(show) wrap.classList.add('show'); else wrap.classList.remove('show'); }
 }
 
-function pickID(field,val,btn,idx){
-  const isSelected = btn.classList.contains('selected');
-  // Deselect all first
-  btn.closest('.choices').querySelectorAll('.choice-btn').forEach(b=>{
-    b.classList.remove('selected');
-    const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
-  });
-  if(isSelected){
-    // Toggle off
-    FD[field]='';
-    const wrap=document.getElementById('id-fields-wrap');
-    if(wrap) wrap.classList.remove('show');
+function pickNationality(val,btn,idx,px){
+  px=px||'s1';
+  try{
+    const wasSelected=btn.classList.contains('selected');
+    btn.parentNode.querySelectorAll('.choice-btn').forEach(b=>{
+      b.classList.remove('selected');
+      const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
+    });
+    if(wasSelected){
+      FD[px+'Nationality']='';
+      _toggleInline('other-country-wrap-'+px,false);
+      autoSave(); return;
+    }
+    btn.classList.add('selected');
+    const kEl=btn.querySelector('.choice-key'); if(kEl) kEl.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+    FD[px+'Nationality']=val;
+    if(val!=='Other'){ FD[px+'NationalityCountry']=''; const nc=document.getElementById(px+'NationalityCountry'); if(nc) nc.value=''; }
+    clearErr(px+'Nationality');
+    _toggleInline('other-country-wrap-'+px, val==='Other');
     autoSave();
-    return;
-  }
-  // Select new
-  FD[field]=val;
-  btn.classList.add('selected');
-  btn.querySelector('.choice-key').style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
-  clearErr(field);
-  autoSave();
-  const wrap=document.getElementById('id-fields-wrap');
-  if(wrap) wrap.classList.add('show');
-  const cfg=ID_CFG[val]||{fields:['number']};
-  document.getElementById('id-issue-wrap').style.display=cfg.fields.includes('issue')?'block':'none';
-  document.getElementById('id-expiry-wrap').style.display=cfg.fields.includes('expiry')?'block':'none';
-  setTimeout(()=>{ const el=document.getElementById('s1IDNumber'); if(el) el.focus(); },100);
+  }catch(e){ console.error('pickNationality error:',e); }
+}
+
+function pickOtherRes(val,btn,idx,px){
+  px=px||'s1';
+  try{
+    const wasSelected=btn.classList.contains('selected');
+    btn.parentNode.querySelectorAll('.choice-btn').forEach(b=>{
+      b.classList.remove('selected');
+      const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
+    });
+    if(wasSelected){
+      FD[px+'OtherResidency']='';
+      _toggleInline('other-res-wrap-'+px,false);
+      autoSave(); return;
+    }
+    btn.classList.add('selected');
+    const kEl=btn.querySelector('.choice-key'); if(kEl) kEl.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+    FD[px+'OtherResidency']=val;
+    _toggleInline('other-res-wrap-'+px, val==='YES');
+    autoSave();
+    if(val==='NO') setTimeout(()=>tryAdvance(idx),320);
+  }catch(e){ console.error('pickOtherRes error:',e); }
+}
+
+function pickID(field,kidx,btn,idx,px){
+  px=px||'s1';
+  try{
+    const key=ID_KEYS[kidx];
+    const cfg=ID_CFG[key]||{fields:['number']};
+    const wasSelected=btn.classList.contains('selected');
+
+    btn.parentNode.querySelectorAll('.choice-btn').forEach(b=>{
+      b.classList.remove('selected');
+      const k=b.querySelector('.choice-key'); if(k) k.style.cssText='';
+    });
+
+    const numWrap=document.getElementById('id-number-wrap-'+px);
+    const dateWrap=document.getElementById('id-fields-wrap-'+px);
+    if(wasSelected){
+      FD[field]='';
+      if(numWrap) numWrap.style.display='none';
+      if(dateWrap){ dateWrap.style.display='none'; dateWrap.classList.remove('show'); }
+      autoSave(); return;
+    }
+
+    btn.classList.add('selected');
+    const kEl=btn.querySelector('.choice-key');
+    if(kEl) kEl.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';
+    FD[field]=key;
+    clearErr(field);
+
+    const needsDates=cfg.fields.includes('issue')||cfg.fields.includes('expiry');
+    if(numWrap) numWrap.style.display='block';
+    if(dateWrap){ dateWrap.style.display=needsDates?'flex':'none'; if(needsDates) dateWrap.classList.add('show'); else dateWrap.classList.remove('show'); }
+    autoSave();
+
+    setTimeout(()=>{ const inp=document.getElementById(px+'IDNumber'); if(inp) inp.focus(); },100);
+  }catch(e){ console.error('pickID error:',e); }
 }
 
 function pickSalary(val,btn){
@@ -2092,27 +2653,26 @@ function pickSalary(val,btn){
   }
 }
 
-function toggleSameAsBusiness(label){
-  const check=document.getElementById('same-biz-check');
+function toggleSameAsBusiness(label,spfx){
+  spfx=spfx||'s1';
+  const check=document.getElementById('same-biz-check-'+spfx);
   check.checked=!check.checked;
   label.classList.toggle('active',check.checked);
-  const wrap=document.getElementById('res-fields-wrap');
+  const wrap=document.getElementById('res-fields-wrap-'+spfx);
   if(check.checked){
-    // Copy business address fields
-    FD['s1ResHousePlot']=FD['bizHousePlot']||'';
-    FD['s1ResStreet']=FD['bizAddr1']||'';
-    FD['s1ResBusStop']=FD['bizBusStop']||'';
-    FD['s1ResCity']=FD['bizCity']||'';
-    FD['s1ResLGA']=FD['bizLGA']||'';
-    FD['s1ResState']=FD['bizState']||'';
-    FD['sameAsBusiness']='Yes';
+    FD[spfx+'ResHousePlot']=FD['bizHousePlot']||'';
+    FD[spfx+'ResStreet']=FD['bizAddr1']||'';
+    FD[spfx+'ResBusStop']=FD['bizBusStop']||'';
+    FD[spfx+'ResCity']=FD['bizCity']||'';
+    FD[spfx+'ResLGA']=FD['bizLGA']||'';
+    FD[spfx+'ResState']=FD['bizState']||'';
+    FD[spfx+'SameAsBusiness']='Yes';
     if(wrap) wrap.style.opacity='.4';
-    // Fill visible fields
-    ['s1ResHousePlot','s1ResStreet','s1ResBusStop','s1ResCity','s1ResLGA'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=FD[k]||'';});
-    const st=document.getElementById('s1ResState'); if(st)st.value=FD['bizState']||'';
+    [spfx+'ResHousePlot',spfx+'ResStreet',spfx+'ResBusStop',spfx+'ResCity',spfx+'ResLGA'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=FD[k]||'';});
+    const st=document.getElementById(spfx+'ResState'); if(st)st.value=FD['bizState']||'';
     autoSave();
   } else {
-    FD['sameAsBusiness']='';
+    FD[spfx+'SameAsBusiness']='';
     if(wrap) wrap.style.opacity='1';
     autoSave();
   }
@@ -2125,23 +2685,158 @@ function toggleSCUML(){
 }
 
 function addSigHere(){
-  const w=document.getElementById('sig-warning'); if(w) w.style.display='block';
-  alert('Signatory 2 form — coming in next build! For now, your officer will add this at the branch.');
-  goNext();
+  FD._hasS2=true;
+  autoSave();
+  // Navigate to first S2 slide (first slide with s2slide:true)
+  const idx=SLIDES.findIndex(s=>s.s2slide);
+  if(idx>0) goToSlide(idx,cur);
 }
+
 function sendSigLink(){
   const w=document.getElementById('sig-warning'); if(w) w.style.display='block';
   const s=document.getElementById('send-sig-wrap');
   if(s) s.style.display='block';
 }
-function confirmSendLink(){
-  const n=FD['sig2LinkName']||'', c=FD['sig2LinkContact']||'';
-  if(!n||!c){alert('Please enter the signatory\'s name and contact.');return;}
-  const link=window.location.href.split('?')[0]+'?sig=2&ref='+btoa(n);
-  navigator.clipboard.writeText(link).then(()=>{
-    const el=document.getElementById('sig-link-copied');
-    if(el) el.style.display='block';
-  }).catch(()=>alert('Link: '+link));
+
+async function confirmSendLink(){
+  const n=(document.getElementById('sig2LinkName')||{}).value||(FD['sig2LinkName']||'');
+  const email=(document.getElementById('sig2LinkEmail')||{}).value||(FD['sig2LinkEmail']||'');
+  if(!n||!email){alert('Please enter the signatory\'s name and email address.');return;}
+  FD['sig2LinkName']=n; FD['sig2LinkEmail']=email; autoSave();
+
+  const btn=document.getElementById('send-link-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Sending…';}
+
+  // Generate UUID session
+  const sessionId=crypto.randomUUID();
+  FD._s2SessionId=sessionId;
+  autoSave();
+
+  // Insert Supabase row
+  try{
+    const {error}=await supa.from('signatory_sessions').insert({
+      id: sessionId,
+      officer_session_id: CFG_SESSION||'direct',
+      s2_name: n,
+      s2_email: email,
+      biz_name: FD.bizName||'',
+      status: 'pending',
+      form_data: {},
+      expires_at: new Date(Date.now()+7*24*60*60*1000).toISOString(),
+    });
+    if(error) throw error;
+  }catch(e){
+    console.error('Supabase insert error:',e);
+    if(btn){btn.disabled=false;btn.textContent='⚠️ Retry';}
+    alert('Could not create session. Check internet connection.\n'+e.message);
+    return;
+  }
+
+  // Build link
+  const base=window.location.href.split('?')[0];
+  const link=`${base}?role=s2&session=${sessionId}`;
+
+  // Send via EmailJS
+  try{
+    await emailjs.send('service_vancprr','template_oeqmbz5',{
+      to_email: email,
+      customer_name: n,
+      officer_name: CFG_OFFICER||'Your account officer',
+      bank: 'GTBank',
+      form_link: link,
+      access_code: sessionId.slice(0,8).toUpperCase(),
+      note: `Please fill your signatory details for ${FD.bizName||'the business account'} opening.`,
+      expiry: '7 days',
+    });
+  }catch(e){
+    console.warn('EmailJS error (link still created):',e);
+  }
+
+  // Show success UI
+  const wrap=document.getElementById('send-sig-wrap');
+  if(wrap) wrap.innerHTML=`
+    <div style="padding:14px;background:var(--success-bg);border:1px solid var(--success);border-radius:10px;font-size:13px;color:var(--success)">
+      <strong>✅ Link sent to ${email}</strong><br>
+      <span style="color:var(--muted);font-size:12px">They can open it on any device. You'll be able to merge their data here once they submit.</span>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="ok-btn" style="font-size:13px;padding:8px 14px" onclick="navigator.clipboard.writeText('${base}?role=s2&session=${sessionId}').then(()=>this.textContent='✅ Copied')">📋 Copy link</button>
+        <button class="ok-btn" style="font-size:13px;padding:8px 14px;background:#1DA1F2" onclick="checkS2Status()">🔄 Check status</button>
+      </div>
+    </div>`;
+}
+
+async function checkS2Status(){
+  if(!FD._s2SessionId){alert('No session created yet.');return;}
+  const btn=event&&event.target;
+  if(btn){const orig=btn.textContent;btn.textContent='⏳ Checking…';btn.disabled=true;setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},3000);}
+  try{
+    const {data,error}=await supa.from('signatory_sessions').select('status,form_data,s2_name').eq('id',FD._s2SessionId).single();
+    if(error) throw error;
+    const statusEl=document.getElementById('s2-status-badge');
+    if(data.status==='submitted'){
+      if(statusEl) statusEl.innerHTML=`<div style="padding:12px 16px;background:var(--success-bg);border:1px solid var(--success);border-radius:10px;font-size:13px;color:var(--success)">
+        ✅ <strong>${data.s2_name||'Signatory 2'} has submitted!</strong>
+        <button class="ok-btn" style="margin-top:10px;font-size:13px;padding:8px 16px" onclick="mergeS2Data()">Merge their data →</button>
+      </div>`;
+    } else {
+      if(statusEl) statusEl.innerHTML=`<div style="padding:10px 14px;background:#FFF8F0;border:1px solid #FDDFD0;border-radius:8px;font-size:13px;color:#8B4513">
+        ⏳ Still pending — ${data.s2_name||'Signatory 2'} hasn't submitted yet.
+      </div>`;
+    }
+  }catch(e){
+    console.error('checkS2Status error:',e);
+    alert('Could not check status: '+e.message);
+  }
+}
+
+async function mergeS2Data(){
+  if(!FD._s2SessionId){return;}
+  try{
+    const {data,error}=await supa.from('signatory_sessions').select('form_data').eq('id',FD._s2SessionId).single();
+    if(error) throw error;
+    const s2d=data.form_data||{};
+    Object.assign(FD,s2d);
+    autoSave();
+    // Navigate back to add-signatories slide to show updated state
+    const idx=SLIDES.findIndex(s=>s.type==='add-signatories');
+    const el=document.getElementById('slide-'+idx);
+    if(el){el.innerHTML=renderAddSig(SLIDES[idx],idx);el.className='slide pos-active';}
+    // Show confirmation
+    const statusEl=document.getElementById('s2-status-badge');
+    if(statusEl) statusEl.innerHTML=`<div style="padding:12px 16px;background:var(--success-bg);border:1px solid var(--success);border-radius:10px;font-size:13px;color:var(--success)">
+      ✅ <strong>Signatory 2 data merged!</strong> Review it in the PDF preview.
+      <div style="margin-top:8px"><button class="ok-btn" style="font-size:13px;padding:8px 16px" onclick="goNext()">Continue →</button></div>
+    </div>`;
+  }catch(e){
+    console.error('mergeS2Data error:',e);
+    alert('Could not merge data: '+e.message);
+  }
+}
+
+async function submitS2Data(){
+  // Called by S2 signatory on their device to submit to Supabase
+  const btn=document.getElementById('s2-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Submitting…';}
+  try{
+    const payload={};
+    // Copy all s2* fields from FD
+    Object.keys(FD).forEach(k=>{if(k.startsWith('s2')||k==='s2Signature') payload[k]=FD[k];});
+    const {error}=await supa.from('signatory_sessions')
+      .update({status:'submitted',form_data:payload,submitted_at:new Date().toISOString()})
+      .eq('id',S2_SESSION);
+    if(error) throw error;
+    // Show thank you screen
+    const container=document.getElementById('slides');
+    container.innerHTML=`<div class="slide pos-active"><div class="slide-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center">
+      <span style="font-size:64px;margin-bottom:24px">🎉</span>
+      <h2 class="slide-q" style="text-align:center">All done!</h2>
+      <p class="slide-sub" style="text-align:center">Your signatory details have been submitted. The account officer will be notified.<br><br>You can close this page.</p>
+    </div></div>`;
+  }catch(e){
+    console.error('submitS2Data error:',e);
+    if(btn){btn.disabled=false;btn.textContent='⚠️ Retry';}
+    alert('Submission failed: '+e.message);
+  }
 }
 
 function onBVNInput(field,idx){
@@ -2206,14 +2901,16 @@ function validateSlide(s,idx){
     const street=(FD[s.prefix+'Street']||'').trim();
     const city=(FD[s.prefix+'City']||'').trim();
     const state=(FD[s.prefix+'State']||'').trim();
-    const sameCheck=document.getElementById('same-biz-check');
+    const spfx2=s.sigPfx||(s.prefix||'s1Res').replace('Res','')||'s1';
+    const sameCheck=document.getElementById('same-biz-check-'+spfx2);
     if(sameCheck&&sameCheck.checked) return true;
     if(!street||!city||!state){ const e=document.getElementById('err-group-'+idx); if(e)e.classList.add('show'); return false; }
     return true;
   }
   if(s.type==='id-select'){
     if(!(FD[s.idField]||'').trim()){showErr(s.idField);return false;}
-    if(!(FD['s1IDNumber']||'').trim()){const el=document.getElementById('s1IDNumber');if(el)el.classList.add('err-i');return false;}
+    const px2=s.prefix||'s1';
+    if(!(FD[px2+'IDNumber']||'').trim()){const el=document.getElementById(px2+'IDNumber');if(el)el.classList.add('err-i');return false;}
     return true;
   }
   if(s.type==='nationality'){
@@ -2237,11 +2934,14 @@ function restoreSlideValues(idx){
     const fields=s.fields||[];
     fields.forEach(f=>{ const el=document.getElementById(f.id); if(el&&FD[f.id]){if(f.type==='select')el.value=FD[f.id];else el.value=FD[f.id];} });
     // address same toggle
-    if(s.type==='address'&&FD['sameAsBusiness']==='Yes'){
-      const chk=document.getElementById('same-biz-check');
-      const lbl=document.getElementById('same-biz-toggle');
-      const wrap=document.getElementById('res-fields-wrap');
-      if(chk){chk.checked=true;} if(lbl) lbl.classList.add('active'); if(wrap) wrap.style.opacity='.4';
+    if(s.type==='address'){
+      const spfx=s.sigPfx||(s.prefix||'s1Res').replace('Res','')||'s1';
+      if(FD[spfx+'SameAsBusiness']==='Yes'){
+        const chk=document.getElementById('same-biz-check-'+spfx);
+        const lbl=document.getElementById('same-biz-toggle-'+spfx);
+        const wrap=document.getElementById('res-fields-wrap-'+spfx);
+        if(chk){chk.checked=true;} if(lbl) lbl.classList.add('active'); if(wrap) wrap.style.opacity='.4';
+      }
     }
   }
   if(s.type==='account-product'&&FD['bizAccountProduct']){
@@ -2282,22 +2982,42 @@ function restoreSlideValues(idx){
     document.getElementById('c-yes-'+s.id)?.classList.toggle('active',CONSENTS[s.id]==='accepted');
     document.getElementById('c-no-'+s.id)?.classList.toggle('active',CONSENTS[s.id]==='declined');
   }
-  if(s.type==='nationality'&&FD['s1Nationality']){
-    const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(FD['s1Nationality'])+'"]');
-    if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
-    if(FD['s1Nationality']==='Other'){const w=document.getElementById('other-country-wrap');if(w)w.classList.add('show');}
+  if(s.type==='nationality'){
+    const px=s.prefix||'s1';
+    const natVal=FD[px+'Nationality'];
+    if(natVal){
+      const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(natVal)+'"]');
+      if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+      if(natVal==='Other'){const w=document.getElementById('other-country-wrap-'+px);if(w)w.classList.add('show');}
+      ['NationalityCountry','ResidentPermit','SocialSecurity','PermitIssue','PermitExpiry'].forEach(f=>{
+        const el=document.getElementById(px+f);if(el&&FD[px+f])el.value=FD[px+f];
+      });
+    }
+  }
+  if(s.type==='other-residency'){
+    const px=s.prefix||'s1';
+    const resVal=FD[px+'OtherResidency'];
+    if(resVal){
+      const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(resVal)+'"]');
+      if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
+      if(resVal==='YES'){const w=document.getElementById('other-res-wrap-'+px);if(w)w.classList.add('show');}
+      ['OtherResCountry','ResidentPermit2','PermitIssue2','PermitExpiry2'].forEach(f=>{
+        const el=document.getElementById(px+f);if(el&&FD[px+f])el.value=FD[px+f];
+      });
+    }
   }
   if(s.type==='id-select'&&FD[s.idField]){
+    const px=s.prefix||'s1';
     const btn=document.querySelector('#slide-'+idx+' .choice-btn[data-val="'+CSS.escape(FD[s.idField])+'"]');
     if(btn){btn.classList.add('selected');const k=btn.querySelector('.choice-key');if(k)k.style.cssText='background:var(--orange);color:#fff;border-color:var(--orange)';}
-    const wrap=document.getElementById('id-fields-wrap'); if(wrap)wrap.classList.add('show');
     const cfg=ID_CFG[FD[s.idField]]||{fields:['number']};
-    const iw=document.getElementById('id-issue-wrap');const ew=document.getElementById('id-expiry-wrap');
-    if(iw)iw.style.display=cfg.fields.includes('issue')?'block':'none';
-    if(ew)ew.style.display=cfg.fields.includes('expiry')?'block':'none';
-    const numEl=document.getElementById('s1IDNumber'); if(numEl&&FD['s1IDNumber'])numEl.value=FD['s1IDNumber'];
-    const isEl=document.getElementById('s1IDIssue'); if(isEl&&FD['s1IDIssue'])isEl.value=FD['s1IDIssue'];
-    const exEl=document.getElementById('s1IDExpiry'); if(exEl&&FD['s1IDExpiry'])exEl.value=FD['s1IDExpiry'];
+    const needsDates=cfg.fields.includes('issue')||cfg.fields.includes('expiry');
+    const numWrap=document.getElementById('id-number-wrap-'+px); if(numWrap) numWrap.style.display='block';
+    const dateWrap=document.getElementById('id-fields-wrap-'+px);
+    if(dateWrap){dateWrap.style.display=needsDates?'flex':'none';if(needsDates)dateWrap.classList.add('show');}
+    const numEl=document.getElementById(px+'IDNumber'); if(numEl&&FD[px+'IDNumber'])numEl.value=FD[px+'IDNumber'];
+    const isEl=document.getElementById(px+'IDIssue'); if(isEl&&FD[px+'IDIssue'])isEl.value=FD[px+'IDIssue'];
+    const exEl=document.getElementById(px+'IDExpiry'); if(exEl&&FD[px+'IDExpiry'])exEl.value=FD[px+'IDExpiry'];
   }
   if(s.type==='signature'&&FD[s.id]){
     const badge = document.getElementById('sig-ok-badge-'+idx);
@@ -2359,11 +3079,18 @@ function autoSave(){
     localStorage.setItem('gtb_multi',JSON.stringify(Object.fromEntries(Object.entries(MULTI).map(([k,v])=>[k,Array.from(v)]))));
     localStorage.setItem('gtb_consents',JSON.stringify(CONSENTS));
   }catch(e){}
+  // Update live preview if open
+  if(_previewOpen) updatePreviewFields();
 }
 function restoreFromStorage(){
   try{
     Object.assign(FD,JSON.parse(localStorage.getItem('gtb_fd')||'{}'));
     Object.assign(FD,JSON.parse(localStorage.getItem('gtb_sigs')||'{}'));
+    if(FD.s1Signature&&FD.s1Signature!==_sigImgSrc){ _sigImg=new Image(); _sigImg.src=FD.s1Signature; _sigImgSrc=FD.s1Signature; }
+    if(FD.s2Signature){ _sigImg2=new Image(); _sigImg2.src=FD.s2Signature; }
+    // Migrate stale ID type values
+    if(FD.s1IDType==='National ID (NIN Slip)') FD.s1IDType='National ID (NIN)';
+    ['s2','s3'].forEach(p=>{ if(FD[p+'IDType']==='National ID (NIN Slip)') FD[p+'IDType']='National ID (NIN)'; });
     const m=JSON.parse(localStorage.getItem('gtb_multi')||'{}');
     Object.entries(m).forEach(([k,v])=>{MULTI[k]=new Set(v);FD[k]=v.join(', ');});
     Object.assign(CONSENTS,JSON.parse(localStorage.getItem('gtb_consents')||'{}'));
@@ -2382,8 +3109,8 @@ function buildReview(){
   const secs=[
     {title:'🏢 Business Info',goTo:2,rows:[['Category',FD.bizCategory],['Account',FD.bizAccountVariantName||FD.bizAccountProductName],['Domiciliary',FD.domiCurrencies||'None'],['Business name',FD.bizName],['CAC number',FD.bizRegNumber],['Nature',FD.bizNature],['Sector',FD.bizSector],['Turnover',FD.bizTurnover],['TIN',FD.bizTIN],['Address',[FD.bizHousePlot,FD.bizAddr1,FD.bizCity,FD.bizState].filter(Boolean).join(', ')],['LGA',FD.bizLGA],['Mobile',FD.bizMobile],['Email',FD.bizEmail]]},
     {title:'👤 Signatory 1 — '+s1Name,goTo:10,rows:[['Full name',[FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ')],['Gender',FD.s1Gender],['DOB',FD.s1DOB],['Nationality',FD.s1Nationality+(FD.s1NationalityCountry?' — '+FD.s1NationalityCountry:'')],['BVN',FD.s1BVN],['ID type',FD.s1IDType],['ID number',FD.s1IDNumber],['Mobile',FD.s1Mobile],['Email',FD.s1Email],['Residential address',[FD.s1ResHousePlot,FD.s1ResStreet,FD.s1ResCity,FD.s1ResState].filter(Boolean).join(', ')],['Signature',FD.s1Signature?'Captured ✅':'Not yet']]},
-    ...(s2Name?[{title:'👤 Signatory 2 — '+s2Name,goTo:21,rows:[['Full name',[FD.s2Title,FD.s2FirstName,FD.s2OtherNames,FD.s2Surname].filter(Boolean).join(' ')],['BVN',FD.s2BVN],['Mobile',FD.s2Mobile],['Email',FD.s2Email]]}]:[]),
-    ...(s3Name?[{title:'👤 Signatory 3 — '+s3Name,goTo:21,rows:[['Full name',[FD.s3Title,FD.s3FirstName,FD.s3OtherNames,FD.s3Surname].filter(Boolean).join(' ')],['BVN',FD.s3BVN],['Mobile',FD.s3Mobile],['Email',FD.s3Email]]}]:[]),
+    ...(s2Name?[{title:'👤 Signatory 2 — '+s2Name,goTo:SLIDES.findIndex(s=>s.s2slide&&s.type==='group'&&s.emoji==='✍️')||29,rows:[['Full name',[FD.s2Title,FD.s2FirstName,FD.s2OtherNames,FD.s2Surname].filter(Boolean).join(' ')],['DOB',FD.s2DOB],['BVN',FD.s2BVN],['Mobile',FD.s2Mobile],['Email',FD.s2Email],['Signature',FD.s2Signature?'Captured ✅':'Not yet']]}]:[]),
+    ...(s3Name?[{title:'👤 Signatory 3 — '+s3Name,goTo:27,rows:[['Full name',[FD.s3Title,FD.s3FirstName,FD.s3OtherNames,FD.s3Surname].filter(Boolean).join(' ')],['BVN',FD.s3BVN],['Mobile',FD.s3Mobile],['Email',FD.s3Email]]}]:[]),
     {title:'👨‍👩‍👧 Next of Kin',goTo:20,rows:[['Name',[FD.nokFirstName,FD.nokSurname].filter(Boolean).join(' ')],['Relationship',FD.nokRelationship],['Mobile',FD.nokMobile],['Address',[FD.nokStreet,FD.nokCity,FD.nokState].filter(Boolean).join(', ')]]},
     {title:'⚙️ Account Services',goTo:23,rows:[['Online banking',FD.onlineBanking],['Statement',FD.stmtFreq],['Cheque book',FD.chequeBook],['Salary payments',FD.salaryPayments],['Employees',FD.staffCount]]},
     {title:'📜 Consents',goTo:26,rows:[['Terms & Declaration',CONSENTS.terms==='accepted'?'Accepted':'Not accepted'],['Marketing',CONSENTS.marketing==='accepted'?'Opted in':'Not opted in']]},
@@ -2399,133 +3126,732 @@ function buildReview(){
 }
 
 // ── PDF ─────────────────────────────────────────
+// ── FIELD MAP: PDF coordinates extracted from GTBank form ────────────────────
+// type:'text' → rows:[{x, y_center, count}], bw, bh  (y_center = PDF pts from bottom)
+// type:'tick'  → x, y, bw, bh, match  (tick drawn if FD value === match)
+const GTB_FIELDS = [
+  // ── PAGE 3: Business / Entity Details ──────────────────────────────────────
+  {type:'text',page:3,fd:'_acctNumber',   bw:16.52,bh:17, rows:[{x:342.8,yc:589.2,n:13}]},
+  {type:'text',page:3,fd:'bizName',       bw:16.65,bh:17, rows:[{x:125.2,yc:534.5,n:26},{x:125.2,yc:515.4,n:26}]},
+  {type:'text',page:3,fd:'bizRegNumber',  bw:16.65,bh:17, rows:[{x:158.4,yc:495.9,n:24}]},
+  {type:'text',page:3,fd:'_bizRegDate_d', bw:15.37,bh:16.02,rows:[{x:183.25,yc:476.67,n:2}]},
+  {type:'text',page:3,fd:'_bizRegDate_m', bw:15.37,bh:16.02,rows:[{x:220.75,yc:476.59,n:2}]},
+  {type:'text',page:3,fd:'_bizRegDate_y', bw:15.37,bh:16.02,rows:[{x:258.32,yc:476.59,n:4}]},
+  {type:'text',page:3,fd:'bizRegState',   bw:16.52,bh:17, rows:[{x:183.6,yc:443.4,n:9}]},
+  {type:'text',page:3,fd:'bizNature',     bw:16.65,bh:17, rows:[{x:175.0,yc:419.8,n:23}]},
+  {type:'text',page:3,fd:'bizSector',     bw:16.65,bh:17, rows:[{x:125.0,yc:397.2,n:26}]},
+  {type:'text',page:3,fd:'_bizAddr1full', bw:16.65,bh:17, rows:[{x:208.0,yc:375.5,n:21},{x:208.3,yc:356.8,n:21},{x:208.0,yc:337.8,n:21},{x:208.0,yc:318.9,n:21}]},
+  {type:'text',page:3,fd:'_bizRegAddr',   bw:16.65,bh:17, rows:[{x:158.1,yc:298.0,n:24}]},
+  {type:'text',page:3,fd:'bizLGA',        bw:16.65,bh:17, rows:[{x:141.1,yc:272.1,n:25}]},
+  {type:'text',page:3,fd:'bizState',      bw:16.65,bh:17, rows:[{x:141.1,yc:253.1,n:25}]},
+  {type:'text',page:3,fd:'bizEmail',      bw:16.65,bh:17, rows:[{x:141.1,yc:233.4,n:25}]},
+  {type:'text',page:3,fd:'bizWebsite',    bw:16.65,bh:17, rows:[{x:141.1,yc:212.8,n:25}]},
+  {type:'text',page:3,fd:'bizMobile',     bw:16.65,bh:17, rows:[{x:126.38,yc:188.80,n:11}]},
+  {type:'text',page:3,fd:'bizPhone',      bw:14.72,bh:17, rows:[{x:394.61,yc:188.80,n:11}]},
+  {type:'text',page:3,fd:'bizTIN',          bw:14.33,bh:17, rows:[{x:194.27,yc:161.54,n:8}]},
+  {type:'text',page:3,fd:'_bizTINoverflow', bw:14.33,bh:17, drawBox:true, rows:[{x:251.59,yc:144.54,n:4}]}, // extra TIN boxes under last 4 TIN boxes
+  {type:'text',page:3,fd:'bizCRM',          bw:15.18,bh:17, rows:[{x:435.3,yc:161.7,n:8}]}, // CRM (fills same boxes if no TIN overflow)
+  {type:'text',page:3,fd:'bizSCUML',      bw:16.65,bh:17, rows:[{x:275.2,yc:126.0,n:17}]},
+  // Category of Business ticks
+  {type:'tick',page:3,fd:'bizCategory',match:'SOLE PROPRIETORSHIP',x:153.49,y:725.64,bw:17.19,bh:17.0},
+  {type:'tick',page:3,fd:'bizCategory',match:'PARTNERSHIP',        x:265.48,y:725.64,bw:17.19,bh:17.0},
+  // Account type ticks: TODO — actual checkbox coordinates needed (y:624 entries were wrong, pointing to instruction row "A B C ✓" boxes)
+  // Estimated Annual Turnover ticks — verify in preview, adjust y if needed
+  {type:'tick',page:3,fd:'bizTurnover',match:'LESS THAN ₦50M',  x:232.18,y:54.27,bw:17.19,bh:17},
+  {type:'tick',page:3,fd:'bizTurnover',match:'₦50M – ₦500M',   x:470.03,y:54.27,bw:17.19,bh:17},
+  {type:'tick',page:3,fd:'bizTurnover',match:'₦500M – ₦5B',    x:232.18,y:31.77,bw:17.19,bh:17},
+  {type:'tick',page:3,fd:'bizTurnover',match:'ABOVE ₦5B',      x:470.03,y:31.77,bw:17.19,bh:17},
+  // Account type ticks — real coords from PDF drawing scan
+  {type:'tick',page:3,fd:'_acctTypeTick',match:'C',x:93,    y:658.89,bw:17,bh:17,drawBox:true}, // Current (missing from PDF)
+  {type:'tick',page:3,fd:'_acctTypeTick',match:'D',x:170.34,y:658.89,bw:17,bh:17},              // Deposit
+  // No separate Domiciliary box in PDF — currency ticks imply selection
+  {type:'tick',page:3,fd:'_acctTypeTick',match:'O',x:469.16,y:660.64,bw:17,bh:17},              // Others
+  // Domiciliary currency ticks — columns at x≈306,322,339,356 within grid x=297–411
+  {type:'tick',page:3,fd:'_domiUSD',match:'USD',x:305.91,y:658.90,bw:14,bh:14},
+  {type:'tick',page:3,fd:'_domiEUR',match:'EUR',x:322.38,y:658.90,bw:14,bh:14},
+  {type:'tick',page:3,fd:'_domiJPY',match:'JPY',x:339.28,y:658.90,bw:14,bh:14},
+  {type:'tick',page:3,fd:'_domiGBP',match:'GBP',x:355.72,y:658.90,bw:14,bh:14},
+
+  // ── PAGE 5: Signatory 1 ─────────────────────────────────────────────────────
+  {type:'text',page:5,fd:'s1Title',       bw:75.70,bh:17, rows:[{x:65.56,yc:792.62,n:1}], fullText:true},   // wide title box
+  {type:'text',page:5,fd:'s1Surname',     bw:16.69,bh:17, rows:[{x:204.16,yc:792.62,n:22}]},
+  {type:'text',page:5,fd:'s1FirstName',   bw:16.79,bh:17, rows:[{x:99.66,yc:758.39,n:27}]},
+  {type:'text',page:5,fd:'s1OtherNames',  bw:16.79,bh:17, rows:[{x:116.39,yc:734.87,n:26}]},
+  {type:'tick',page:5,fd:'s1Marital',match:'SINGLE',  x:156.26,y:714.68,bw:16.10,bh:17},
+  {type:'tick',page:5,fd:'s1Marital',match:'MARRIED', x:220.17,y:714.68,bw:16.10,bh:17},
+  {type:'tick',page:5,fd:'s1Gender', match:'MALE',    x:489.97,y:714.68,bw:16.11,bh:17},
+  {type:'tick',page:5,fd:'s1Gender', match:'FEMALE',  x:548.84,y:714.68,bw:16.10,bh:17},
+  {type:'text',page:5,fd:'_s1DOB_d',      bw:15.37,bh:16.02,rows:[{x:111.16,yc:683.15,n:2}]},
+  {type:'text',page:5,fd:'_s1DOB_m',      bw:15.37,bh:16.02,rows:[{x:148.66,yc:683.08,n:2}]},
+  {type:'text',page:5,fd:'_s1DOB_y',      bw:15.37,bh:16.02,rows:[{x:186.23,yc:683.08,n:4}]},
+  {type:'text',page:5,fd:'s1PlaceOfBirth',bw:16.57,bh:17, rows:[{x:341.24,yc:683.54,n:13}]},
+  {type:'text',page:5,fd:'s1MothersName', bw:16.98,bh:17, rows:[{x:163.76,yc:654.92,n:23}]},
+  {type:'text',page:5,fd:'_nokNameFull',  bw:16.98,bh:17, rows:[{x:163.54,yc:635.07,n:23}]},
+  {type:'text',page:5,fd:'s1LGAOrigin',   bw:15.60,bh:17, rows:[{x:118.91,yc:611.44,n:13}]},
+  {type:'text',page:5,fd:'s1StateOrigin', bw:15.60,bh:17, rows:[{x:406.10,yc:611.44,n:10}]},
+  {type:'text',page:5,fd:'s1TIN',         bw:16.57,bh:17, rows:[{x:150.41,yc:581.89,n:16}]},
+  {type:'text',page:5,fd:'s1IDType',      bw:14.54,bh:17, rows:[{x:112.61,yc:550.01,n:12}]},
+  {type:'text',page:5,fd:'s1IDNumber',    bw:15.92,bh:17, rows:[{x:366.57,yc:550.01,n:12}]},
+  {type:'text',page:5,fd:'_s1IDIssue_d',  bw:15.37,bh:16.02,rows:[{x:115.25,yc:511.85,n:2}]},
+  {type:'text',page:5,fd:'_s1IDIssue_m',  bw:15.37,bh:16.02,rows:[{x:152.74,yc:511.78,n:2}]},
+  {type:'text',page:5,fd:'_s1IDIssue_y',  bw:15.37,bh:16.02,rows:[{x:190.32,yc:511.78,n:4}]},
+  {type:'text',page:5,fd:'_s1IDExpiry_d', bw:15.37,bh:16.02,rows:[{x:403.85,yc:511.85,n:2}]},
+  {type:'text',page:5,fd:'_s1IDExpiry_m', bw:15.37,bh:16.02,rows:[{x:441.35,yc:511.78,n:2}]},
+  {type:'text',page:5,fd:'_s1IDExpiry_y', bw:15.37,bh:16.02,rows:[{x:478.92,yc:511.78,n:4}]},
+  {type:'text',page:5,fd:'s1Occupation',  bw:15.45,bh:17, rows:[{x:101.05,yc:481.09,n:12}]},
+  {type:'text',page:5,fd:'s1JobTitle',    bw:15.47,bh:17, rows:[{x:370.65,yc:481.09,n:13}]},
+  {type:'text',page:5,fd:'s1Position',    bw:16.60,bh:17, rows:[{x:204.25,yc:459.60,n:21}]},
+  // Nationality
+  {type:'tick',page:5,fd:'_natNigerian',match:'NIGERIAN',x:200.38,y:437.10,bw:16.65,bh:17},
+  {type:'tick',page:5,fd:'_natOthers',  match:'OTHER',   x:265.38,y:437.10,bw:16.65,bh:17},
+  {type:'text',page:5,fd:'s1NationalityCountry',bw:175,bh:17,rows:[{x:376,yc:437.10,n:1}],fullText:true},
+  // Resident Permit No (For Non Nigerians)
+  {type:'text',page:5,fd:'s1ResidentPermit',   bw:15.09,bh:17,   rows:[{x:140.00,yc:414.63,n:12}]},
+  // Permit Issue Date
+  {type:'text',page:5,fd:'_s1PermitIssue_d',   bw:15.37,bh:16.02,rows:[{x:140.61,yc:381.85,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitIssue_m',   bw:15.37,bh:16.02,rows:[{x:178.11,yc:381.78,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitIssue_y',   bw:15.37,bh:16.02,rows:[{x:215.68,yc:381.78,n:4}]},
+  // Permit Expiry Date
+  {type:'text',page:5,fd:'_s1PermitExpiry_d',  bw:14.88,bh:16.02,rows:[{x:422.61,yc:381.85,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitExpiry_m',  bw:14.88,bh:16.02,rows:[{x:458.96,yc:381.78,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitExpiry_y',  bw:14.88,bh:16.02,rows:[{x:495.38,yc:381.78,n:4}]},
+  // Other country residency Yes/No ticks + fields
+  {type:'tick',page:5,fd:'_otherResYes',match:'YES',x:209.61,y:350.47,bw:16.65,bh:17},
+  {type:'tick',page:5,fd:'_otherResNo', match:'NO', x:249.74,y:350.47,bw:16.65,bh:17},
+  {type:'text',page:5,fd:'s1OtherResCountry',  bw:175,bh:17,rows:[{x:376,yc:349.8,n:1}],fullText:true},
+  {type:'text',page:5,fd:'s1ResidentPermit2',  bw:15.09,bh:17,   rows:[{x:144.99,yc:317.32,n:12}]},
+  {type:'text',page:5,fd:'_s1PermitIssue2_d',  bw:15.37,bh:16.02,rows:[{x:145.45,yc:294.85,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitIssue2_m',  bw:15.37,bh:16.02,rows:[{x:182.95,yc:294.78,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitIssue2_y',  bw:15.37,bh:16.02,rows:[{x:220.52,yc:294.78,n:4}]},
+  {type:'text',page:5,fd:'_s1PermitExpiry2_d', bw:15.37,bh:16.02,rows:[{x:418.36,yc:294.85,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitExpiry2_m', bw:15.37,bh:16.02,rows:[{x:455.86,yc:294.78,n:2}]},
+  {type:'text',page:5,fd:'_s1PermitExpiry2_y', bw:15.37,bh:16.02,rows:[{x:493.43,yc:294.78,n:4}]},
+  {type:'text',page:5,fd:'s1BVN',         bw:15.09,bh:17, rows:[{x:175.59,yc:261.27,n:13}]},
+  {type:'text',page:5,fd:'s1ResHousePlot',bw:16.87,bh:17, rows:[{x:140.87,yc:218.02,n:5}]},
+  {type:'text',page:5,fd:'s1ResStreet',   bw:14.40,bh:17, rows:[{x:296.91,yc:218.11,n:18}]},
+  {type:'text',page:5,fd:'s1ResBusStop',  bw:15.49,bh:18.19,rows:[{x:184.43,yc:194.94,n:24}]},
+  {type:'text',page:5,fd:'s1ResCity',     bw:15.09,bh:17, rows:[{x:92.22, yc:171.85,n:13}]},
+  {type:'text',page:5,fd:'s1ResLGA',      bw:15.51,bh:17, rows:[{x:354.63,yc:171.85,n:13}]},
+  {type:'text',page:5,fd:'s1ResState',    bw:15.09,bh:17, rows:[{x:76.89, yc:151.56,n:13}]},
+  {type:'text',page:5,fd:'_s1MailAddr',   rows:[{x:230.92,yc:128.81,bw:15.49,bh:18.19,n:21},{x:115.13,yc:104.72,bw:16.84,bh:17,n:26}]},
+  {type:'text',page:5,fd:'s1Mobile',      bw:15.52,bh:17, rows:[{x:123.80,yc:83.27,n:11}]},
+  {type:'text',page:5,fd:'s1Phone',       bw:15.47,bh:17, rows:[{x:370.65,yc:83.27,n:13}]},
+  {type:'text',page:5,fd:'s1Email',       bw:16.68,bh:17, rows:[{x:119.60,yc:62.98,n:26}]},
+
+  // ── PAGE 6: Signatory 2 ─────────────────────────────────────────────────────
+  {type:'text',page:6,fd:'s2Surname',     bw:16.79,bh:17, rows:[{x:100.1,yc:646.9,n:27}]},
+  {type:'text',page:6,fd:'s2FirstName',   bw:16.79,bh:17, rows:[{x:115.8,yc:626.0,n:26}]},
+  {type:'text',page:6,fd:'s2OtherNames',  bw:13.39,bh:17, rows:[{x:268.4,yc:605.0,n:10}]},
+  {type:'text',page:6,fd:'_s2DOB_d',      bw:15.37,bh:16.02,rows:[{x:185.0,yc:572.0,n:2}]},
+  {type:'text',page:6,fd:'_s2DOB_m',      bw:15.37,bh:16.02,rows:[{x:215.8,yc:572.0,n:2}]},
+  {type:'text',page:6,fd:'_s2DOB_y',      bw:15.37,bh:16.02,rows:[{x:246.6,yc:572.0,n:4}]},
+  {type:'text',page:6,fd:'s2PlaceOfBirth',bw:16.57,bh:17, rows:[{x:340.7,yc:571.8,n:13}]},
+  {type:'text',page:6,fd:'s2MothersName', bw:16.98,bh:17, rows:[{x:163.2,yc:543.2,n:23}]},
+  {type:'text',page:6,fd:'s2LGAOrigin',   bw:15.6, bh:17, rows:[{x:118.4,yc:523.3,n:13}]},
+  {type:'text',page:6,fd:'s2StateOrigin', bw:15.15,bh:17, rows:[{x:404.5,yc:523.3,n:10}]},
+  {type:'text',page:6,fd:'s2TIN',         bw:16.57,bh:17, rows:[{x:150.5,yc:491.3,n:16}]},
+  {type:'text',page:6,fd:'s2IDType',      bw:14.54,bh:17, rows:[{x:110.7,yc:456.4,n:12}]},
+  {type:'text',page:6,fd:'s2IDNumber',    bw:15.92,bh:17, rows:[{x:365.6,yc:456.4,n:12}]},
+  {type:'text',page:6,fd:'s2Occupation',  bw:16.6, bh:17, rows:[{x:204.3,yc:372.0,n:21}]},
+  {type:'text',page:6,fd:'s2BVN',         bw:16.87,bh:17, rows:[{x:404.5,yc:241.3,n:9}]},
+  {type:'text',page:6,fd:'s2ResHousePlot',bw:16.87,bh:17, rows:[{x:142.1,yc:196.7,n:5}]},
+  {type:'text',page:6,fd:'s2ResStreet',   bw:14.4, bh:17, rows:[{x:297.1,yc:196.8,n:18}]},
+  {type:'text',page:6,fd:'s2ResBusStop',  bw:15.49,bh:18.19,rows:[{x:184.6,yc:175.6,n:24}]},
+  {type:'text',page:6,fd:'s2ResCity',     bw:15.09,bh:17, rows:[{x:98.1,yc:153.5,n:13}]},
+  {type:'text',page:6,fd:'s2ResLGA',      bw:15.51,bh:17, rows:[{x:354.8,yc:153.5,n:13}]},
+  {type:'text',page:6,fd:'s2ResState',    bw:15.09,bh:17, rows:[{x:98.1,yc:132.2,n:13}]},
+  {type:'text',page:6,fd:'_s2MailAddr',   bw:15.49,bh:18.19,rows:[{x:230.8,yc:110.8,n:21},{x:115.4,yc:83.8,n:26}]},
+  {type:'text',page:6,fd:'s2Mobile',      bw:15.84,bh:17, rows:[{x:136.2,yc:53.9,n:10}]},
+  {type:'text',page:6,fd:'s2Phone',       bw:16.27,bh:17, rows:[{x:377.4,yc:53.9,n:11}]},
+  {type:'text',page:6,fd:'s2Email',       bw:16.84,bh:17, rows:[{x:115.4,yc:33.6,n:26}]},
+
+  // ── PAGE 7: Signatory 3 ─────────────────────────────────────────────────────
+  {type:'text',page:7,fd:'s3Surname',     bw:16.79,bh:17, rows:[{x:99.1,yc:626.0,n:27}]},
+  {type:'text',page:7,fd:'s3FirstName',   bw:16.79,bh:17, rows:[{x:115.8,yc:604.2,n:26}]},
+  {type:'text',page:7,fd:'s3OtherNames',  bw:13.39,bh:17, rows:[{x:269.5,yc:582.0,n:10}]},
+  {type:'text',page:7,fd:'_s3DOB_d',      bw:15.37,bh:16.02,rows:[{x:187.4,yc:551.6,n:2}]},
+  {type:'text',page:7,fd:'_s3DOB_m',      bw:15.37,bh:16.02,rows:[{x:218.2,yc:551.6,n:2}]},
+  {type:'text',page:7,fd:'_s3DOB_y',      bw:15.37,bh:16.02,rows:[{x:249.0,yc:551.6,n:4}]},
+  {type:'text',page:7,fd:'s3PlaceOfBirth',bw:16.57,bh:17, rows:[{x:340.7,yc:551.0,n:13}]},
+  {type:'text',page:7,fd:'s3MothersName', bw:16.98,bh:17, rows:[{x:163.2,yc:521.2,n:23}]},
+  {type:'text',page:7,fd:'s3LGAOrigin',   bw:15.6, bh:17, rows:[{x:118.4,yc:501.4,n:13}]},
+  {type:'text',page:7,fd:'s3StateOrigin', bw:15.15,bh:17, rows:[{x:405.6,yc:501.4,n:10}]},
+  {type:'text',page:7,fd:'s3TIN',         bw:16.57,bh:17, rows:[{x:150.4,yc:472.1,n:16}]},
+  {type:'text',page:7,fd:'s3IDType',      bw:14.54,bh:17, rows:[{x:112.7,yc:435.2,n:12}]},
+  {type:'text',page:7,fd:'s3IDNumber',    bw:15.92,bh:17, rows:[{x:366.6,yc:435.2,n:12}]},
+  {type:'text',page:7,fd:'s3Occupation',  bw:16.6, bh:17, rows:[{x:205.3,yc:351.8,n:21}]},
+  {type:'text',page:7,fd:'s3BVN',         bw:16.87,bh:17, rows:[{x:405.5,yc:218.9,n:9}]},
+  {type:'text',page:7,fd:'s3ResHousePlot',bw:16.87,bh:17, rows:[{x:142.5,yc:175.4,n:5}]},
+  {type:'text',page:7,fd:'s3ResStreet',   bw:14.4, bh:17, rows:[{x:296.5,yc:175.6,n:18}]},
+  {type:'text',page:7,fd:'s3ResBusStop',  bw:15.49,bh:18.19,rows:[{x:184.0,yc:153.3,n:24}]},
+  {type:'text',page:7,fd:'s3ResCity',     bw:15.09,bh:17, rows:[{x:94.5,yc:130.3,n:13}]},
+  {type:'text',page:7,fd:'s3ResLGA',      bw:15.51,bh:17, rows:[{x:354.2,yc:130.3,n:13}]},
+  {type:'text',page:7,fd:'s3ResState',    bw:15.09,bh:17, rows:[{x:94.5,yc:109.0,n:13}]},
+  {type:'text',page:7,fd:'_s3MailAddr',   bw:15.49,bh:18.19,rows:[{x:231.1,yc:87.4,n:21},{x:115.6,yc:61.4,n:26}]},
+  {type:'text',page:7,fd:'s3Mobile',      bw:15.84,bh:17, rows:[{x:120.1,yc:40.7,n:11}]},
+  {type:'text',page:7,fd:'s3Phone',       bw:16.27,bh:17, rows:[{x:377.1,yc:40.7,n:11}]},
+
+  // ── PAGE 8: Sig3 email + Next of Kin + Affiliated companies ────────────────
+  {type:'text',page:8,fd:'s3Email',       bw:16.84,bh:17, rows:[{x:115.1,yc:813.5,n:26}]},
+  {type:'text',page:8,fd:'nokSurname',    bw:16.79,bh:17, rows:[{x:99.8,yc:615.6,n:27}]},
+  {type:'text',page:8,fd:'nokFirstName',  bw:16.79,bh:17, rows:[{x:132.5,yc:592.7,n:25}]},
+  {type:'text',page:8,fd:'nokOtherNames', bw:15.37,bh:16.02,rows:[{x:207.3,yc:569.6,n:4}]},
+  {type:'text',page:8,fd:'_nokDOB_dmy',   bw:17.08,bh:17.29,rows:[{x:109.5,yc:537.6,n:26}]},
+  {type:'text',page:8,fd:'nokHousePlot',  bw:16.79,bh:17, rows:[{x:143.7,yc:494.2,n:5}]},
+  {type:'text',page:8,fd:'nokStreet',     bw:16.69,bh:17, rows:[{x:306.9,yc:494.3,n:15}]},
+  {type:'text',page:8,fd:'nokBusStop',    bw:16.47,bh:17, rows:[{x:175.5,yc:471.7,n:23}]},
+  {type:'text',page:8,fd:'nokCity',       bw:15.09,bh:17, rows:[{x:95.7,yc:449.0,n:13}]},
+  {type:'text',page:8,fd:'nokLGA',        bw:15.09,bh:17, rows:[{x:361.1,yc:449.0,n:13}]},
+  {type:'text',page:8,fd:'nokState',      bw:15.09,bh:17, rows:[{x:95.3,yc:428.3,n:13}]},
+  {type:'text',page:8,fd:'_nokMailAddr',  bw:16.18,bh:17, rows:[{x:214.9,yc:406.0,n:21},{x:132.2,yc:379.2,n:25}]},
+  {type:'text',page:8,fd:'nokMobile',     bw:15.84,bh:17, rows:[{x:122.0,yc:360.3,n:11}]},
+  {type:'text',page:8,fd:'nokPhone',      bw:16.27,bh:17, rows:[{x:379.0,yc:360.3,n:11}]},
+  {type:'text',page:8,fd:'nokEmail',      bw:16.82,bh:17.3,rows:[{x:116.7,yc:337.8,n:26}]},
+
+  // ── PAGE 10: Mandate signatories ───────────────────────────────────────────
+  {type:'text',page:10,fd:'_ms1Surname',  bw:16.27,bh:17, rows:[{x:97.5,yc:689.6,n:20}]},
+  {type:'text',page:10,fd:'_ms1First',    bw:16.27,bh:17, rows:[{x:114.3,yc:669.4,n:19}]},
+  {type:'text',page:10,fd:'_ms1Other',    bw:16.03,bh:17, rows:[{x:136.1,yc:649.2,n:26}]},
+  {type:'text',page:10,fd:'_ms2Surname',  bw:16.27,bh:17, rows:[{x:97.5,yc:504.2,n:20}]},
+  {type:'text',page:10,fd:'_ms2First',    bw:16.27,bh:17, rows:[{x:114.3,yc:483.0,n:19}]},
+  {type:'text',page:10,fd:'_ms2Other',    bw:16.03,bh:17, rows:[{x:136.1,yc:461.8,n:26}]},
+  {type:'text',page:10,fd:'_ms3Surname',  bw:16.27,bh:17, rows:[{x:97.0,yc:317.3,n:20}]},
+  {type:'text',page:10,fd:'_ms3First',    bw:16.27,bh:17, rows:[{x:113.8,yc:297.6,n:19}]},
+  {type:'text',page:10,fd:'_ms3Other',    bw:16.03,bh:17, rows:[{x:135.7,yc:275.8,n:26}]},
+];
+
+// Build derived values from FD for computed fields
+function buildStampData(){
+  const d=Object.assign({},FD);
+  // Full operating address: house + street + bus stop + city + LGA + state
+  // Flows across addr1 (2 rows, 42 chars) then addr2 (2 rows, 42 chars)
+  const addrParts=[d.bizHousePlot,d.bizAddr1,d.bizBusStop,d.bizCity,d.bizLGA,d.bizState].filter(Boolean).map(x=>x.toUpperCase());
+  // Remove consecutive duplicates (e.g. city=Lagos and state=Lagos)
+  const addrDeduped=addrParts.filter((v,i)=>i===0||v!==addrParts[i-1]);
+  d._bizAddr1full=addrDeduped.join(' ');
+  d._bizAddr2full=''; // addr2 rows handled by overflow in _bizAddr1full field (4 rows)
+  // Registered address (same as operating if not separately entered)
+  d._bizRegAddr= d.sameAsOpAddr==='YES' ? 'SAME AS OPERATING ADDRESS'
+               : d.sameAsOpAddr==='NO'  ? (d.bizRegAddress||'').toUpperCase()
+               : '';
+  // Date splits
+  function splitDate(val,df,mf,yf){
+    if(!val) return;
+    const p=val.replace(/[^0-9-]/g,'').split('-');
+    if(p.length===3){d[df]=p[2]||'';d[mf]=p[1]||'';d[yf]=p[0]||'';}
+  }
+  splitDate(d.bizRegDate,'_bizRegDate_d','_bizRegDate_m','_bizRegDate_y');
+  splitDate(d.s1DOB,'_s1DOB_d','_s1DOB_m','_s1DOB_y');
+  // Only stamp issue/expiry dates for ID types that require them
+  const idNeedsDates=['DRIVER\'S LICENCE','INTERNATIONAL PASSPORT'].includes((d.s1IDType||'').toUpperCase());
+  if(idNeedsDates){
+    splitDate(d.s1IDIssue,'_s1IDIssue_d','_s1IDIssue_m','_s1IDIssue_y');
+    splitDate(d.s1IDExpiry,'_s1IDExpiry_d','_s1IDExpiry_m','_s1IDExpiry_y');
+  }
+  // ID type short code for 12-box field
+  const idMap={'NATIONAL ID (NIN)':'NIN','DRIVER\'S LICENCE':'DRV LICENCE','INTERNATIONAL PASSPORT':'INTL PASSPORT','VOTER\'S CARD':'VOTERS CARD'};
+  d.s1IDType=idMap[(d.s1IDType||'').toUpperCase()]||(d.s1IDType||'');
+  // Nationality ticks
+  const natVal=(d.s1Nationality||'').toUpperCase();
+  d._natNigerian=natVal==='NIGERIAN'?'NIGERIAN':'';
+  d._natOthers  =natVal==='OTHER'   ?'OTHER'   :'';
+  // Only show country if Other is selected
+  if(natVal!=='OTHER') d.s1NationalityCountry='';
+  // Permit dates — only for non-Nigerians
+  if(natVal==='OTHER'){
+    splitDate(d.s1PermitIssue, '_s1PermitIssue_d','_s1PermitIssue_m','_s1PermitIssue_y');
+    splitDate(d.s1PermitExpiry,'_s1PermitExpiry_d','_s1PermitExpiry_m','_s1PermitExpiry_y');
+  } else {
+    d.s1ResidentPermit='';
+  }
+  // Other country residency
+  const otherRes=(d.s1OtherResidency||'').toUpperCase();
+  d._otherResYes=otherRes==='YES'?'YES':'';
+  d._otherResNo =otherRes==='NO' ?'NO' :'';
+  // Permit 2 and other country — only if residency is YES
+  if(otherRes==='YES'){
+    splitDate(d.s1PermitIssue2, '_s1PermitIssue2_d','_s1PermitIssue2_m','_s1PermitIssue2_y');
+    splitDate(d.s1PermitExpiry2,'_s1PermitExpiry2_d','_s1PermitExpiry2_m','_s1PermitExpiry2_y');
+  } else {
+    d.s1OtherResCountry='';
+    d.s1ResidentPermit2='';
+  }
+  // S2 computed fields
+  splitDate(d.s2DOB,'_s2DOB_d','_s2DOB_m','_s2DOB_y');
+  const nat2Val=(d.s2Nationality||'').toUpperCase();
+  d._nat2Nigerian=nat2Val==='NIGERIAN'?'NIGERIAN':'';
+  d._nat2Others  =nat2Val==='OTHER'   ?'OTHER'   :'';
+  if(nat2Val!=='OTHER') d.s2NationalityCountry='';
+  if(nat2Val==='OTHER'){
+    splitDate(d.s2PermitIssue, '_s2PermitIssue_d','_s2PermitIssue_m','_s2PermitIssue_y');
+    splitDate(d.s2PermitExpiry,'_s2PermitExpiry_d','_s2PermitExpiry_m','_s2PermitExpiry_y');
+  } else { d.s2ResidentPermit=''; }
+  const idMap2={'NATIONAL ID (NIN)':'NIN','DRIVER\'S LICENCE':'DRV LICENCE','INTERNATIONAL PASSPORT':'INTL PASSPORT','VOTER\'S CARD':'VOTERS CARD'};
+  d.s2IDType=idMap2[(d.s2IDType||'').toUpperCase()]||(d.s2IDType||'');
+  const id2NeedsDates=['DRV LICENCE','INTL PASSPORT'].includes(d.s2IDType);
+  if(id2NeedsDates){
+    splitDate(d.s2IDIssue,'_s2IDIssue_d','_s2IDIssue_m','_s2IDIssue_y');
+    splitDate(d.s2IDExpiry,'_s2IDExpiry_d','_s2IDExpiry_m','_s2IDExpiry_y');
+  }
+  // S3
+  splitDate(d.s3DOB,'_s3DOB_d','_s3DOB_m','_s3DOB_y');
+  // NOK full name
+  d._nokNameFull=[d.nokFirstName,d.nokSurname].filter(Boolean).join(' ').toUpperCase();
+  // NOK DOB: stored as YYYY-MM-DD, stamp as DDMMYYYY
+  if(d.nokDOB){ const p=d.nokDOB.split('-'); d._nokDOB_dmy=p.length===3?(p[2]+p[1]+p[0]):''; } else { d._nokDOB_dmy=''; }
+  d._nokMailAddr=[d.nokHousePlot,d.nokStreet,d.nokBusStop].filter(Boolean).join(' ').toUpperCase();
+  // Signatory mailing addresses
+  d._s1MailAddr= d.s1SameMailAddr==='NO'
+    ? [d.s1MailHouse,d.s1MailStreet,d.s1MailCity,d.s1MailState].filter(Boolean).join(' ').toUpperCase()
+    : [d.s1ResHousePlot,d.s1ResStreet,d.s1ResBusStop,d.s1ResCity].filter(Boolean).join(' ').toUpperCase();
+  d._s2MailAddr=[d.s2ResHousePlot||'',d.s2ResStreet||'',d.s2ResBusStop||''].filter(Boolean).join(' ').toUpperCase();
+  d._s3MailAddr=[d.s3ResHousePlot||'',d.s3ResStreet||'',d.s3ResBusStop||''].filter(Boolean).join(' ').toUpperCase();
+  // Account type tick — map by product ID
+  const prodId=d.bizAccountProduct||'';
+  if(prodId){
+    d._acctTypeTick= prodId==='current'||prodId==='gtbusiness'||prodId==='gtbiz_premium' ? 'C' :
+                     prodId==='gtmax' ? 'O' : 'C';
+  }
+  // Domiciliary currency flags
+  const domiStr=(d.domiCurrencies||'').toLowerCase();
+  d._domiUSD=/usd|\$/.test(domiStr)?'USD':'';
+  d._domiEUR=/eur|€/.test(domiStr)?'EUR':'';
+  d._domiJPY=/jpy|¥/.test(domiStr)?'JPY':'';
+  d._domiGBP=/gbp|£/.test(domiStr)?'GBP':'';
+  // Mandate signatories (repeat sig names)
+  d._ms1Surname=(d.s1Surname||'').toUpperCase();
+  d._ms1First=(d.s1FirstName||'').toUpperCase();
+  d._ms1Other=(d.s1OtherNames||'').toUpperCase();
+  d._ms2Surname=(d.s2Surname||'').toUpperCase();
+  d._ms2First=(d.s2FirstName||'').toUpperCase();
+  d._ms2Other=(d.s2OtherNames||'').toUpperCase();
+  d._ms3Surname=(d.s3Surname||'').toUpperCase();
+  d._ms3First=(d.s3FirstName||'').toUpperCase();
+  d._ms3Other=(d.s3OtherNames||'').toUpperCase();
+  // TIN: strip non-digits, then split — first 8 chars in TIN boxes, overflow into CRM boxes
+  if(d.bizTIN){
+    const tin=d.bizTIN.replace(/\D/g,''); // strip dashes/spaces
+    d.bizTIN=tin.substring(0,8);
+    d._bizTINoverflow=tin.length>8?tin.substring(8):'';
+  }
+  // SCUML: remove spaces, ensure it starts with "SC"
+  if(d.bizSCUML){
+    let s=d.bizSCUML.replace(/\s+/g,'').toUpperCase();
+    if(!s.startsWith('SC')) s='SC'+s;
+    d.bizSCUML=s;
+  }
+  // Uppercase all string values
+  Object.keys(d).forEach(k=>{ if(typeof d[k]==='string') d[k]=d[k].toUpperCase(); });
+  return d;
+}
+
+// Word-wrap helper: places characters into rows respecting word boundaries.
+// Returns [{r: rowIndex, c: colIndex, ch: char}, ...]
+// Words are never split across rows unless a single word is longer than a full row.
+function wordWrapChars(val, rows){
+  const result=[];
+  const words=val.split(' ');
+  let ri=0, ci=0;
+  for(let wi=0;wi<words.length;wi++){
+    const word=words[wi];
+    if(!word){ ci++; continue; } // multiple spaces: skip a cell
+    // If word doesn't fit in remaining cells and we're not at col 0, advance to next row
+    if(word.length > rows[ri].n - ci && ci > 0){
+      ri++; ci=0;
+      if(ri>=rows.length) break;
+    }
+    // Place chars (if word is longer than a full row it must split)
+    for(const ch of word){
+      if(ri>=rows.length) break;
+      if(ci>=rows[ri].n){ ri++; ci=0; if(ri>=rows.length) break; }
+      result.push({r:ri, c:ci, ch});
+      ci++;
+    }
+    // Advance one cell for the space between words (not after last word)
+    if(wi<words.length-1 && ri<rows.length){
+      ci++;
+      if(ci>=rows[ri].n){ ri++; ci=0; }
+    }
+  }
+  return result;
+}
+
 async function generatePDF(){
   const btn=document.getElementById('generate-btn');
   if(btn){btn.disabled=true; btn.textContent='⏳ Generating…';}
   try{
-    const{PDFDocument,StandardFonts,rgb}=PDFLib;
-    const doc=await PDFDocument.create();
-    const fR=await doc.embedFont(StandardFonts.Helvetica);
-    const fB=await doc.embedFont(StandardFonts.HelveticaBold);
-    const W=595,H=842,M=44,C2=260;
-    const OG=rgb(.91,.278,.039),OL=rgb(1,.941,.922),GR=rgb(.478,.431,.392),DK=rgb(.176,.141,.094),WH=rgb(1,1,1),RL=rgb(.918,.898,.875);
-    let page=doc.addPage([W,H]); let y=H-44;
-    function np(){page=doc.addPage([W,H]);y=H-44;}
-    function es(n){if(y<M+n)np();}
-    function dH(){
-      page.drawRectangle({x:0,y:H-76,width:W,height:76,color:OG});
-      page.drawText('GTBank',{x:M,y:H-30,size:20,font:fB,color:WH});
-      page.drawText('Business Account Opening — Sole Proprietorship / Partnership',{x:M,y:H-50,size:10,font:fR,color:rgb(1,.87,.85)});
-      page.drawText('Generated: '+new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'}),{x:W-190,y:H-50,size:8,font:fR,color:rgb(1,.87,.85)});
-      page.drawText('CONFIDENTIAL — For GTBank use only',{x:M,y:H-63,size:8,font:fR,color:rgb(1,.87,.85)});
+    const{PDFDocument,rgb}=PDFLib;
+    const BLACK=rgb(0,0,0);
+
+    // Fetch the real GTBank PDF
+    const pdfResp=await fetch('Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf');
+    if(!pdfResp.ok) throw new Error('Could not load GTBank PDF template');
+    const pdfBytes=await pdfResp.arrayBuffer();
+    const doc=await PDFDocument.load(pdfBytes);
+    const font=await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+    const fontBold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    const zapf=await doc.embedFont(PDFLib.StandardFonts.ZapfDingbats); // for checkmarks
+
+    const pages=doc.getPages();
+    // page index map: PDF page number → array index
+    const PI={3:2,4:3,5:4,6:5,7:6,8:7,9:8,10:9,16:15};
+
+    const data=buildStampData();
+
+    for(const f of GTB_FIELDS){
+      const pg=pages[PI[f.page]];
+      // Draw added boxes (missing from original PDF) regardless of field value
+      if(f.drawBox){
+        if(f.type==='text'){
+          // Draw individual cell boxes for each position in each row
+          for(const row of f.rows){
+            for(let ci=0;ci<row.n;ci++){
+              pg.drawRectangle({x:row.x+ci*f.bw, y:row.yc-f.bh/2, width:f.bw, height:f.bh,
+                borderColor:BLACK,borderWidth:0.5,color:rgb(1,1,1)});
+            }
+          }
+        } else {
+          pg.drawRectangle({x:f.x-f.bw/2,y:f.y-f.bh/2,width:f.bw,height:f.bh,
+            borderColor:BLACK,borderWidth:0.5,color:rgb(1,1,1)});
+        }
+      }
+      const val=data[f.fd];
+      // Draw TIN overflow arrow when overflow has a value
+      if(f.fd==='_bizTINoverflow' && val){
+        const tx=242.0, ty=144.54;
+        pg.drawLine({start:{x:tx,y:ty},end:{x:tx+8,y:ty},thickness:1.2,color:BLACK});
+        pg.drawLine({start:{x:tx+8,y:ty},end:{x:tx+4,y:ty+3},thickness:1.2,color:BLACK});
+        pg.drawLine({start:{x:tx+8,y:ty},end:{x:tx+4,y:ty-3},thickness:1.2,color:BLACK});
+      }
+      if(!val) continue;
+
+      if(f.type==='text'){
+        if(f.fullText){
+          const row=f.rows[0];
+          const bh=row.bh||f.bh; const bw=row.bw||f.bw;
+          const fs=Math.round(bh*0.62*10)/10;
+          pg.drawText(val,{x:row.x+bw*0.1,y:row.yc-fs*0.32,size:fs,font,color:BLACK});
+        } else {
+          for(const {r,c,ch} of wordWrapChars(val,f.rows)){
+            const row=f.rows[r];
+            const bw=row.bw||f.bw; const bh=row.bh||f.bh;
+            const fs=Math.round(bh*0.62*10)/10;
+            const isPunct=ch==='.'||ch===',';
+            const charFs=isPunct ? Math.round(bh*1.1*10)/10 : fs;
+            const tx=row.x + c*bw + (isPunct ? bw*0.32 : bw*0.15);
+            const ty=isPunct ? row.yc+bh*0.06 : row.yc-fs*0.32;
+            pg.drawText(ch,{x:tx,y:ty,size:charFs,font,color:BLACK});
+          }
+        }
+      } else if(f.type==='tick'){
+        if(val!==f.match) continue;
+        const fs=Math.max(5,Math.round(f.bw*0.9*10)/10);
+        // ZapfDingbats 0x34 = ✔ heavy check mark
+        pg.drawText('\x34',{x:f.x-f.bw*0.2, y:f.y-f.bh*0.25, size:fs, font:zapf, color:BLACK});
+      }
     }
-    function dS(t){es(40);y-=10;page.drawRectangle({x:M-6,y:y-4,width:W-(M*2)+12,height:20,color:OL});page.drawText(t.toUpperCase(),{x:M,y:y+3,size:8,font:fB,color:OG});y-=22;}
-    function dR(l,v){if(!v||v==='')return;es(24);page.drawText(l+':',{x:M,y,size:9,font:fR,color:GR});page.drawText(String(v),{x:C2,y,size:9,font:fB,color:DK});y-=20;page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.3,color:RL});y-=3;}
-    dH(); y=H-76-28;
-    dS('Business Details');
-    dR('Category',FD.bizCategory);
-    dR('Account Product',FD.bizAccountVariantName||FD.bizAccountProductName);
-    dR('Domiciliary Currencies',FD.domiCurrencies||'None requested');
-    dR('Business Name',FD.bizName);
-    dR('Registration No.',FD.bizRegNumber);dR('Date of Registration',FD.bizRegDate);dR('State of Reg.',FD.bizRegState);
-    dR('Nature of Business',FD.bizNature);dR('Sector',FD.bizSector);dR('Annual Turnover',FD.bizTurnover);
-    dR('TIN',FD.bizTIN);dR('CRM / Borrower Code',FD.bizCRM);dR('DNFI Type',FD.bizDNFIType);dR('SCUML No.',FD.bizSCUML);y-=6;
-    dS('Business Address & Contact');
-    dR('Operating Address',[FD.bizHousePlot,FD.bizAddr1,FD.bizBusStop,FD.bizCity].filter(Boolean).join(', '));
-    dR('LGA',FD.bizLGA);dR('State',FD.bizState);dR('Mobile',FD.bizMobile);dR('Email',FD.bizEmail);
-    dR('Phone',FD.bizPhone);dR('Website',FD.bizWebsite);y-=6;
-    dS('Signatory 1 — Personal Details');
-    dR('Full Name',[FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' '));
-    dR('Gender',FD.s1Gender);dR('Marital Status',FD.s1Marital);dR('Date of Birth',FD.s1DOB);
-    dR('Place of Birth',FD.s1PlaceOfBirth);dR("Mother's Maiden Name",FD.s1MothersName);
-    dR('State of Origin',FD.s1StateOrigin);dR('LGA of Origin',FD.s1LGAOrigin);
-    dR('Nationality',FD.s1Nationality+(FD.s1NationalityCountry?' — '+FD.s1NationalityCountry:''));
-    dR('Resident Permit',FD.s1ResidentPermit);dR('BVN',FD.s1BVN);dR('Personal TIN',FD.s1TIN);
-    dR('ID Type',FD.s1IDType);dR('ID Number',FD.s1IDNumber);dR('ID Issue Date',FD.s1IDIssue);dR('ID Expiry Date',FD.s1IDExpiry);
-    dR('Occupation',FD.s1Occupation);dR('Job Title',FD.s1JobTitle);dR('Position',FD.s1Position);y-=6;
-    dS('Signatory 1 — Contact & Address');
-    dR('Mobile',FD.s1Mobile);dR('Phone',FD.s1Phone);dR('Email',FD.s1Email);
-    dR('Same as business addr',FD.sameAsBusiness);
-    dR('House/Plot',FD.s1ResHousePlot);dR('Street',FD.s1ResStreet);dR('Bus Stop/Landmark',FD.s1ResBusStop);
-    dR('City/Town',FD.s1ResCity);dR('LGA',FD.s1ResLGA);dR('State',FD.s1ResState);y-=6;
-    // Embed signature image if captured
-    if(FD.s1Signature){
+
+    // ── Embed signature images ───────────────────────────────────────────────
+    async function embedSig(dataUrl, spots){
+      if(!dataUrl) return;
       try{
-        dS('Signatory 1 — Signature');
-        es(80);
-        const sigDataUrl=FD.s1Signature;
-        const sigB64=sigDataUrl.split(',')[1];
-        const sigBytes=Uint8Array.from(atob(sigB64),c=>c.charCodeAt(0));
-        const sigImg=await doc.embedPng(sigBytes);
-        const sigDims=sigImg.scale(1);
-        const maxW=200, maxH=60;
-        const scale=Math.min(maxW/sigDims.width, maxH/sigDims.height, 1);
-        const sw=sigDims.width*scale, sh=sigDims.height*scale;
-        y-=sh+8;
-        page.drawImage(sigImg,{x:M,y,width:sw,height:sh});
-        y-=10;
-        page.drawLine({start:{x:M,y},end:{x:M+sw+20,y},thickness:.5,color:GR});
-        y-=12;
-        page.drawText('Signature of '+([FD.s1Title,FD.s1FirstName,FD.s1Surname].filter(Boolean).join(' ')||'Signatory 1'),{x:M,y,size:8,font:fR,color:GR});
-        y-=16;
-      }catch(sigErr){ dR('Signature','Captured (see original document)'); }
+        const b64=dataUrl.split(',')[1];
+        const sigBytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+        const sigPdf=dataUrl.startsWith('data:image/png')
+          ? await doc.embedPng(sigBytes) : await doc.embedJpg(sigBytes);
+        const {width:iw,height:ih}=sigPdf.size();
+        const aspect=iw/ih;
+        for(const sp of spots){
+          const pg=pages[PI[sp.page]];
+          if(!pg) continue;
+          const h=Math.min(sp.maxH, sp.maxW/aspect);
+          const w=h*aspect;
+          const cx = sp.x + (sp.maxW - w) / 2;
+          const yDraw = sp.mode==='box' ? sp.yc-h*0.5 : sp.yc+(sp.yOff||0);
+          pg.drawImage(sigPdf,{x:cx, y:yDraw, width:w, height:h});
+        }
+      }catch(e){ console.warn('Sig embed error:',e); }
     }
-    y-=6;
-    dS('Account Services');
-    dR('Online Banking',FD.onlineBanking);dR('Statement Freq.',FD.stmtFreq);dR('Cheque Book',FD.chequeBook);
-    dR('Salary Payments',FD.salaryPayments);dR('Employees on Payroll',FD.staffCount);y-=6;
-    dS('Next of Kin');
-    dR('Full Name',[FD.nokFirstName,FD.nokOtherNames,FD.nokSurname].filter(Boolean).join(' '));
-    dR('Relationship',FD.nokRelationship);dR('DOB',FD.nokDOB);dR('Gender',FD.nokGender);
-    dR('Mobile',FD.nokMobile);dR('Address',[FD.nokStreet,FD.nokCity,FD.nokState].filter(Boolean).join(', '));y-=6;
-    dS('References');
-    dR('Referee 1',[FD.ref1Name,FD.ref1Type,FD.ref1Account].filter(Boolean).join(' · '));
-    dR('Referee 1 Phone',FD.ref1Phone); dR('Referee 1 Email',FD.ref1Email);
-    dR('Referee 2',[FD.ref2Name,FD.ref2Type,FD.ref2Account].filter(Boolean).join(' · '));
-    dR('Referee 2 Phone',FD.ref2Phone); dR('Referee 2 Email',FD.ref2Email); y-=6;
-    dS('Consents & Declaration');
-    dR('Terms, Privacy & GSI',CONSENTS.terms==='accepted'?'ACCEPTED':'Not accepted');
-    dR('Marketing Communications',CONSENTS.marketing==='accepted'?'Opted in':'Not opted in');y-=20;
-    // Blank signature lines (only show Sig1 line if no captured digital signature)
-    es(80);y-=10;
-    if(!FD.s1Signature){
-      page.drawLine({start:{x:M,y},end:{x:M+160,y},thickness:.7,color:GR});
-      y-=14;
-      page.drawText('Signatory 1 — Signature & Date',{x:M,y,size:8,font:fR,color:GR});
-      y-=4;
-    }
-    page.drawLine({start:{x:W-M-160,y},end:{x:W-M,y},thickness:.7,color:GR});
-    y-=14;
-    page.drawText('Signatory 2 — Signature & Date',{x:W-M-160,y,size:8,font:fR,color:GR});
-    for(let i=0;i<doc.getPageCount();i++){
-      const pg=doc.getPage(i);
-      pg.drawLine({start:{x:M,y:38},end:{x:W-M,y:38},thickness:.4,color:RL});
-      pg.drawText('Guaranty Trust Bank Ltd — RC 152321  |  Generated via FormPilot',{x:M,y:24,size:7,font:fR,color:GR});
-      pg.drawText('Page '+(i+1)+' of '+doc.getPageCount()+'  |  Confidential — For bank use only',{x:M,y:12,size:7,font:fR,color:GR});
-    }
-    const bytes=await doc.save();
-    const blob=new Blob([bytes],{type:'application/pdf'});
+    // S1 signature spots
+    await embedSig(FD.s1Signature,[
+      {page:6,  x:99.0,  yc:783.6,  maxW:283.2, maxH:35, yOff:-10},
+      {page:8,  x:90.9,  yc:762.1,  maxW:160,   maxH:55},
+      {page:9,  x:38.5,  yc:586.85, maxW:240,   maxH:38, mode:'box'},
+      {page:10, x:248.0, yc:607.0,  maxW:110.0, maxH:38, mode:'box'},
+      {page:16, x:91.0,  yc:692.32, maxW:271,   maxH:30},
+      {page:16, x:275.5, yc:494.32, maxW:137,   maxH:25},
+    ]);
+    // S2 signature spot (page 6 — Signatory 2 section)
+    await embedSig(FD.s2Signature,[
+      {page:6,  x:99.0,  yc:718.0,  maxW:283.2, maxH:35, yOff:-10},
+    ]);
+
+    const outBytes=await doc.save();
+    const blob=new Blob([outBytes],{type:'application/pdf'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     const name=(FD.bizName||FD.s1Surname||'gtbank').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
     a.href=url; a.download=name+'_account-opening.pdf';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+
+    // Update share links on done slide
     const biz=FD.bizName||'your business';
     const og=CFG_OFFICER?`Hi ${CFG_OFFICER.split(' ')[0]},`:'Hi,';
     const waMsg=encodeURIComponent(`${og}\n\nCompleted GTBank form for ${biz}. PDF attached.\n\nRegards,\n${CFG_CUSTOMER||FD.s1FirstName||''}`);
     const emailHref=`mailto:?subject=Completed: GTBank Account Opening — ${biz}&body=${encodeURIComponent(og+'\n\nCompleted form for '+biz+'.\nPDF attached.\n\n'+(CFG_SESSION?'Ref: '+CFG_SESSION+'\n\n':'')+'Regards,\n'+(CFG_CUSTOMER||FD.s1FirstName||''))}`;
-    // Update done slide links (it may not be in DOM yet — store for when it renders)
     window._doneWA=waMsg; window._doneEmail=emailHref;
     const waEl=document.getElementById('wa-btn'); if(waEl) waEl.href='https://wa.me/?text='+waMsg;
     const emEl=document.getElementById('email-btn'); if(emEl) emEl.href=emailHref;
+
+    if(btn){btn.disabled=false; btn.textContent='✅ Download again';}
   }catch(err){
-    console.error(err);
+    console.error('PDF generation error:',err);
     const b=document.getElementById('generate-btn');
-    if(b){b.disabled=false;b.textContent='🚀 Try again';}
+    if(b){b.disabled=false;b.textContent='⚠️ Error — try again';}
+    alert('PDF error: '+err.message+'\n\nMake sure the GTBank PDF file is in the same folder.');
   }
 }
 
 window.addEventListener('DOMContentLoaded',init);
+
+// ── PDF PREVIEW ─────────────────────────────────────────────────
+
+// ── LIVE PDF PREVIEW ────────────────────────────────────────────────────────
+const PDF_URL = 'Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf';
+const PAGE_LABELS = {
+  1:'Page 1 — Cover',         2:'Page 2 — Instructions',
+  3:'Page 3 — Entity Details',4:'Page 4 — Account Services',
+  5:'Page 5 — Signatory 1',   6:'Page 6 — Signatory 2',
+  7:'Page 7 — Signatory 3',   8:'Page 8 — Next of Kin',
+  9:'Page 9 — Authority to Debit',10:'Page 10 — Mandate',
+  11:'Page 11',12:'Page 12',13:'Page 13',14:'Page 14',15:'Page 15',
+  16:'Page 16 — Privacy & Declaration',17:'Page 17',18:'Page 18',19:'Page 19',20:'Page 20',
+};
+const PDF_TOTAL_PAGES = 20;
+// Slide → suggested preview page
+// Slide index → PDF page that shows that slide's fields
+const SLIDE_PAGE_MAP = {
+  0:3,              // welcome
+  1:3,2:3,3:4,4:4, // biz section, category, account, domi
+  5:3,6:3,7:3,      // biz name/reg, activity, tax/compliance
+  8:3,9:3,10:3,11:3,// biz address, same-addr, reg addr, contact
+  12:5,13:5,14:5,   // sig1 section, name, personal details
+  15:5,16:5,        // nationality, other-residency
+  17:5,18:5,19:5,   // BVN, ID, contact/role
+  20:5,21:5,22:5,   // residential addr, mailing choice, mailing addr
+  23:5,             // signature
+  24:8,25:8,26:8,   // NOK section, details, address
+  27:10,            // add-signatories → mandate
+  // S2 slides (28-39) — show Signatory 2 page
+  28:6,29:6,30:6,31:6,32:6,33:6,34:6,35:6,36:6,37:6,38:6,39:6,
+  // shifted slides (old 28+ → new 40+)
+  40:4,41:4,42:4,43:4, // svcs section, online banking, stmt/cheque, salary
+  44:16,            // terms → privacy/declaration
+  45:3,46:3,47:3,48:3, // docs section + uploads
+  49:3,50:3,51:3,   // review, processing, done
+};
+
+let _pdfDoc=null, _previewPage=3, _previewScale=1, _previewOpen=false;
+let _renderTimer=null;
+let _sigImg=null, _sigImgSrc=null;
+let _sigImg2=null;
+
+function togglePreview(){
+  _previewOpen=!_previewOpen;
+  document.body.classList.toggle('preview-open',_previewOpen);
+  document.getElementById('preview-btn').classList.toggle('active',_previewOpen);
+  document.getElementById('preview-btn-label').textContent=_previewOpen?'Hide PDF':'Show PDF';
+  if(_previewOpen){
+    const suggested=SLIDE_PAGE_MAP[cur]||3;
+    renderPreviewPage(suggested);
+  }
+}
+
+function previewGoTo(pn){
+  document.querySelectorAll('.pnav-btn').forEach(b=>b.classList.toggle('active',+b.dataset.page===pn));
+  renderPreviewPage(pn);
+}
+
+async function renderPreviewPage(pageNum){
+  if(!_previewOpen) return;
+  _previewPage=pageNum;
+  document.getElementById('preview-page-label').textContent=PAGE_LABELS[pageNum]||'Page '+pageNum;
+  const pnumEl=document.getElementById('preview-pnum'); if(pnumEl) pnumEl.textContent=pageNum+' / '+PDF_TOTAL_PAGES;
+  document.getElementById('preview-loading').style.display='flex';
+  document.getElementById('preview-canvas-wrap').style.display='none';
+  // Sync nav button
+  document.querySelectorAll('.pnav-btn').forEach(b=>b.classList.toggle('active',+b.dataset.page===pageNum));
+
+  try{
+    if(!_pdfDoc) _pdfDoc=await pdfjsLib.getDocument(PDF_URL).promise;
+    const page=await _pdfDoc.getPage(pageNum);
+    const vp0=page.getViewport({scale:1});
+
+    // Fit to panel width
+    const scroll=document.getElementById('preview-scroll');
+    const availW=scroll.clientWidth-32;
+    const scale=Math.min(availW/vp0.width, 2.5);
+    _previewScale=scale;
+
+    const vp=page.getViewport({scale});
+    const c=document.getElementById('preview-canvas');
+    c.width=vp.width; c.height=vp.height;
+    const oc=document.getElementById('preview-overlay-canvas');
+    oc.width=vp.width; oc.height=vp.height;
+
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+
+    document.getElementById('preview-loading').style.display='none';
+    document.getElementById('preview-canvas-wrap').style.display='block';
+    drawPreviewOverlay();
+  }catch(e){
+    document.getElementById('preview-loading').innerHTML=`<div style="color:#e74c3c;font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+function drawPreviewOverlay(){
+  if(!_previewOpen) return;
+  const oc=document.getElementById('preview-overlay-canvas');
+  if(!oc||!oc.width) return;
+  const ctx=oc.getContext('2d');
+  ctx.clearRect(0,0,oc.width,oc.height);
+
+  const PH=841.890, PW=595.276;
+  const data=buildStampData();
+  const scale=_previewScale;
+
+  // Helper: PDF coords → canvas coords
+  // PDF origin is bottom-left; canvas origin is top-left
+  function toCanvasX(pdfX){ return pdfX/PW*oc.width; }
+  function toCanvasY(pdfYcenter){ return (1-(pdfYcenter/PH))*oc.height; }
+
+  for(const f of GTB_FIELDS){
+    if(f.page!==_previewPage) continue;
+    // Draw added boxes (missing from original PDF)
+    if(f.drawBox){
+      ctx.strokeStyle='#000'; ctx.lineWidth=0.8;
+      if(f.type==='text'){
+        const bwPx=f.bw/PW*oc.width;
+        const bhPx=f.bh/PH*oc.height;
+        for(const row of f.rows){
+          for(let ci=0;ci<row.n;ci++){
+            ctx.strokeRect(toCanvasX(row.x+ci*f.bw), toCanvasY(row.yc+f.bh/2), bwPx, bhPx);
+          }
+        }
+      } else {
+        const bwPx=f.bw/PW*oc.width;
+        const bhPx=f.bh/PH*oc.height;
+        ctx.strokeRect(toCanvasX(f.x-f.bw/2), toCanvasY(f.y+f.bh/2), bwPx, bhPx);
+      }
+    }
+    const val=data[f.fd];
+    // Draw TIN overflow arrow on canvas
+    if(f.fd==='_bizTINoverflow' && val){
+      const tx=toCanvasX(242.0), ty=toCanvasY(144.54);
+      const aw=10, ah=4;
+      ctx.strokeStyle='#000'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(tx+aw,ty); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx+aw,ty); ctx.lineTo(tx+aw-ah,ty-ah); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(tx+aw,ty); ctx.lineTo(tx+aw-ah,ty+ah); ctx.stroke();
+    }
+    if(!val) continue;
+
+    if(f.type==='text'){
+      const bwPx=f.bw/PW*oc.width;
+      const bhPx=f.bh/PH*oc.height;
+      const fs=Math.max(4, bhPx*0.62);
+      ctx.fillStyle='#000000';
+      ctx.textBaseline='middle';
+      if(f.fullText){
+        const row=f.rows[0];
+        ctx.font=`${fs}px Arial`; ctx.textAlign='left';
+        ctx.fillText(val, toCanvasX(row.x)+bwPx*0.1, toCanvasY(row.yc));
+      } else {
+        ctx.font=`${fs}px Arial`;
+        ctx.textAlign='left';
+        for(const {r,c,ch} of wordWrapChars(val,f.rows)){
+          const row=f.rows[r];
+          const startX=toCanvasX(row.x);
+          const centerY=toCanvasY(row.yc);
+          const isPunct=ch==='.'||ch===',';
+          const cx=startX + c*bwPx + (isPunct ? bwPx*0.32 : bwPx*0.15);
+          if(isPunct){
+            ctx.font=`${Math.max(4,bhPx*1.1)}px Arial`;
+            ctx.textBaseline='alphabetic';
+            ctx.fillText(ch, cx, centerY+bhPx*0.25);
+            ctx.font=`${fs}px Arial`;
+            ctx.textBaseline='middle';
+          } else {
+            ctx.fillText(ch, cx, centerY);
+          }
+        }
+      }
+    } else if(f.type==='tick'){
+      if(val!==f.match) continue;
+      const cx=toCanvasX(f.x);
+      const cy=toCanvasY(f.y);
+      const sz=Math.max(5, f.bw/PW*oc.width*0.9);
+      ctx.font=`bold ${sz}px Arial`;
+      ctx.fillStyle='#000000';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText('✓', cx, cy);
+    }
+  }
+
+  // ── Draw signature placements on preview ────────────────────────────────────
+  function drawSigOnPreview(img, spots){
+    if(!img||!img.complete||!img.naturalWidth) return;
+    const aspect=img.naturalWidth/img.naturalHeight;
+    for(const sp of spots){
+      if(sp.page!==_previewPage) continue;
+      const h_pdf=Math.min(sp.maxH, sp.maxW/aspect);
+      const w_pdf=h_pdf*aspect;
+      const offsetX = sp.x + (sp.maxW - w_pdf) / 2;
+      const cx=toCanvasX(offsetX);
+      const cy = sp.mode==='box'
+        ? toCanvasY(sp.yc+h_pdf*0.5)
+        : toCanvasY(sp.yc+(sp.yOff||0)+h_pdf);
+      const cw=w_pdf/PW*oc.width;
+      const ch=h_pdf/PH*oc.height;
+      ctx.drawImage(img, cx, cy, cw, ch);
+    }
+  }
+  drawSigOnPreview(_sigImg,[
+    {page:6,  x:99.0,  yc:783.6,  maxW:283.2, maxH:35, yOff:-10},
+    {page:8,  x:90.9,  yc:762.1,  maxW:160,   maxH:55},
+    {page:9,  x:38.5,  yc:586.85, maxW:240,   maxH:38, mode:'box'},
+    {page:10, x:248.0, yc:607.0,  maxW:110.0, maxH:38, mode:'box'},
+    {page:16, x:91.0,  yc:692.32, maxW:271,   maxH:30},
+    {page:16, x:275.5, yc:494.32, maxW:137,   maxH:25},
+  ]);
+  // S2 sig preview
+  if(_sigImg2) drawSigOnPreview(_sigImg2,[
+    {page:6,  x:99.0,  yc:718.0,  maxW:283.2, maxH:35, yOff:-10},
+  ]);
+}
+
+// Debounced update — called from autoSave on every keystroke
+function updatePreviewFields(){
+  if(!_previewOpen) return;
+  clearTimeout(_renderTimer);
+  _renderTimer=setTimeout(()=>{
+    // Auto-switch to the PDF page that shows the current slide's fields
+    const suggested=SLIDE_PAGE_MAP[cur];
+    if(suggested && suggested!==_previewPage){
+      renderPreviewPage(suggested);
+    } else {
+      drawPreviewOverlay();
+    }
+  }, 80);
+}
+
+// Also called openPreview for backwards compat
+function openPreview(){ if(!_previewOpen) togglePreview(); }
+function closePreview(){ if(_previewOpen) togglePreview(); }
+function previewPrev(){ if(_previewPage>1) renderPreviewPage(_previewPage-1); }
+function previewNext(){ if(_previewPage<PDF_TOTAL_PAGES) renderPreviewPage(_previewPage+1); }
 </script>
 </body>
 </html>
