@@ -870,7 +870,12 @@ function renderWelcome(){
     </div>
     <button class="start-btn" onclick="goNext()">Let's get started <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <p style="margin-top:12px;font-size:12px;color:var(--muted)">Use ↑↓ arrow keys or swipe to navigate</p>
+    <p style="margin-top:24px;font-size:11px;color:var(--line)"><span style="cursor:pointer;user-select:none" onclick="devJump()">···</span></p>
   </div>`;
+}
+function devJump(){
+  const idx=SLIDES.findIndex(s=>s.type==='add-signatories');
+  if(idx>0) goToSlide(idx,0);
 }
 
 function renderSection(s){
