@@ -168,11 +168,23 @@
             <p class="auth-switch">Already have an account? <a href="login.html">Log in</a></p>
           </form>
 
-          <div id="emailSent" style="display:none;text-align:center;padding:2rem 0;">
-            <div style="font-size:2.5rem;margin-bottom:1rem;">📬</div>
-            <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:.5rem;color:#111827;">Check your email</h2>
-            <p style="color:#6b7280;font-size:.9rem;line-height:1.6;">We sent a verification link to <strong id="sentToEmail"></strong>.<br/>Click it to activate your account and log in.</p>
-            <p style="color:#9ca3af;font-size:.82rem;margin-top:.75rem;">Didn't get it? Check your spam folder.</p>
+          <div id="otpScreen" style="display:none;padding:1rem 0;">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+              <div style="font-size:2.2rem;margin-bottom:.75rem;">📩</div>
+              <h2 style="font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:.4rem;">Check your email</h2>
+              <p style="color:#6b7280;font-size:.875rem;line-height:1.6;">We sent a 6-digit code to <strong id="sentToEmail"></strong></p>
+            </div>
+            <div class="form-group">
+              <label for="otpInput" style="text-align:center;display:block;">Enter verification code</label>
+              <input type="text" id="otpInput" inputmode="numeric" maxlength="6" placeholder="000000"
+                style="text-align:center;font-size:2rem;font-weight:700;letter-spacing:.4em;padding:.5rem;" autocomplete="one-time-code" />
+            </div>
+            <div id="otpError" style="display:none;font-size:.85rem;color:#dc2626;font-weight:500;margin-bottom:.75rem;padding:.5rem .75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;text-align:center;"></div>
+            <button id="otpBtn" class="btn-primary btn-block btn-submit" style="margin-top:.5rem;">Verify & continue</button>
+            <p style="text-align:center;margin-top:1rem;font-size:.82rem;color:#9ca3af;">
+              Didn't get it? Check spam, or
+              <a href="#" id="resendLink" style="color:var(--primary);font-weight:600;">resend code</a>
+            </p>
           </div>
 
         </div>
@@ -255,9 +267,66 @@
           return;
         }
 
+        // Show OTP screen
+        _signupEmail = email;
         document.getElementById('sentToEmail').textContent = email;
         document.getElementById('signupForm').style.display = 'none';
-        document.getElementById('emailSent').style.display = 'block';
+        document.getElementById('otpScreen').style.display = 'block';
+        document.getElementById('otpInput').focus();
+      });
+
+      let _signupEmail = '';
+
+      document.getElementById('otpBtn').addEventListener('click', async function () {
+        const btn    = this;
+        const errEl  = document.getElementById('otpError');
+        const token  = document.getElementById('otpInput').value.trim();
+
+        if (token.length !== 6) {
+          errEl.textContent = 'Please enter the 6-digit code from your email.';
+          errEl.style.display = 'block';
+          return;
+        }
+        errEl.style.display = 'none';
+        btn.textContent = 'Verifying…';
+        btn.disabled = true;
+
+        const { data, error } = await _supa.auth.verifyOtp({
+          email: _signupEmail,
+          token,
+          type: 'signup'
+        });
+
+        if (error) {
+          errEl.textContent = 'Invalid or expired code. Please try again.';
+          errEl.style.display = 'block';
+          btn.textContent = 'Verify & continue';
+          btn.disabled = false;
+          return;
+        }
+
+        const meta = data.user.user_metadata;
+        sessionStorage.setItem('fp_user', JSON.stringify({
+          name:  meta.name  || _signupEmail,
+          email: data.user.email,
+          bank:  meta.bank  || '',
+          role:  meta.role  || ''
+        }));
+        window.location.href = 'dashboard.html';
+      });
+
+      // Auto-submit when 6 digits entered
+      document.getElementById('otpInput').addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+        if (this.value.length === 6) document.getElementById('otpBtn').click();
+      });
+
+      document.getElementById('resendLink').addEventListener('click', async function (e) {
+        e.preventDefault();
+        this.textContent = 'Sending…';
+        await _supa.auth.resend({ type: 'signup', email: _signupEmail });
+        this.textContent = 'Sent!';
+        setTimeout(() => { this.textContent = 'resend code'; }, 3000);
       });
     </script>
   </body>
