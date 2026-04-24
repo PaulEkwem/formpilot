@@ -23,7 +23,7 @@ let _cfg = {};
 try { const r=_p.get('config'); if(r) _cfg=JSON.parse(decodeURIComponent(escape(atob(r)))); } catch(e){}
 const CFG_CUSTOMER=_cfg.customer||'', CFG_OFFICER=_cfg.officer||'', CFG_SESSION=_cfg.sessionId||'';
 const SUPA_URL='https://dlpbnucipzudsrsbvodp.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2Mjg2NDgsImV4cCI6MjA2MDIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
 const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 const S2_ROLE=_p.get('role')==='s2';
 const S2_SESSION=_p.get('session')||'';

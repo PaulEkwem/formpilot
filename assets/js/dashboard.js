@@ -48,7 +48,7 @@ const FORM_LIBRARY = {
 
 // ── Supabase ──────────────────────────────────────────────────
 const _SUPA_URL = 'https://dlpbnucipzudsrsbvodp.supabase.co';
-const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2Mjg2NDgsImV4cCI6MjA2MDIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
 const supa = window.supabase.createClient(_SUPA_URL, _SUPA_KEY);
 
 // ── Session ───────────────────────────────────────────────────
