@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
     <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign up — FormPilot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -157,6 +158,7 @@
               <span id="agreeError" style="display:none;font-size:.78rem;color:#dc2626;font-weight:500;margin-top:.25rem">Please accept the terms to continue.</span>
             </div>
 
+            <div id="signupError" style="display:none;font-size:.85rem;color:#dc2626;font-weight:500;margin-bottom:.5rem;padding:.5rem .75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;"></div>
             <button type="submit" class="btn-primary btn-block btn-submit" id="submitBtn">
               Create free account
             </button>
@@ -165,6 +167,13 @@
 
             <p class="auth-switch">Already have an account? <a href="login.html">Log in</a></p>
           </form>
+
+          <div id="emailSent" style="display:none;text-align:center;padding:2rem 0;">
+            <div style="font-size:2.5rem;margin-bottom:1rem;">📬</div>
+            <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:.5rem;color:#111827;">Check your email</h2>
+            <p style="color:#6b7280;font-size:.9rem;line-height:1.6;">We sent a verification link to <strong id="sentToEmail"></strong>.<br/>Click it to activate your account and log in.</p>
+            <p style="color:#9ca3af;font-size:.82rem;margin-top:.75rem;">Didn't get it? Check your spam folder.</p>
+          </div>
 
         </div>
       </div>
@@ -200,46 +209,55 @@
         label.style.color = colors[score];
       });
 
+      const _supa = window.supabase.createClient(
+        'https://dlpbnucipzudsrsbvodp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2Mjg2NDgsImV4cCI6MjA2MDIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
+      );
+
       // Form submission
-      document.getElementById('signupForm').addEventListener('submit', function (e) {
+      document.getElementById('signupForm').addEventListener('submit', async function (e) {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn');
+        const btn   = document.getElementById('submitBtn');
+        const errEl = document.getElementById('signupError');
 
         if (!document.getElementById('agree').checked) {
           document.getElementById('agreeError').style.display = 'block';
           return;
         }
         document.getElementById('agreeError').style.display = 'none';
+        errEl.style.display = 'none';
 
         btn.textContent = 'Creating account…';
         btn.disabled = true;
 
-        // Save session and redirect
-        setTimeout(() => {
-          const firstName = document.getElementById('firstName').value.trim();
-          const lastName  = document.getElementById('lastName').value.trim();
-          const email     = document.getElementById('email').value.trim();
-          const bank      = document.getElementById('bank').value;
-          const role      = document.getElementById('role').value;
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName  = document.getElementById('lastName').value.trim();
+        const email     = document.getElementById('email').value.trim();
+        const password  = document.getElementById('password').value;
+        const bank      = document.getElementById('bank').value;
+        const role      = document.getElementById('role').value;
+        const phone     = document.getElementById('phone').value.trim();
 
-          const profile = {
-            name:  `${firstName} ${lastName}`,
-            email: email,
-            bank:  bank,
-            role:  role,
-          };
+        const { error } = await _supa.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { name: `${firstName} ${lastName}`, bank, role, phone },
+            emailRedirectTo: 'https://formpilot-five.vercel.app/login.html'
+          }
+        });
 
-          // Persist profile so login can look it up
-          const accounts = JSON.parse(localStorage.getItem('fp_accounts') || '{}');
-          accounts[email.toLowerCase()] = profile;
-          localStorage.setItem('fp_accounts', JSON.stringify(accounts));
+        if (error) {
+          errEl.textContent = error.message;
+          errEl.style.display = 'block';
+          btn.textContent = 'Create free account';
+          btn.disabled = false;
+          return;
+        }
 
-          // Start session
-          sessionStorage.setItem('fp_user', JSON.stringify(profile));
-
-          btn.textContent = 'Account created! Redirecting…';
-          window.location.href = 'dashboard.html';
-        }, 1000);
+        document.getElementById('sentToEmail').textContent = email;
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('emailSent').style.display = 'block';
       });
     </script>
   </body>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
     <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log in — FormPilot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -152,17 +153,24 @@
     </div>
 
     <script>
-      // Migrate any existing sessionStorage user into accounts store
-      try {
-        const existing = JSON.parse(sessionStorage.getItem('fp_user') || 'null');
-        if (existing && existing.email) {
-          const accounts = JSON.parse(localStorage.getItem('fp_accounts') || '{}');
-          if (!accounts[existing.email.toLowerCase()]) {
-            accounts[existing.email.toLowerCase()] = existing;
-            localStorage.setItem('fp_accounts', JSON.stringify(accounts));
-          }
+      const _supa = window.supabase.createClient(
+        'https://dlpbnucipzudsrsbvodp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2Mjg2NDgsImV4cCI6MjA2MDIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
+      );
+
+      // Auto-redirect if arriving from email verification link (session in URL hash)
+      _supa.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          const meta = session.user.user_metadata;
+          sessionStorage.setItem('fp_user', JSON.stringify({
+            name:  meta.name  || session.user.email,
+            email: session.user.email,
+            bank:  meta.bank  || '',
+            role:  meta.role  || ''
+          }));
+          window.location.href = 'dashboard.html';
         }
-      } catch(e) {}
+      });
 
       // Toggle password visibility
       document.getElementById('togglePwd').addEventListener('click', function () {
@@ -173,7 +181,7 @@
       });
 
       // Login form
-      document.getElementById('loginForm').addEventListener('submit', function (e) {
+      document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const btn    = document.getElementById('loginBtn');
         const banner = document.getElementById('errorBanner');
@@ -184,28 +192,28 @@
         btn.textContent = 'Logging in…';
         btn.disabled    = true;
 
-        setTimeout(() => {
-          // Look up saved profile from signup
-          const accounts = JSON.parse(localStorage.getItem('fp_accounts') || '{}');
-          const profile  = accounts[email.toLowerCase()];
+        const { data, error } = await _supa.auth.signInWithPassword({ email, password: pass });
 
-          if (profile && pass.length >= 6) {
-            // Restore full profile into session
-            sessionStorage.setItem('fp_user', JSON.stringify(profile));
-            window.location.href = 'dashboard.html';
-          } else if (!profile && pass.length >= 6) {
-            // Email not registered
-            banner.textContent = 'No account found with that email. Please sign up first.';
-            banner.classList.add('show');
-            btn.textContent = 'Log in';
-            btn.disabled    = false;
+        if (error) {
+          if (error.message.toLowerCase().includes('email not confirmed')) {
+            banner.textContent = 'Please verify your email first — check your inbox for the confirmation link.';
           } else {
             banner.textContent = 'Incorrect email or password. Please try again.';
-            banner.classList.add('show');
-            btn.textContent = 'Log in';
-            btn.disabled    = false;
           }
-        }, 900);
+          banner.classList.add('show');
+          btn.textContent = 'Log in';
+          btn.disabled    = false;
+          return;
+        }
+
+        const meta = data.user.user_metadata;
+        sessionStorage.setItem('fp_user', JSON.stringify({
+          name:  meta.name  || email,
+          email: data.user.email,
+          bank:  meta.bank  || '',
+          role:  meta.role  || ''
+        }));
+        window.location.href = 'dashboard.html';
       });
     </script>
   </body>

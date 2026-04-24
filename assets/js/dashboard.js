@@ -59,6 +59,13 @@ const session = (() => {
 // Guard — redirect to login if no session
 if (!session.name) { window.location.href = 'login.html'; }
 
+function doLogout() {
+  supa.auth.signOut().finally(() => {
+    sessionStorage.removeItem('fp_user');
+    window.location.href = 'index.html';
+  });
+}
+
 const OFFICER_NAME  = session.name  || '';
 const OFFICER_EMAIL = session.email || '';
 const OFFICER_BANK  = session.bank  || '';
