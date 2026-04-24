@@ -46,6 +46,11 @@ const FORM_LIBRARY = {
   'Wema Bank':    [],
 };
 
+// ── Supabase ──────────────────────────────────────────────────
+const _SUPA_URL = 'https://dlpbnucipzudsrsbvodp.supabase.co';
+const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2Mjg2NDgsImV4cCI6MjA2MDIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
+const supa = window.supabase.createClient(_SUPA_URL, _SUPA_KEY);
+
 // ── Session ───────────────────────────────────────────────────
 const session = (() => {
   try { return JSON.parse(sessionStorage.getItem('fp_user') || '{}'); } catch(e) { return {}; }
@@ -303,8 +308,10 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
   if (!bank)           { showToast('Please select a bank.'); return; }
   if (!formType)       { showToast('Please select a form type.'); return; }
 
-  const sessionId  = 'fp_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-  const accessCode = String(Math.floor(100000 + Math.random() * 900000));
+  const rnd = new Uint32Array(2);
+  crypto.getRandomValues(rnd);
+  const sessionId  = 'fp_' + rnd[0].toString(36) + rnd[1].toString(36);
+  const accessCode = String(100000 + (rnd[0] % 900000));
   const expiryHours = parseInt(document.getElementById('linkExpiry').value, 10) || 168;
   const expiresAt  = Date.now() + expiryHours * 60 * 60 * 1000;
   const config = {
@@ -317,13 +324,18 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
     officerPhone: '',
     sessionId,
     note,
-    accessCode,
     expiresAt,
+    // accessCode intentionally NOT included — stored in Supabase only
   };
 
   const link = buildLink(config);
   lastGeneratedLink      = link;
   lastGeneratedSessionId = sessionId;
+
+  // Store access code server-side — never in the URL
+  supa.from('form_access_codes')
+    .insert({ session_id: sessionId, access_code: accessCode, expires_at: expiresAt })
+    .then(({ error }) => { if(error) console.error('Failed to store access code:', error.message); });
 
   // Save to forms store
   const initials = (first[0] + last[0]).toUpperCase();
@@ -352,8 +364,7 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
   document.getElementById('generatedLink').textContent = link;
   document.getElementById('accessCodeDisplay').textContent = accessCode;
   document.getElementById('linkCustomerName').textContent = `${first} ${last}`;
-  document.getElementById('linkResultDesc').innerHTML =
-    `Link ready for <strong>${first} ${last}</strong>. Copy it or share directly.`;
+  document.getElementById('linkResultDesc').textContent = `Link ready for ${first} ${last}. Copy it or share directly.`;
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
   document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabels[expiryHours]||expiryHours+' hours'}`;
 

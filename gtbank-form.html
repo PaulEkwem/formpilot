@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GTBank — Business Account Opening</title>
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
 <script>emailjs.init('QK8T4uVIZyC-K8OsU');</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
@@ -485,15 +485,15 @@ const S2_ROLE=_p.get('role')==='s2';
 const S2_SESSION=_p.get('session')||'';
 
 // ── GATE / EXPIRY CHECK ─────────────────────────
+let _gateAttempts = 0;
+
 (function initGate(){
-  const code = _cfg.accessCode || '';
-  const expiresAt = _cfg.expiresAt || 0;
+  const legacyCode = _cfg.accessCode || '';
+  const expiresAt  = _cfg.expiresAt  || 0;
   const gate = document.getElementById('gate-screen');
+  // Show gate if link has a session (new flow) OR a legacy inline code
+  if(!CFG_SESSION && !legacyCode) return;
 
-  // No access code in config — no gate needed (preview / direct link)
-  if(!code) return;
-
-  // Populate names
   const cName = document.getElementById('gate-customer-name');
   const oName = document.getElementById('gate-officer-name');
   const oExpired = document.getElementById('expired-officer-name');
@@ -501,7 +501,6 @@ const S2_SESSION=_p.get('session')||'';
   if(oName) oName.textContent = CFG_OFFICER || 'Your account officer';
   if(oExpired) oExpired.textContent = CFG_OFFICER || 'your account officer';
 
-  // Check expiry
   if(expiresAt && Date.now() > expiresAt){
     gate.style.display = 'block';
     document.getElementById('gate-body').style.display = 'none';
@@ -509,7 +508,6 @@ const S2_SESSION=_p.get('session')||'';
     return;
   }
 
-  // Show expiry line
   const expLine = document.getElementById('gate-expiry-line');
   if(expLine && expiresAt){
     const diff = expiresAt - Date.now();
@@ -517,20 +515,48 @@ const S2_SESSION=_p.get('session')||'';
     const days = Math.floor(hrs / 24);
     expLine.textContent = days >= 2 ? `⏳ This link expires in ${days} days` : hrs > 0 ? `⏳ This link expires in ${hrs} hour${hrs!==1?'s':''}` : '⏳ This link expires soon';
   }
-
-  // Show gate
   gate.style.display = 'block';
 })();
 
-function unlockForm(){
-  const entered = (document.getElementById('gate-code-input').value||'').trim();
-  if(entered === String(_cfg.accessCode)){
-    document.getElementById('gate-screen').style.display = 'none';
-  } else {
-    document.getElementById('gate-err').style.display = 'block';
-    const input = document.getElementById('gate-code-input');
-    input.style.borderColor = '#c0392b';
-    setTimeout(()=>{ input.style.borderColor = '#E8E3DC'; }, 1800);
+async function unlockForm(){
+  const errEl = document.getElementById('gate-err');
+  const input = document.getElementById('gate-code-input');
+  const btn   = document.querySelector('#gate-body button[onclick*="unlockForm"]');
+
+  function showErr(msg){
+    if(errEl){ errEl.textContent = msg||'⚠️ Incorrect code. Please check with your account officer.'; errEl.style.display='block'; }
+    if(input){ input.style.borderColor='#c0392b'; setTimeout(()=>{ input.style.borderColor='#E8E3DC'; },1800); }
+  }
+
+  if(_gateAttempts >= 5){ showErr('⚠️ Too many attempts. Please contact your account officer.'); return; }
+
+  const entered = (input ? input.value : '').trim();
+  if(!entered) return;
+
+  const legacyCode = _cfg.accessCode || '';
+  if(legacyCode){
+    if(entered === String(legacyCode)){
+      document.getElementById('gate-screen').style.display = 'none';
+    } else {
+      _gateAttempts++;
+      showErr();
+    }
+    return;
+  }
+
+  if(btn){ btn.textContent='Verifying…'; btn.disabled=true; }
+  try {
+    const { data, error } = await supa.rpc('verify_form_code', { p_session_id: CFG_SESSION, p_code: entered });
+    if(!error && data === true){
+      document.getElementById('gate-screen').style.display = 'none';
+    } else {
+      _gateAttempts++;
+      showErr(_gateAttempts >= 5 ? '⚠️ Too many attempts. Please contact your account officer.' : undefined);
+    }
+  } catch(e){
+    showErr('⚠️ Could not verify. Please check your connection.');
+  } finally {
+    if(btn){ btn.textContent='Unlock form →'; btn.disabled=false; }
   }
 }
 
@@ -856,9 +882,9 @@ function renderWelcome(){
       <button class="start-btn" onclick="goNext()">Let's go <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>`;
   }
-  const name=CFG_CUSTOMER?CFG_CUSTOMER.split(' ')[0]:'';
+  const name=CFG_CUSTOMER?escH(CFG_CUSTOMER.split(' ')[0]):'';
   const greeting=name?`Hi ${name}! 👋`:'👋 Welcome';
-  const sentBy=CFG_OFFICER?`<div class="w-pill">🏦 Sent by <strong style="margin-left:4px">${CFG_OFFICER}</strong> · GTBank</div>`:'';
+  const sentBy=CFG_OFFICER?`<div class="w-pill">🏦 Sent by <strong style="margin-left:4px">${escH(CFG_OFFICER)}</strong> · GTBank</div>`:'';
   return `<div class="slide-inner">
     <div class="welcome-badge">🏦 GTBank Business Account Opening</div>
     <h1 class="welcome-title">${greeting}<br>Open your GTBank<br>business account <em>stress-free</em></h1>
@@ -1706,8 +1732,8 @@ function renderAddSig(s,idx){
       </div>
     </div>
     <div id="send-sig-wrap" style="display:${hasSent?'none':'none'};padding:16px;background:#F8F6F4;border-radius:10px;margin-bottom:16px">
-      <div class="group-field" style="margin-bottom:12px"><label>Signatory 2 full name</label><input class="tally-input" type="text" id="sig2LinkName" placeholder="Full name" value="${FD.sig2LinkName||''}" oninput="FD['sig2LinkName']=this.value"></div>
-      <div class="group-field" style="margin-bottom:12px"><label>Their email address *</label><input class="tally-input" type="email" id="sig2LinkEmail" placeholder="signatory@email.com" value="${FD.sig2LinkEmail||''}" oninput="FD['sig2LinkEmail']=this.value"></div>
+      <div class="group-field" style="margin-bottom:12px"><label>Signatory 2 full name</label><input class="tally-input" type="text" id="sig2LinkName" placeholder="Full name" value="${escH(FD.sig2LinkName||'')}" oninput="FD['sig2LinkName']=this.value"></div>
+      <div class="group-field" style="margin-bottom:12px"><label>Their email address *</label><input class="tally-input" type="email" id="sig2LinkEmail" placeholder="signatory@email.com" value="${escH(FD.sig2LinkEmail||'')}" oninput="FD['sig2LinkEmail']=this.value"></div>
       <button id="send-link-btn" class="ok-btn" onclick="confirmSendLink()">📨 Send link via email</button>
       <div style="margin-top:8px;font-size:12px;color:var(--muted)">A unique secure link will be emailed to them. Only valid for 7 days.</div>
     </div>
@@ -1998,7 +2024,7 @@ function renderDocuments(idx){
   const sig1 = [FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ') || '[Signatory Name]';
   const position = FD.s1Position || 'Director';
   const today = new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'});
-  const sigImg = FD.s1Signature ? `<img src="${FD.s1Signature}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
+  const sigImg = FD.s1Signature ? `<img src="${escH(FD.s1Signature)}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
 
   const contactLine = [mobile?`📞 ${mobile}`:'', email?`✉ ${email}`:''].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
 
@@ -2123,7 +2149,7 @@ function renderDocBoardRes(idx){
   const sig1 = [FD.s1Title,FD.s1FirstName,FD.s1OtherNames,FD.s1Surname].filter(Boolean).join(' ') || '[Signatory Name]';
   const position = FD.s1Position || 'Director';
   const today = new Date().toLocaleDateString('en-NG',{day:'numeric',month:'long',year:'numeric'});
-  const sigImg = FD.s1Signature ? `<img src="${FD.s1Signature}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
+  const sigImg = FD.s1Signature ? `<img src="${escH(FD.s1Signature)}" style="height:52px;max-width:180px;display:block;margin-bottom:4px;object-fit:contain">` : `<div style="width:160px;border-bottom:1.5px solid #333;margin-bottom:4px;height:48px"></div>`;
   const contactLine = [mobile?`📞 ${mobile}`:'', email?`✉ ${email}`:''].filter(Boolean).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
 
   const letterHTML = `
@@ -2448,6 +2474,7 @@ function renderDone(){
 
 // ── HELPERS ────────────────────────────────────
 function escQ(s){ return s.replace(/'/g,"\\'"); }
+function escH(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ── INIT ───────────────────────────────────────
 function init(){
@@ -3125,7 +3152,7 @@ function buildReview(){
   secs.forEach(sec=>{
     const rows=sec.rows.filter(r=>r[1]);
     if(!rows.length) return;
-    html+=`<div class="review-section"><div class="review-head"><span>${sec.title}</span><button class="review-edit" onclick="goToSlide(${sec.goTo},${SLIDES.length-2})">✏️ Edit</button></div><div class="review-rows">${rows.map(r=>`<div class="review-row"><span class="review-row-label">${r[0]}</span><span class="review-row-value">${r[1]}</span></div>`).join('')}</div></div>`;
+    html+=`<div class="review-section"><div class="review-head"><span>${sec.title}</span><button class="review-edit" onclick="goToSlide(${sec.goTo},${SLIDES.length-2})">✏️ Edit</button></div><div class="review-rows">${rows.map(r=>`<div class="review-row"><span class="review-row-label">${escH(r[0])}</span><span class="review-row-value">${escH(r[1])}</span></div>`).join('')}</div></div>`;
   });
   const el=document.getElementById('review-content'); if(el) el.innerHTML=html;
 }
@@ -3489,7 +3516,7 @@ async function generatePDF(){
     const BLACK=rgb(0,0,0);
 
     // Fetch the real GTBank PDF
-    const pdfResp=await fetch('Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf');
+    const pdfResp=await fetch('pdfs/Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf');
     if(!pdfResp.ok) throw new Error('Could not load GTBank PDF template');
     const pdfBytes=await pdfResp.arrayBuffer();
     const doc=await PDFDocument.load(pdfBytes);
@@ -3623,7 +3650,7 @@ window.addEventListener('DOMContentLoaded',init);
 // ── PDF PREVIEW ─────────────────────────────────────────────────
 
 // ── LIVE PDF PREVIEW ────────────────────────────────────────────────────────
-const PDF_URL = 'Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf';
+const PDF_URL = 'pdfs/Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf';
 const PAGE_LABELS = {
   1:'Page 1 — Cover',         2:'Page 2 — Instructions',
   3:'Page 3 — Entity Details',4:'Page 4 — Account Services',
@@ -3711,7 +3738,8 @@ async function renderPreviewPage(pageNum){
     document.getElementById('preview-canvas-wrap').style.display='block';
     drawPreviewOverlay();
   }catch(e){
-    document.getElementById('preview-loading').innerHTML=`<div style="color:#e74c3c;font-size:12px">Error: ${e.message}</div>`;
+    const errEl=document.getElementById('preview-loading');
+    if(errEl){ errEl.innerHTML='<div style="color:#e74c3c;font-size:12px"></div>'; errEl.firstChild.textContent='Error: '+e.message; }
   }
 }
 
