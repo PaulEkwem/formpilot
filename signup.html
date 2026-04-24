@@ -260,7 +260,11 @@
         });
 
         if (error) {
-          errEl.textContent = error.message;
+          if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('already exists')) {
+            errEl.innerHTML = 'An account with this email already exists. <a href="login.html" style="color:#dc2626;font-weight:700;text-decoration:underline;">Log in instead</a>';
+          } else {
+            errEl.textContent = error.message;
+          }
           errEl.style.display = 'block';
           btn.textContent = 'Create free account';
           btn.disabled = false;
