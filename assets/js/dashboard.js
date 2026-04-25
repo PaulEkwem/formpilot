@@ -243,6 +243,17 @@ document.getElementById('searchForms').addEventListener('input', applyFilters);
 document.getElementById('filterStatus').addEventListener('change', applyFilters);
 document.getElementById('filterBank').addEventListener('change', applyFilters);
 
+function toTitleCase(str) {
+  return str.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function generateSlug() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const rnd = new Uint8Array(8);
+  crypto.getRandomValues(rnd);
+  return Array.from(rnd).map(b => chars[b % chars.length]).join('');
+}
+
 // ── Generate link ─────────────────────────────────────────────
 function buildLink(config) {
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
@@ -312,7 +323,7 @@ function openSendModal(formType, icon) {
   if (isRef) {
     const indRadio = document.querySelector('input[name="mRefType"][value="individual"]');
     if (indRadio) { indRadio.checked = true; updateRefFields(); }
-    ['mRefFirst','mRefLast','mRefDirFirst','mRefDirLast'].forEach(id => {
+    ['mRefFirst','mRefLast','mRefCompany','mRefDirFirst','mRefDirLast'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
   }
@@ -341,8 +352,11 @@ function updateRefFields() {
 }
 
 // ── Modal generate button ─────────────────────────────────────
-let lastGeneratedLink = '';
+let lastGeneratedLink        = '';
+let lastGeneratedIsReference = false;
 let lastGeneratedSessionId = '';
+let lastGeneratedCustomer = '';
+let lastGeneratedBank = '';
 
 document.getElementById('modalGenerateBtn').addEventListener('click', function () {
   try {
@@ -355,37 +369,55 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   if (formType === 'Reference Form') {
     const refType = document.querySelector('input[name="mRefType"]:checked').value;
     let customer = '';
+    let directorName = '';
     if (refType === 'individual') {
       const f = document.getElementById('mRefFirst').value.trim();
       const l = document.getElementById('mRefLast').value.trim();
       if (!f || !l) { showToast('Please enter the customer\'s full name.'); return; }
-      customer = `${f} ${l}`;
+      customer = toTitleCase(`${f} ${l}`);
     } else {
+      const company = document.getElementById('mRefCompany').value.trim();
       const df = document.getElementById('mRefDirFirst').value.trim();
       const dl = document.getElementById('mRefDirLast').value.trim();
-      if (!df || !dl) { showToast('Please enter the customer\'s full name.'); return; }
-      customer = `${df} ${dl}`;
+      if (!company || !df || !dl) { showToast('Please enter the company name and director name.'); return; }
+      customer = toTitleCase(company);
+      directorName = toTitleCase(`${df} ${dl}`);
     }
     const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
     const expiresAt   = Date.now() + expiryHours * 60 * 60 * 1000;
-    const rnd = new Uint32Array(1); crypto.getRandomValues(rnd);
-    const sessionId = 'fp_ref_' + rnd[0].toString(36);
-    const config = { bank, formType: 'Reference Form', refType, customer, officer: OFFICER_NAME, officerEmail: OFFICER_EMAIL, sessionId, expiresAt };
-    const link = buildLink(config);
+    const slug = generateSlug();
+    const BASE = window.location.href.replace(/dashboard\.html.*$/, '');
+    const link = `${BASE}gtbank-reference.html?r=${slug}`;
+
+    supa.from('form_access_codes').insert({
+      session_id:    slug,
+      access_code:   null,
+      expires_at:    expiresAt,
+      customer_name: customer,
+      director_name: directorName || null,
+      ref_type:      refType,
+      officer_name:  OFFICER_NAME,
+      bank:          bank,
+    }).then(({ error }) => { if (error) console.error('Supabase insert:', error.message); });
+
     const initials = customer.slice(0, 2).toUpperCase();
-    ALL_FORMS.unshift({ sessionId, customer, initials, bank, type: 'Reference Form', sent: 'Just now', status: 'pending', sentAt: Date.now(), link, config });
+    ALL_FORMS.unshift({ sessionId: slug, customer, initials, bank, type: 'Reference Form', sent: 'Just now', status: 'pending', sentAt: Date.now(), link, config: { refType, customer, officer: OFFICER_NAME, bank } });
     saveForms(ALL_FORMS); updateStatCards();
     const badge = document.querySelector('.nav-badge');
     if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
     document.getElementById('generatedLink').textContent = link;
     document.getElementById('accessCodeBox').style.display = 'none';
-    document.getElementById('linkResultDesc').textContent = `Reference form link ready for ${customer}. Share this link with the customer.`;
+    document.getElementById('linkResultDesc').textContent = `Reference form link ready for ${customer}. Ask them to forward it to their referee.`;
     const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
     document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabels[expiryHours] || expiryHours + ' hours'}`;
+    lastGeneratedLink        = link;
+    lastGeneratedCustomer    = customer;
+    lastGeneratedBank        = bank;
+    lastGeneratedIsReference = true;
     const waBtn = document.getElementById('whatsappBtn');
-    waBtn.textContent = '📱 Share on WhatsApp';
-    const waMsg = encodeURIComponent(`Hi, ${OFFICER_NAME} from ${bank} has sent you a GTBank reference form link for your account opening. Open this link to get started: ${link}`);
+    const waMsg = encodeURIComponent(`Hi ${customer},\n\nYour account officer ${OFFICER_NAME} from ${bank} has set up a GTBank reference form for your account opening.\n\nForward this link to your referee — they just open it, fill in their details, and download the completed form:\n\n${link}\n\nThe link expires in ${expiryLabels[expiryHours] || expiryHours + ' hours'}.`);
     waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
+    collapseEmailShare();
     document.getElementById('modalFormSection').style.display = 'none';
     document.getElementById('linkResult').style.display = 'block';
     return;
@@ -406,7 +438,7 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const accessCode = String(100000 + (rnd[0] % 900000));
   const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
   const expiresAt  = Date.now() + expiryHours * 60 * 60 * 1000;
-  const fullName = last ? `${first} ${last}` : first;
+  const fullName = toTitleCase(last ? `${first} ${last}` : first);
   const config = {
     bank,
     formType,
@@ -458,13 +490,20 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
   const expiryLabel  = expiryLabels[expiryHours] || expiryHours + ' hours';
   document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabel}`;
+  lastGeneratedLink        = link;
+  lastGeneratedCustomer    = fullName;
+  lastGeneratedBank        = bank;
+  lastGeneratedIsReference = false;
   const waBtn = document.getElementById('whatsappBtn');
   const waMsg = encodeURIComponent(
     `Hi ${fullName}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
   );
-  waBtn.textContent = '📱 Share on WhatsApp';
   waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
-
+  collapseEmailShare();
+  if (custEmail) {
+    expandEmailShare();
+    document.getElementById('resultEmail').value = custEmail;
+  }
   document.getElementById('modalFormSection').style.display = 'none';
   document.getElementById('linkResult').style.display = 'block';
 
@@ -498,30 +537,142 @@ function copyAccessCode() {
   }).catch(() => { prompt('Access code:', code); });
 }
 
-function sendViaEmailJS({ first, last, custEmail, bank, link, accessCode, note, expiryLabel }) {
-  const btn = document.getElementById('whatsappBtn');
-  btn.textContent = '⏳ Sending...';
+function expandEmailShare() {
+  document.getElementById('emailTriggerBtn').style.display = 'none';
+  document.getElementById('emailInputRow').style.display  = '';
+  document.getElementById('resultEmail').focus();
+}
+
+function collapseEmailShare() {
+  document.getElementById('emailInputRow').style.display  = 'none';
+  document.getElementById('emailTriggerBtn').style.display = 'block';
+  document.getElementById('resultEmail').value = '';
+  const btn = document.getElementById('emailSendBtn');
+  btn.textContent = 'Send'; btn.disabled = false;
+}
+
+function buildReferenceEmailHtml(customerName, officerName, bank, link) {
+  const emailIconB64 = btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D2416"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>`);
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+<tr><td style="background:#E8470A;padding:28px 32px">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">FormPilot</div>
+  <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Your reference form link is ready 📋</div>
+</td></tr>
+<tr><td style="padding:32px">
+  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
+  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 20px">Your account officer <strong>${officerName}</strong> at <strong>${bank}</strong> has generated a banker's reference form link for your account opening.</p>
+
+  <table cellpadding="0" cellspacing="0" style="width:100%;background:#FFF8F5;border-radius:12px;border:1px solid #FDDFD0;margin-bottom:24px"><tr><td style="padding:20px 24px">
+    <p style="font-size:13px;font-weight:700;color:#E8470A;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px">Here's what to do:</p>
+    <table cellpadding="0" cellspacing="0" width="100%">
+      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">1.</span>Forward this link to your chosen referee</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">2.</span>Your referee fills in the form online <span style="color:#7A6E64">(takes about 5 minutes)</span></td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">3.</span>They download the completed PDF and send it back to you</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">4.</span>You hand the PDF to your ${bank} officer to complete your account opening</td></tr>
+    </table>
+  </td></tr></table>
+
+  <p style="font-size:13px;font-weight:700;color:#1A1208;margin:0 0 10px">Send this link to your referee via:</p>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:10px"><tr>
+    <td align="center" style="background:#25D366;border-radius:12px">
+      <a href="https://wa.me/?text=${encodeURIComponent(`Hi, I need you to fill a GTBank reference form for my account opening. It only takes 5 minutes — please open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}`)}" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;text-align:center">📱 Share on WhatsApp</a>
+    </td>
+  </tr></table>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
+    <td align="center" style="border-radius:12px;border:1.5px solid #EAE5DF">
+      <a href="mailto:?subject=GTBank Reference Form Request&body=${encodeURIComponent(`Hi,\n\nI need you to fill a GTBank reference form for my account opening. It only takes about 5 minutes.\n\nPlease open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}\n\nThank you.`)}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 24px;font-size:15px;font-weight:700;color:#2D2416;text-decoration:none;text-align:center;width:100%;box-sizing:border-box"><img src="data:image/svg+xml;base64,${emailIconB64}" width="20" height="20" alt="" style="vertical-align:middle" /> Share via Email</a>
+    </td>
+  </tr></table>
+
+  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Or copy the link below and send it yourself:</p>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
+    <td style="background:#FFF0EB;border-radius:8px;padding:12px 14px;border:1px solid #FDDFD0">
+      <a href="${link}" style="font-size:12px;color:#E8470A;word-break:break-all;text-decoration:none;line-height:1.6;display:block">${link}</a>
+    </td>
+  </tr></table>
+
+  <p style="font-size:13px;color:#7A6E64;line-height:1.6;margin:0;border-top:1px solid #EAE5DF;padding-top:20px">Questions? Contact your account officer <strong>${officerName}</strong> directly.</p>
+</td></tr>
+<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
+  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
+}
+
+function buildCustomerEmailHtml(customerName, officerName, bank, link) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+<tr><td style="background:#E8470A;padding:28px 32px">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">FormPilot</div>
+  <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Your bank form is ready 📋</div>
+</td></tr>
+<tr><td style="padding:32px">
+  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
+  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 28px">${officerName} from <strong>${bank}</strong> has sent you a form to complete online. It takes just a few minutes — when you're done, you'll download a ready-to-sign PDF to bring to the bank.</p>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
+    <td align="center" style="background:#E8470A;border-radius:12px">
+      <a href="${link}" style="display:block;padding:16px 24px;font-size:16px;font-weight:700;color:#fff;text-decoration:none;text-align:center">Open Your Form →</a>
+    </td>
+  </tr></table>
+  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Can't click the button? Copy this link:</p>
+  <p style="font-size:11px;color:#E8470A;word-break:break-all;background:#FFF0EB;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
+  <p style="font-size:13px;color:#7A6E64;line-height:1.6;margin:0;border-top:1px solid #EAE5DF;padding-top:20px">Questions? Contact your account officer <strong>${officerName}</strong> directly.</p>
+</td></tr>
+<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
+  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
+}
+
+function sendResultEmail() {
+  const custEmail = document.getElementById('resultEmail').value.trim();
+  if (!custEmail || !custEmail.includes('@')) { showToast('Please enter a valid email address.'); return; }
+  const btn = document.getElementById('emailSendBtn');
+  btn.textContent = '⏳';
   btn.disabled = true;
 
-  emailjs.send('service_vancprr', 'template_oeqmbz5', {
-    to_email:      custEmail,
-    customer_name: `${first} ${last}`,
-    officer_name:  OFFICER_NAME,
-    bank:          bank,
-    form_link:     link,
-    access_code:   accessCode,
-    note:          note || '',
-    expiry:        expiryLabel,
+  const isRef = lastGeneratedIsReference;
+  const subject = isRef
+    ? `GTBank Reference Form — ${lastGeneratedCustomer}`
+    : `${lastGeneratedBank} Form — ${lastGeneratedCustomer}`;
+  const text = isRef
+    ? `Hi ${lastGeneratedCustomer},\n\n${OFFICER_NAME} at ${lastGeneratedBank} has generated a reference form link for your account opening.\n\nForward this link to your referee:\n${lastGeneratedLink}\n\nYour referee fills the form, downloads the PDF, and sends it back to you. You then hand it to your bank officer.\n\n— FormPilot`
+    : `Hi ${lastGeneratedCustomer},\n\n${OFFICER_NAME} from ${lastGeneratedBank} has sent you a bank form to complete online.\n\n🔗 Your link: ${lastGeneratedLink}\n\nOnce you open the link, fill in your details and download the completed PDF to bring to the bank.\n\n— FormPilot`;
+  const html = isRef
+    ? buildReferenceEmailHtml(lastGeneratedCustomer, OFFICER_NAME, lastGeneratedBank, lastGeneratedLink)
+    : buildCustomerEmailHtml(lastGeneratedCustomer, OFFICER_NAME, lastGeneratedBank, lastGeneratedLink);
+
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+
+  fetch(`${_SUPA_URL}/functions/v1/send-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_SUPA_KEY}` },
+    body: JSON.stringify({ to: custEmail, subject, text, html }),
+    signal: ctrl.signal,
   })
-  .then(() => {
-    btn.textContent = '✅ Email sent!';
-    showToast(`Email sent to ${custEmail}`);
+  .then(r => { clearTimeout(timer); return r.json(); })
+  .then(d => {
+    if (d.ok) {
+      btn.textContent = '✅ Sent!';
+      showToast(`Email sent to ${custEmail}`);
+    } else {
+      throw new Error(JSON.stringify(d.error));
+    }
   })
   .catch((err) => {
-    console.error('EmailJS error:', err);
-    btn.textContent = '📧 Retry send';
+    clearTimeout(timer);
+    console.error('Email error:', err);
+    btn.textContent = '✉️ Send';
     btn.disabled = false;
-    showToast('Failed to send email — check your EmailJS setup');
+    showToast(err.name === 'AbortError' ? 'Email timed out — check your connection and try again.' : 'Failed to send email. Check Supabase function logs.');
   });
 }
 

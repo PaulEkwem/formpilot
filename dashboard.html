@@ -11,8 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/dashboard.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
-    <script>emailjs.init('QK8T4uVIZyC-K8OsU');</script>
+
   </head>
   <body>
 
@@ -584,7 +583,6 @@
       </div>
     </div>
 
-    <script src="assets/js/dashboard.js"></script>
   <!-- ══════════ SEND MODAL ══════════ -->
   <div id="sendModalOverlay" style="display:none;" onclick="if(event.target===this)closeSendModal()">
     <div id="sendModal" class="send-modal">
@@ -650,13 +648,17 @@
             </div>
           </div>
           <div id="refCorpFields" style="display:none">
+            <div class="form-group" style="margin-bottom:.75rem">
+              <label for="mRefCompany">Company name</label>
+              <input type="text" id="mRefCompany" placeholder="e.g. Okorie & Sons Ltd" />
+            </div>
             <div class="form-row two-col">
               <div class="form-group">
-                <label for="mRefDirFirst">Customer first name</label>
+                <label for="mRefDirFirst">Director first name</label>
                 <input type="text" id="mRefDirFirst" placeholder="Kemi" />
               </div>
               <div class="form-group">
-                <label for="mRefDirLast">Customer last name</label>
+                <label for="mRefDirLast">Director last name</label>
                 <input type="text" id="mRefDirLast" placeholder="Adeyemi" />
               </div>
             </div>
@@ -676,9 +678,9 @@
       </div>
 
       <!-- Link result (shown after generation) -->
-      <div id="linkResult" style="display:none;">
+      <div id="linkResult" style="display:none; text-align:center;">
         <div class="link-result-icon">✅</div>
-        <h3 style="font-size:1rem;font-weight:700;margin-bottom:.35rem;">Link ready!</h3>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:.25rem;">Link ready!</h3>
         <p id="linkResultDesc" style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;"></p>
 
         <div class="access-code-box" id="accessCodeBox">
@@ -690,14 +692,31 @@
           <div class="access-code-hint">Customer needs this to unlock the form. Don't send it in the same message as the link.</div>
         </div>
 
-        <div class="link-box" style="margin-top:12px">
+        <div class="link-box" style="margin-top:12px; margin-bottom:1rem;">
           <span id="generatedLink"></span>
-          <button class="copy-btn" id="copyLinkBtn" onclick="copyGeneratedLink()">Copy</button>
+          <button class="copy-btn" id="copyLinkBtn" onclick="copyGeneratedLink()">Copy link</button>
         </div>
-        <div class="link-result-actions">
-          <button class="btn-outline btn-sm" id="whatsappBtn">Share on WhatsApp</button>
-          <button class="btn-ghost-sm" onclick="resetSendForm()">Send another</button>
+
+        <button id="whatsappBtn" style="display:block;width:100%;padding:.75rem;border-radius:10px;font-size:.95rem;font-weight:700;background:#25D366;color:#fff;border:none;cursor:pointer;margin-bottom:.5rem;">📱 Share on WhatsApp</button>
+
+        <!-- Email — collapses into input on click -->
+        <div id="emailShare" style="margin-bottom:.65rem;">
+          <button id="emailTriggerBtn" onclick="expandEmailShare()" style="display:block;width:100%;padding:.75rem;border-radius:10px;font-size:.95rem;font-weight:700;background:#fff;color:var(--primary);border:1.5px solid var(--primary);cursor:pointer;">✉️ Send via Email</button>
+          <div id="emailInputRow" style="display:none;margin-top:.4rem;">
+            <div style="display:flex;gap:.4rem;align-items:center;">
+              <input type="email" id="resultEmail" placeholder="Enter customer's email" autofocus
+                style="flex:1;padding:.7rem .75rem;border:1.5px solid var(--primary);border-radius:8px;font-size:.875rem;outline:none;transition:border-color .15s;"
+                onkeydown="if(event.key==='Enter')sendResultEmail()" />
+              <button onclick="sendResultEmail()" id="emailSendBtn"
+                style="padding:.7rem 1rem;border-radius:8px;font-size:.875rem;font-weight:700;background:var(--primary);color:#fff;border:none;cursor:pointer;white-space:nowrap;flex-shrink:0;min-width:64px;">Send</button>
+              <button onclick="collapseEmailShare()" title="Cancel"
+                style="padding:.7rem .6rem;border-radius:8px;font-size:.85rem;background:none;border:1.5px solid var(--border);color:var(--muted);cursor:pointer;">✕</button>
+            </div>
+          </div>
         </div>
+
+        <button class="btn-ghost-sm" style="display:block;margin:0 auto .75rem;" onclick="resetSendForm()">Send another</button>
+
         <div class="link-meta">
           <span id="linkExpiryLabel">🕐 Link expires in 7 days</span>
           <span>🔒 No data stored on our servers</span>
@@ -707,5 +726,6 @@
     </div>
   </div>
 
+    <script src="assets/js/dashboard.js"></script>
   </body>
 </html>
