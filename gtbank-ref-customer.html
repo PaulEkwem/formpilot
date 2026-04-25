@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
+<script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GTBank — Reference Form</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#E8470A;--orange-l:#FFF0EB;--orange-m:#FDDFD0;
+  --dark:#1A1208;--ink:#2D2416;--muted:#7A6E64;--line:#EAE5DF;
+  --bg:#FAFAF8;--success:#1A6B3A;--success-bg:#EBF7F0;--danger:#C0392B;
+}
+html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.gtb-header{background:var(--orange);color:#fff;padding:20px 24px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.gtb-logo{width:40px;height:40px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--orange);letter-spacing:-.5px;flex-shrink:0}
+.gtb-header-text h1{font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:400;line-height:1.3}
+.gtb-header-text p{font-size:.78rem;opacity:.85;margin-top:2px}
+
+/* ── PAGE WRAP ── */
+.page{max-width:640px;margin:0 auto;padding:28px 20px 60px}
+
+/* ── SECTION CARD ── */
+.section-card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+.section-card-head{padding:16px 20px 0;display:flex;align-items:center;gap:10px}
+.section-card-head .card-icon{font-size:1.4rem}
+.section-card-head h2{font-size:.95rem;font-weight:700;color:var(--dark)}
+.section-card-body{padding:14px 20px 18px}
+
+/* ── REQUIREMENTS LIST ── */
+.req-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.req-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.5;color:var(--ink)}
+.req-dot{width:20px;height:20px;border-radius:50%;background:var(--orange-l);border:1.5px solid var(--orange-m);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--orange);flex-shrink:0;margin-top:1px}
+
+/* ── WHAT TO EXPECT ── */
+.expect-steps{display:flex;flex-direction:column;gap:0}
+.expect-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.expect-step:last-child{border-bottom:none}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:.85rem;line-height:1.5;color:var(--ink)}
+.step-text strong{display:block;font-weight:600;color:var(--dark);margin-bottom:1px}
+
+/* ── PRIVACY ── */
+.privacy-card{background:var(--orange-l);border:1.5px solid var(--orange-m);border-radius:12px;padding:16px 18px;margin-bottom:20px}
+.privacy-card p{font-size:.8rem;color:var(--ink);line-height:1.6;margin-bottom:12px}
+.privacy-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.privacy-check input{margin-top:2px;width:16px;height:16px;accent-color:var(--orange);flex-shrink:0}
+.privacy-check span{font-size:.85rem;font-weight:500;color:var(--dark);line-height:1.45}
+
+/* ── OPEN FORM BTN ── */
+.open-btn{width:100%;padding:15px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s;margin-bottom:8px}
+.open-btn:disabled{opacity:.45;cursor:not-allowed}
+.open-btn:not(:disabled):hover{background:#C93D08}
+
+/* ── FORM STATE ── */
+.form-section-head{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:7px 0 5px;outline:none;transition:border-color .2s}
+.tally-input:focus{border-color:var(--orange)}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px}
+.field-wrap{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.field-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.confirm-note{font-size:.78rem;color:var(--muted);margin-top:4px;margin-bottom:16px;line-height:1.5}
+
+/* ── REFEREE SLOTS ── */
+.ref-slots{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.ref-slot{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.slot-head{padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.slot-head-left{display:flex;align-items:center;gap:8px}
+.slot-num{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.slot-title{font-size:.875rem;font-weight:700;color:var(--dark)}
+.slot-status{font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:999px}
+.slot-status.pending{background:#FEF3C7;color:#92400E}
+.slot-status.generated{background:#DBEAFE;color:#1E40AF}
+.slot-status.completed{background:var(--success-bg);color:var(--success)}
+.slot-body{padding:14px 16px}
+
+/* Generate input row */
+.slot-gen-row{display:flex;gap:8px;align-items:flex-end}
+.slot-gen-row .tally-input{flex:1}
+.gen-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s}
+.gen-btn:hover{background:#C93D08}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Generated state */
+.gen-result{display:none}
+.gen-result.show{display:block}
+.copy-row{display:flex;align-items:center;gap:8px;background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.copy-row-label{font-size:.72rem;font-weight:700;color:var(--orange);margin-bottom:6px}
+.copy-row-text{flex:1;font-size:.78rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-pill{background:var(--orange);color:#fff;border:none;border-radius:6px;padding:.35rem .8rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.copy-pill:hover{background:#C93D08}
+.expiry-note{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:5px}
+.sep-code-wrap{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.code-display{font-size:1.25rem;font-weight:900;letter-spacing:.18em;color:var(--orange);font-family:'Courier New',monospace}
+
+/* Slot used indicator */
+.slot-used{text-align:center;padding:14px;color:var(--success);font-weight:600;font-size:.875rem}
+
+/* Counter */
+.counter-bar{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin-bottom:16px}
+.counter-bar span{font-size:.85rem;color:var(--muted)}
+.counter-bar strong{font-size:.95rem;font-weight:800;color:var(--orange)}
+
+/* ── CAUTION ── */
+.caution{background:#FFF5F5;border:1px solid #FCA5A5;border-radius:10px;padding:12px 14px;font-size:.78rem;color:#991B1B;line-height:1.6;margin-top:16px}
+.caution strong{display:block;font-weight:700;margin-bottom:3px}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="gtb-header">
+  <div class="gtb-logo">GT</div>
+  <div class="gtb-header-text">
+    <h1 id="headerTitle">Reference Form</h1>
+    <p>Guaranty Trust Bank — Powered by FormPilot</p>
+  </div>
+</div>
+
+<!-- ══ LANDING STATE ══ -->
+<div id="stateLanding" class="page">
+
+  <!-- Who sent this -->
+  <div class="section-card" style="margin-bottom:16px">
+    <div style="padding:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">📨</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--dark);margin-bottom:6px;line-height:1.3" id="introTitle">A reference form has been shared with you</h2>
+      <p style="font-size:.875rem;color:var(--muted);line-height:1.6" id="introSub">for your account opening at Guaranty Trust Bank</p>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--orange-l);border-radius:10px;display:inline-block;text-align:left">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Sent by</div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--dark)" id="officerDisplay">Your account officer</div>
+        <div style="font-size:.8rem;color:var(--muted)" id="bankDisplay">Guaranty Trust Bank</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referencing requirements -->
+  <div class="section-card">
+    <div class="section-card-head">
+      <span class="card-icon">📋</span>
+      <h2>GTBank Referencing Requirements</h2>
+    </div>
+    <div class="section-card-body">
+      <ul class="req-list" id="reqList">
+        <!-- populated by JS based on refType -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- What to expect -->
+  <div class="section-card">
+    <div class="section-card-head">
+      <span class="card-icon">🗺️</span>
+      <h2>What to expect</h2>
+    </div>
+    <div class="section-card-body">
+      <div class="expect-steps">
+        <div class="expect-step">
+          <span class="step-num">1</span>
+          <div class="step-text"><strong>Confirm your details</strong>Verify your name as it should appear on the reference form.</div>
+        </div>
+        <div class="expect-step">
+          <span class="step-num">2</span>
+          <div class="step-text"><strong>Generate secure links</strong>Create up to 2 referee links — one for each person who will vouch for you.</div>
+        </div>
+        <div class="expect-step">
+          <span class="step-num">3</span>
+          <div class="step-text"><strong>Share with your referees</strong>Send each referee their unique link and access code. The link expires in 24 hours.</div>
+        </div>
+        <div class="expect-step">
+          <span class="step-num">4</span>
+          <div class="step-text"><strong>Referee fills and downloads</strong>Each referee completes the form on their device and downloads it. No data is stored on any server.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data privacy -->
+  <div class="privacy-card">
+    <p>🔒 <strong>Your privacy is protected.</strong> This form is processed entirely on your device. No personal information is stored on FormPilot's servers. Your referees' responses are downloaded directly to their devices.</p>
+    <label class="privacy-check">
+      <input type="checkbox" id="privacyCheck" onchange="updateOpenBtn()" />
+      <span>I understand and agree — my data is not stored, and I take responsibility for sharing referee links only with people I know well.</span>
+    </label>
+  </div>
+
+  <button class="open-btn" id="openFormBtn" onclick="openForm()" disabled>Open Form</button>
+  <p style="text-align:center;font-size:.75rem;color:var(--muted)">By opening this form you confirm you are the account applicant named above.</p>
+
+</div>
+
+<!-- ══ FORM STATE ══ -->
+<div id="stateForm" style="display:none" class="page">
+
+  <!-- Customer details -->
+  <div class="section-card" style="margin-bottom:16px">
+    <div class="section-card-head">
+      <span class="card-icon" id="formTypeIcon">👤</span>
+      <h2 id="formTypeTitle">Confirm your name</h2>
+    </div>
+    <div class="section-card-body">
+      <p class="confirm-note" id="formTypeNote">Please confirm your name as it should appear on the reference form.</p>
+
+      <!-- Individual -->
+      <div id="indFields">
+        <div class="input-row">
+          <div class="field-wrap">
+            <span class="field-label">First name</span>
+            <input type="text" class="tally-input" id="custFirst" placeholder="Ada" />
+          </div>
+          <div class="field-wrap">
+            <span class="field-label">Last name</span>
+            <input type="text" class="tally-input" id="custLast" placeholder="Okonkwo" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Corporate -->
+      <div id="corpFields" style="display:none">
+        <div class="field-wrap">
+          <span class="field-label">Company name</span>
+          <input type="text" class="tally-input" id="companyName" placeholder="Kemi & Sons Ltd" />
+        </div>
+        <div class="input-row">
+          <div class="field-wrap">
+            <span class="field-label">Director first name</span>
+            <input type="text" class="tally-input" id="dirFirst" placeholder="Kemi" />
+          </div>
+          <div class="field-wrap">
+            <span class="field-label">Director last name</span>
+            <input type="text" class="tally-input" id="dirLast" placeholder="Adeyemi" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referee link generator -->
+  <div class="section-card">
+    <div class="section-card-head">
+      <span class="card-icon">🔗</span>
+      <h2>Generate referee links</h2>
+    </div>
+    <div class="section-card-body">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.55">Generate a secure link for each of your referees. Each link expires in <strong>24 hours</strong> and can only be used <strong>once</strong>. Do not send the link and access code in the same message.</p>
+
+      <div class="counter-bar">
+        <span>Referee links generated</span>
+        <strong id="linkCounter">0 of 2</strong>
+      </div>
+
+      <div class="ref-slots">
+
+        <!-- Slot 1 -->
+        <div class="ref-slot" id="slot1">
+          <div class="slot-head">
+            <div class="slot-head-left">
+              <span class="slot-num">1</span>
+              <span class="slot-title">Referee 1</span>
+            </div>
+            <span class="slot-status pending" id="slot1-status">Not generated</span>
+          </div>
+          <div class="slot-body" id="slot1-body">
+            <div class="slot-gen-row">
+              <div style="flex:1">
+                <span class="field-label" style="display:block;margin-bottom:5px">Referee's full name</span>
+                <input type="text" class="tally-input" id="ref1Name" placeholder="e.g. Chidi Okonkwo" />
+              </div>
+              <button class="gen-btn" id="gen1Btn" onclick="generateRefLink(1)">Generate</button>
+            </div>
+          </div>
+          <div class="slot-body gen-result" id="slot1-result"></div>
+        </div>
+
+        <!-- Slot 2 -->
+        <div class="ref-slot" id="slot2">
+          <div class="slot-head">
+            <div class="slot-head-left">
+              <span class="slot-num">2</span>
+              <span class="slot-title">Referee 2</span>
+            </div>
+            <span class="slot-status pending" id="slot2-status">Not generated</span>
+          </div>
+          <div class="slot-body" id="slot2-body">
+            <div class="slot-gen-row">
+              <div style="flex:1">
+                <span class="field-label" style="display:block;margin-bottom:5px">Referee's full name</span>
+                <input type="text" class="tally-input" id="ref2Name" placeholder="e.g. Ngozi Eze" />
+              </div>
+              <button class="gen-btn" id="gen2Btn" onclick="generateRefLink(2)">Generate</button>
+            </div>
+          </div>
+          <div class="slot-body gen-result" id="slot2-result"></div>
+        </div>
+
+      </div>
+
+      <div class="caution" style="margin-top:16px">
+        <strong>⚠️ Important</strong>
+        "It is very dangerous to introduce a person who is not well-known to you." — GTBank<br>
+        Only send this form to someone who genuinely knows you and is eligible to serve as a referee.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Supabase ──────────────────────────────────────────────────
+const _supa = window.supabase.createClient(
+  'https://dlpbnucipzudsrsbvodp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
+);
+
+// ── Config ────────────────────────────────────────────────────
+const _cfg = (() => {
+  try { return JSON.parse(atob(new URLSearchParams(location.search).get('config') || '')); }
+  catch { return {}; }
+})();
+
+const OFFICER_NAME = _cfg.officer   || 'Your account officer';
+const BANK         = _cfg.bank      || 'Guaranty Trust Bank';
+const REF_TYPE     = _cfg.refType   || 'individual';
+const CUSTOMER     = _cfg.customer  || '';
+const DIR_NAME     = _cfg.directorName || '';
+const CODE_PREF    = _cfg.codePref  || 'together';
+const NOTE         = _cfg.note      || '';
+const BASE_URL     = window.location.href.replace(/gtbank-ref-customer\.html.*$/, '');
+
+let linksGenerated = 0;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Header
+  document.getElementById('officerDisplay').textContent = OFFICER_NAME;
+  document.getElementById('bankDisplay').textContent    = BANK;
+
+  if (REF_TYPE === 'individual') {
+    document.getElementById('introTitle').textContent = `${OFFICER_NAME} has shared a GTBank Reference Form link with you`;
+    document.getElementById('introSub').textContent   = `This is for your Individual account opening at Guaranty Trust Bank.`;
+  } else {
+    document.getElementById('introTitle').textContent = `${OFFICER_NAME} has shared a GTBank Reference Form link with you`;
+    document.getElementById('introSub').textContent   = `This is for your Company account opening at Guaranty Trust Bank.`;
+  }
+
+  // Referencing requirements
+  const reqs = REF_TYPE === 'individual' ? [
+    'Referees must be a current account holder in GTCO or any other bank.',
+    'Referee\'s account must not be less than six months old.',
+    'Salary account holders are not suitable referees.',
+    'Referees can confirm via Internet Banking or USSD *737*51*54#.',
+  ] : [
+    'Referees must be a current account holder in GTCO or any other bank.',
+    'Referees from other banks must be corporate account holders only.',
+    'Referee\'s account must not be less than six months old.',
+    'Salary account holders are not suitable referees.',
+  ];
+  document.getElementById('reqList').innerHTML = reqs.map((r, i) =>
+    `<li class="req-item"><span class="req-dot">${i + 1}</span><span>${r}</span></li>`
+  ).join('');
+
+  if (NOTE) {
+    const noteEl = document.createElement('p');
+    noteEl.style.cssText = 'font-size:.82rem;color:#92400E;background:#FEF3C7;border-radius:8px;padding:10px 12px;margin-top:12px;line-height:1.5';
+    noteEl.innerHTML = `📌 <strong>Note from your officer:</strong> ${NOTE}`;
+    document.getElementById('officerDisplay').closest('.section-card').querySelector('div').appendChild(noteEl);
+  }
+
+  // Pre-fill form fields from config
+  if (CUSTOMER) {
+    if (REF_TYPE === 'individual') {
+      const parts = CUSTOMER.split(' ');
+      document.getElementById('custFirst').value = parts[0] || '';
+      document.getElementById('custLast').value  = parts.slice(1).join(' ') || '';
+    } else {
+      document.getElementById('companyName').value = CUSTOMER;
+      if (DIR_NAME) {
+        const dp = DIR_NAME.split(' ');
+        document.getElementById('dirFirst').value = dp[0] || '';
+        document.getElementById('dirLast').value  = dp.slice(1).join(' ') || '';
+      }
+    }
+  }
+
+  // Restore generated links from localStorage
+  restoreState();
+});
+
+function updateOpenBtn() {
+  document.getElementById('openFormBtn').disabled = !document.getElementById('privacyCheck').checked;
+}
+
+function openForm() {
+  document.getElementById('stateLanding').style.display = 'none';
+  document.getElementById('stateForm').style.display    = '';
+  // Show correct field set
+  document.getElementById('indFields').style.display  = REF_TYPE === 'individual' ? '' : 'none';
+  document.getElementById('corpFields').style.display = REF_TYPE === 'corporate'  ? '' : 'none';
+  if (REF_TYPE === 'corporate') {
+    document.getElementById('formTypeIcon').textContent  = '🏢';
+    document.getElementById('formTypeTitle').textContent = 'Confirm your company details';
+    document.getElementById('formTypeNote').textContent  = 'Please confirm your company name and director as they should appear on the reference form.';
+  }
+  window.scrollTo(0, 0);
+}
+
+// ── Referee link generation ───────────────────────────────────
+async function generateRefLink(slot) {
+  const nameInput = document.getElementById(`ref${slot}Name`);
+  const refName   = nameInput.value.trim();
+  if (!refName) { nameInput.style.borderColor = 'var(--danger)'; nameInput.focus(); return; }
+  nameInput.style.borderColor = '';
+
+  // Validate customer details are filled
+  if (REF_TYPE === 'individual') {
+    const f = document.getElementById('custFirst').value.trim();
+    const l = document.getElementById('custLast').value.trim();
+    if (!f || !l) { alert('Please confirm your name first.'); return; }
+  } else {
+    const co = document.getElementById('companyName').value.trim();
+    const df = document.getElementById('dirFirst').value.trim();
+    const dl = document.getElementById('dirLast').value.trim();
+    if (!co || !df || !dl) { alert('Please confirm your company and director details first.'); return; }
+  }
+
+  const genBtn = document.getElementById(`gen${slot}Btn`);
+  genBtn.textContent = 'Generating…';
+  genBtn.disabled = true;
+
+  // Build referee config
+  const rnd = new Uint32Array(2); crypto.getRandomValues(rnd);
+  const refSessionId  = 'gtb_ref_' + rnd[0].toString(36) + rnd[1].toString(36);
+  const refAccessCode = String(100000 + (rnd[0] % 900000));
+  const expiresAt     = Date.now() + 24 * 60 * 60 * 1000;
+
+  const customer = REF_TYPE === 'individual'
+    ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
+    : document.getElementById('companyName').value.trim();
+  const directorName = REF_TYPE === 'corporate'
+    ? `${document.getElementById('dirFirst').value.trim()} ${document.getElementById('dirLast').value.trim()}`
+    : '';
+
+  const refConfig = { bank: BANK, formType: 'Reference Form — Referee', refType: REF_TYPE, customer, directorName, refereeName: refName, sessionId: refSessionId, expiresAt };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(refConfig))));
+  const refLink = `${BASE_URL}gtbank-reference.html?config=${encoded}`;
+
+  // Store in Supabase
+  const { error } = await _supa.from('form_access_codes').insert({
+    session_id: refSessionId, access_code: refAccessCode, expires_at: expiresAt
+  });
+  if (error) console.error('Supabase error:', error.message);
+
+  // Save to localStorage
+  const stateKey = `gtb_ref_state_${_cfg.sessionId || 'unknown'}`;
+  const state    = JSON.parse(localStorage.getItem(stateKey) || '{}');
+  state[`slot${slot}`] = { refName, refSessionId, refAccessCode, refLink, generatedAt: Date.now() };
+  localStorage.setItem(stateKey, JSON.stringify(state));
+
+  renderSlotResult(slot, refName, refLink, refAccessCode, expiresAt);
+  linksGenerated++;
+  document.getElementById('linkCounter').textContent = `${linksGenerated} of 2`;
+}
+
+function renderSlotResult(slot, refName, refLink, refAccessCode, expiresAt) {
+  const statusEl = document.getElementById(`slot${slot}-status`);
+  statusEl.textContent = 'Generated';
+  statusEl.className   = 'slot-status generated';
+
+  const bodyEl  = document.getElementById(`slot${slot}-body`);
+  bodyEl.style.display = 'none';
+
+  const resultEl = document.getElementById(`slot${slot}-result`);
+  const expiryStr = new Date(expiresAt).toLocaleString('en-NG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+
+  if (CODE_PREF === 'together') {
+    const copyMsg = buildCopyMessage(refName, refLink, refAccessCode, expiryStr, true);
+    resultEl.innerHTML = `
+      <div class="copy-row-label">📋 Ready to copy and send to ${refName}</div>
+      <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:.78rem;color:var(--ink);line-height:1.55">${escapeHtml(copyMsg)}</div>
+      <button class="gen-btn" style="width:100%;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}msg', this)">Copy message</button>
+      <textarea id="slot${slot}msg" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(copyMsg)}</textarea>
+      <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
+  } else {
+    const linkMsg = buildCopyMessage(refName, refLink, null, expiryStr, false);
+    resultEl.innerHTML = `
+      <div class="copy-row-label">📋 Share link and code separately with ${refName}</div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Message (no code)</div>
+        <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;white-space:pre-wrap;font-size:.78rem;line-height:1.55">${escapeHtml(linkMsg)}</div>
+        <button class="gen-btn" style="width:100%;margin-top:6px;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}link', this)">Copy link message</button>
+        <textarea id="slot${slot}link" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(linkMsg)}</textarea>
+      </div>
+      <div>
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Access code (send separately)</div>
+        <div class="sep-code-wrap">
+          <span class="code-display">${refAccessCode}</span>
+          <button class="gen-btn" onclick="navigator.clipboard.writeText('${refAccessCode}').then(()=>showCopied(this))">Copy code</button>
+        </div>
+      </div>
+      <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
+  }
+
+  resultEl.classList.add('show');
+}
+
+function buildCopyMessage(refName, link, code, expiryStr, includeCode) {
+  const customer = REF_TYPE === 'individual'
+    ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
+    : document.getElementById('companyName').value.trim();
+  let msg = `Hello ${refName},\n\n${customer} has requested you to complete a GTBank reference form as part of their account opening.\n\n`;
+  msg += `🔗 Link: ${link}\n`;
+  if (includeCode && code) msg += `🔑 Access Code: ${code}\n`;
+  msg += `⏱ Expires: ${expiryStr} (24 hours, one-time use only)\n\n`;
+  msg += `Steps:\n1. Open the link\n2. Enter the access code when prompted\n3. Fill your details honestly\n4. Download the completed form\n\n`;
+  msg += `⚠️ "It is very dangerous to introduce a person who is not well-known to you." — GTBank\n\n`;
+  msg += `Sent via FormPilot`;
+  return msg;
+}
+
+function copyText(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.value;
+  navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => {
+    el.style.position = 'static'; el.style.opacity = '1';
+    el.select(); document.execCommand('copy');
+    el.style.position = 'absolute'; el.style.opacity = '0';
+    showCopied(btn);
+  });
+}
+
+function showCopied(btn) {
+  const orig = btn.textContent;
+  btn.textContent = '✓ Copied!';
+  btn.style.background = 'var(--success)';
+  btn.style.border = 'none';
+  setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.border = ''; }, 2500);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function restoreState() {
+  const stateKey = `gtb_ref_state_${_cfg.sessionId || 'unknown'}`;
+  const state    = JSON.parse(localStorage.getItem(stateKey) || '{}');
+  let count = 0;
+  [1, 2].forEach(slot => {
+    const s = state[`slot${slot}`];
+    if (!s) return;
+    document.getElementById(`ref${slot}Name`).value = s.refName;
+    renderSlotResult(slot, s.refName, s.refLink, s.refAccessCode, s.expiresAt || (s.generatedAt + 86400000));
+    count++;
+  });
+  linksGenerated = count;
+  document.getElementById('linkCounter').textContent = `${linksGenerated} of 2`;
+}
+</script>
+</body>
+</html>

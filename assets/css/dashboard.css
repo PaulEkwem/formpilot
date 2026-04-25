@@ -558,6 +558,27 @@ textarea { resize: vertical; }
 }
 
 .btn-block { display: block; width: 100%; }
+
+.ref-type-row { display: flex; gap: .6rem; }
+.ref-type-opt {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .6rem .85rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: border-color .15s, background .15s;
+}
+.ref-type-opt:has(input:checked) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+.ref-type-opt input { display: none; }
 .send-step-title {
   display: flex;
   align-items: center;

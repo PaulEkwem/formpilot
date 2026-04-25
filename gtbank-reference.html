@@ -4,550 +4,547 @@
 <meta charset="UTF-8">
 <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
 <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GTBank — Reference Form</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --orange:#E8470A;--orange-l:#FFF0EB;--dark:#1A1208;--ink:#2D2416;
-  --muted:#7A6E64;--line:#EAE5DF;--bg:#FFFFFF;--success:#1A6B3A;
-  --success-bg:#EBF7F0;--danger:#C0392B;
+  --orange:#E8470A;--orange-l:#FFF0EB;--orange-m:#FDDFD0;
+  --dark:#1A1208;--ink:#2D2416;--muted:#7A6E64;--line:#EAE5DF;
+  --bg:#FAFAF8;--success:#1A6B3A;--success-bg:#EBF7F0;--danger:#C0392B;
 }
-html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink)}
+html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 
-/* PROGRESS */
-#prog-track{position:fixed;top:0;left:0;width:100%;height:3px;background:var(--line);z-index:200}
-#prog-fill{height:100%;background:var(--orange);transition:width .4s ease;width:0%}
+/* HEADER */
+.gtb-header{background:var(--orange);color:#fff;padding:18px 24px;display:flex;align-items:center;gap:14px}
+.gtb-logo{width:38px;height:38px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:var(--orange);flex-shrink:0}
+.gtb-header h1{font-family:'DM Serif Display',serif;font-size:1rem;font-weight:400;line-height:1.3}
+.gtb-header p{font-size:.75rem;opacity:.85;margin-top:1px}
 
-/* CTX BANNER */
-#ctx-banner{position:fixed;top:3px;left:0;right:0;background:#FFF8F5;border-bottom:1px solid #FDDFD0;padding:9px 24px;font-size:13px;color:var(--ink);display:none;align-items:center;gap:10px;z-index:185}
-#ctx-banner strong{color:var(--orange)}
+/* PAGE */
+.page{max-width:620px;margin:0 auto;padding:28px 20px 64px}
 
-/* BACK + COUNTER */
-#back-btn{position:fixed;top:14px;left:16px;z-index:200;background:none;border:none;cursor:pointer;color:var(--muted);display:none;align-items:center;gap:5px;font-size:13px;font-family:'DM Sans',sans-serif;padding:5px 10px;border-radius:8px;transition:all .2s}
-#back-btn:hover{background:var(--line);color:var(--ink)}
-#counter{position:fixed;top:14px;right:16px;z-index:200;font-size:12px;color:var(--muted);display:none;font-weight:500}
+/* CARDS */
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.card-body{padding:18px 20px}
+.card-section-head{display:flex;align-items:center;gap:10px;padding:16px 20px 0}
+.card-icon{font-size:1.3rem}
+.card-title{font-size:.95rem;font-weight:700;color:var(--dark)}
 
-/* SLIDES */
-#slides{position:fixed;inset:0;overflow:hidden}
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:64px max(28px,6vw) 80px;transition:transform .42s cubic-bezier(.4,0,.2,1),opacity .42s;overflow-y:auto}
-.slide.pos-active{transform:translateY(0);opacity:1;pointer-events:all}
-.slide.pos-above{transform:translateY(-100%);opacity:0;pointer-events:none}
-.slide.pos-below{transform:translateY(100%);opacity:0;pointer-events:none}
-.slide-inner{max-width:600px;width:100%;margin:auto 0}
+/* SUMMARY ROW */
+.summary-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.summary-row:last-child{border-bottom:none}
+.summary-key{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:110px;flex-shrink:0}
+.summary-val{font-size:.875rem;color:var(--ink);font-weight:500}
 
-/* TYPOGRAPHY */
-.slide-emoji{font-size:44px;margin-bottom:20px;line-height:1;display:block}
-.slide-q{font-family:'DM Serif Display',serif;font-size:clamp(22px,3.8vw,34px);color:var(--dark);line-height:1.25;margin-bottom:8px;letter-spacing:-.3px}
-.slide-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+/* INFO LIST */
+.info-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.info-item{display:flex;align-items:flex-start;gap:10px;font-size:.84rem;line-height:1.5;color:var(--ink)}
+.info-dot{width:20px;height:20px;border-radius:50%;background:var(--orange-l);border:1.5px solid var(--orange-m);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--orange);flex-shrink:0;margin-top:1px}
 
-/* CHOICES (type picker) */
-.choices{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
-.choice-btn{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;border:1.5px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;transition:all .18s;width:100%}
-.choice-btn:hover,.choice-btn.selected{border-color:var(--orange);background:var(--orange-l)}
-.choice-icon{font-size:1.6rem;flex-shrink:0;margin-top:1px}
-.choice-label{font-size:.95rem;font-weight:600;color:var(--ink);display:block;margin-bottom:2px}
-.choice-sub{font-size:.8rem;color:var(--muted)}
+/* CAUTION */
+.caution{background:#FFF5F5;border:1.5px solid #FCA5A5;border-radius:10px;padding:12px 16px;font-size:.8rem;color:#991B1B;line-height:1.6;margin-top:14px}
+.caution strong{display:block;font-weight:700;margin-bottom:2px}
 
-/* INPUTS */
-.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:8px 0 6px;outline:none;transition:border-color .2s;margin-bottom:4px}
+/* CODE GATE */
+.code-gate{text-align:center;padding:8px 0 4px}
+.code-label{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px}
+.code-input{width:200px;text-align:center;font-size:1.6rem;font-weight:900;letter-spacing:.25em;border:none;border-bottom:3px solid var(--line);background:transparent;outline:none;padding:6px 0;font-family:'DM Sans',sans-serif;color:var(--ink);transition:border-color .2s;font-family:'Courier New',monospace}
+.code-input:focus{border-color:var(--orange)}
+.code-input.err{border-color:var(--danger)}
+.code-err{font-size:.8rem;color:var(--danger);margin-top:8px;display:none;font-weight:500}
+.code-err.show{display:block}
+.code-hint{font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* BUTTONS */
+.primary-btn{width:100%;padding:14px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px}
+.primary-btn:hover{background:#C93D08}
+.primary-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* FORM FIELDS */
+.field-group{display:flex;flex-direction:column;gap:20px;margin-bottom:4px}
+.field-wrap{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:7px 0 5px;outline:none;transition:border-color .2s}
 .tally-input:focus{border-color:var(--orange)}
-.tally-input.err-i{border-color:var(--danger)}
-.tally-textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;background:#FAFAF8;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:12px 14px;outline:none;resize:vertical;min-height:110px;transition:border-color .2s;margin-bottom:4px}
+.tally-input.readonly-val{color:var(--dark);font-weight:600;pointer-events:none;border-bottom-style:dashed}
+.tally-textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;background:#FAFAF8;font-size:.9rem;font-family:'DM Sans',sans-serif;color:var(--ink);padding:11px 13px;outline:none;resize:vertical;min-height:100px;transition:border-color .2s}
 .tally-textarea:focus{border-color:var(--orange)}
-.tally-textarea.err-i{border-color:var(--danger)}
-.input-hint{font-size:12px;color:var(--muted);margin-bottom:20px}
-.err-msg{font-size:12px;color:var(--danger);margin-top:2px;margin-bottom:8px;display:none}
-.err-msg.show{display:block}
-.group-fields{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
-.group-field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field-err{font-size:.75rem;color:var(--danger);margin-top:3px;display:none}
+.field-err.show{display:block}
 
-/* Read-only display */
-.readonly-val{font-size:1.05rem;font-weight:600;color:var(--dark);padding:8px 0 10px;border-bottom:2px solid var(--line);margin-bottom:20px}
-.readonly-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+/* EXPIRY BANNER */
+.expiry-banner{background:#FEF3C7;border:1px solid #FCD34D;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#78350F;display:flex;align-items:center;gap:8px;margin-bottom:14px}
 
-/* NEXT BTN */
-.next-btn{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:13px 28px;border-radius:12px;cursor:pointer;transition:background .2s;margin-top:4px}
-.next-btn:hover{background:#C93D08}
-.next-btn:disabled{opacity:.5;cursor:not-allowed}
+/* DONE STATE */
+.done-card{text-align:center;padding:32px 20px}
+.done-icon{font-size:3rem;margin-bottom:12px}
+.done-title{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--dark);margin-bottom:8px}
+.done-sub{font-size:.875rem;color:var(--muted);line-height:1.6;max-width:380px;margin:0 auto}
 
-/* REVIEW CARD */
-.review-card{background:var(--orange-l);border:1.5px solid #FDDFD0;border-radius:14px;padding:20px 22px;margin-bottom:20px}
-.review-row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(232,71,10,.12)}
-.review-row:last-child{border-bottom:none}
-.review-key{font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;min-width:130px;padding-top:1px}
-.review-val{font-size:.875rem;color:var(--ink);line-height:1.5}
-
-/* PDF COMING SOON */
-.pdf-placeholder{text-align:center;padding:24px;background:#F8F9FA;border:2px dashed var(--line);border-radius:14px;margin-bottom:20px}
-.pdf-placeholder .pdf-icon{font-size:2.5rem;margin-bottom:.75rem}
-.pdf-placeholder p{font-size:.875rem;color:var(--muted);margin-bottom:.5rem}
-.pdf-badge{display:inline-block;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--orange-l);color:var(--orange);padding:.25rem .65rem;border-radius:999px;margin-bottom:1rem}
-
-/* CAUTION BOX */
-.caution-box{background:#FFF5F5;border:1.5px solid #FCA5A5;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.8rem;color:#991B1B;line-height:1.55}
-.caution-box strong{display:block;margin-bottom:3px}
-
-/* NOTES BOX */
-.notes-box{background:#F0F9FF;border:1.5px solid #BAE6FD;border-radius:10px;padding:14px 16px;margin-bottom:24px}
-.notes-box p{font-size:.82rem;color:#0C4A6E;line-height:1.6}
-.notes-box strong{display:block;font-size:.8rem;font-weight:700;color:#0369A1;margin-bottom:6px}
-.notes-list{padding-left:16px;margin-top:4px}
-.notes-list li{font-size:.8rem;color:#0C4A6E;line-height:1.6}
+/* PRINT ONLY */
+@media screen{#printView{display:none}}
+@media print{
+  body>*:not(#printView){display:none!important}
+  #printView{display:block!important;font-family:Arial,sans-serif;padding:30px;font-size:11pt;color:#000;line-height:1.5}
+  .print-header{text-align:center;margin-bottom:24px;border-bottom:2px solid #E8470A;padding-bottom:16px}
+  .print-logo{font-size:22pt;font-weight:900;color:#E8470A}
+  .print-title{font-size:14pt;font-weight:bold;margin-top:8px}
+  .print-field{margin-bottom:14px}
+  .print-label{font-size:9pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:3px}
+  .print-value{border-bottom:1px solid #ccc;padding-bottom:4px;min-height:22px;font-size:11pt}
+  .print-multi{border-bottom:1px solid #ccc;padding-bottom:4px;min-height:55px;font-size:11pt;white-space:pre-wrap}
+  .print-section{font-weight:bold;font-size:11pt;margin:18px 0 10px;color:#E8470A;border-bottom:1px solid #E8470A;padding-bottom:4px}
+  .print-footer{margin-top:30px;font-size:8pt;color:#666;text-align:center;border-top:1px solid #ccc;padding-top:12px}
+  .print-caution{font-weight:bold;color:#991B1B;text-transform:uppercase;margin-top:8px}
+}
 </style>
 </head>
 <body>
 
-<div id="prog-track"><div id="prog-fill"></div></div>
-
-<div id="ctx-banner">
-  📝 Reference form sent by <strong id="ctx-officer"></strong> &mdash; GTBank
+<!-- Print view (screen hidden, visible on print) -->
+<div id="printView">
+  <div class="print-header">
+    <div class="print-logo">GTCO</div>
+    <div style="font-size:9pt;color:#666">Guaranty Trust Bank Ltd — RC 152321</div>
+    <div class="print-title" id="pTitle">BANKER'S REFERENCE FORM</div>
+  </div>
+  <p style="margin-bottom:16px">To: The Manager, Guaranty Trust Bank Ltd.<br>Dear Sir,</p>
+  <div class="print-field"><div class="print-label" id="pOpenerLabel">Name of individual opening account</div><div class="print-value" id="pOpener"></div></div>
+  <div class="print-field" id="pYearsWrap"><div class="print-label">Known for (years)</div><div class="print-value" id="pYears"></div></div>
+  <div class="print-field" id="pDirectorWrap"><div class="print-label">Name of Director known to referee</div><div class="print-value" id="pDirector"></div></div>
+  <div class="print-section">Suitability Comments</div>
+  <div class="print-field"><div class="print-label">I/We would like to comment about their suitability as follows:</div><div class="print-multi" id="pComments"></div></div>
+  <div class="print-section">Referee's Banking Details</div>
+  <div class="print-field"><div class="print-label">Name of Bank</div><div class="print-value" id="pRefBank"></div></div>
+  <div class="print-field"><div class="print-label">Bank Address</div><div class="print-value" id="pRefBankAddr"></div></div>
+  <div class="print-field"><div class="print-label">Account Number</div><div class="print-value" id="pRefAcct"></div></div>
+  <div class="print-field"><div class="print-label">Phone Number(s)</div><div class="print-value" id="pRefPhone"></div></div>
+  <div class="print-section">Referee Details</div>
+  <p style="margin-bottom:12px">Yours faithfully,</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div class="print-field"><div class="print-label">Signature</div><div class="print-value" style="min-height:40px"></div></div>
+    <div class="print-field"><div class="print-label">Date</div><div class="print-value" id="pDate"></div></div>
+  </div>
+  <div class="print-field"><div class="print-label">Name of Referee</div><div class="print-value" id="pRefName"></div></div>
+  <div class="print-field"><div class="print-label">Address of Referee</div><div class="print-value" id="pRefAddr"></div></div>
+  <div class="print-footer">
+    <div class="print-caution">"CAUTION — IT IS VERY DANGEROUS TO INTRODUCE A PERSON WHO IS NOT WELL-KNOWN TO YOU"</div>
+    <div style="margin-top:6px">Completed via FormPilot · formpilot-five.vercel.app · For verification: +234 803 900 4700</div>
+  </div>
 </div>
 
-<button id="back-btn">← Back</button>
-<span id="counter"></span>
+<!-- GTBank header -->
+<div class="gtb-header">
+  <div class="gtb-logo">GT</div>
+  <div>
+    <h1>GTBank Reference Form</h1>
+    <p>Guaranty Trust Bank — Powered by FormPilot</p>
+  </div>
+</div>
 
-<div id="slides">
+<!-- ══ LANDING STATE ══ -->
+<div id="stateLanding" class="page">
 
-  <!-- ══ SLIDE 0: Welcome + Type Picker ══ -->
-  <div class="slide pos-active" id="s0">
-    <div class="slide-inner">
-      <span class="slide-emoji">📝</span>
-      <h1 class="slide-q">You've been asked to fill a Reference Form</h1>
-      <p class="slide-sub" id="s0-sub">for a GTBank account opening.</p>
-
-      <div class="notes-box" style="margin-bottom:24px">
-        <strong>Before you begin, please note:</strong>
-        <ul class="notes-list">
-          <li>You must be a current account holder (GTCO or any other bank)</li>
-          <li>Your account must not be less than 6 months old</li>
-          <li>Salary account holders cannot serve as referees</li>
-        </ul>
+  <!-- Who shared it -->
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding-top:24px">
+      <div style="font-size:2rem;margin-bottom:10px">📨</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--dark);margin-bottom:6px;line-height:1.35" id="landingTitle">A GTBank reference form has been shared with you</h2>
+      <p style="font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:16px" id="landingSub"></p>
+      <div style="background:var(--orange-l);border-radius:10px;padding:12px 16px;display:inline-block;text-align:left;min-width:220px">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px">Account applicant</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--dark)" id="customerDisplay">—</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:3px">Guaranty Trust Bank</div>
       </div>
-
-      <p style="font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em">Which form applies to you?</p>
-      <div class="choices">
-        <button class="choice-btn" id="choiceIndividual" onclick="pickType('individual')">
-          <span class="choice-icon">👤</span>
-          <div>
-            <span class="choice-label">Individual</span>
-            <span class="choice-sub">The account opener is a person</span>
-          </div>
-        </button>
-        <button class="choice-btn" id="choiceCorporate" onclick="pickType('corporate')">
-          <span class="choice-icon">🏢</span>
-          <div>
-            <span class="choice-label">Corporate / Company</span>
-            <span class="choice-sub">The account opener is a business or company</span>
-          </div>
-        </button>
-      </div>
-
-      <div class="err-msg" id="err-s0">Please select a form type to continue.</div>
-      <button class="next-btn" onclick="goNext(0)">Continue →</button>
     </div>
   </div>
 
-  <!-- ══ SLIDE 1: About the account opener ══ -->
-  <div class="slide pos-below" id="s1">
-    <div class="slide-inner">
-      <span class="slide-emoji" id="s1-emoji">👤</span>
-      <h1 class="slide-q" id="s1-q">Tell us about the account opener</h1>
-      <p class="slide-sub" id="s1-sub">We'll use this to pre-fill the form heading.</p>
-
-      <!-- Individual fields -->
-      <div id="s1-individual">
-        <div class="group-fields">
-          <div class="group-field">
-            <label>Name of individual opening the account</label>
-            <div class="readonly-val" id="openerNameDisplay">—</div>
-          </div>
-          <div class="group-field">
-            <label>How long have you known this person? (years)</label>
-            <input type="number" class="tally-input" id="yearsKnown" placeholder="e.g. 5" min="0" max="99" />
-            <div class="err-msg" id="err-years">Please enter how long you've known them.</div>
-          </div>
-        </div>
+  <!-- What you're asked to do -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">📋</span><span class="card-title">What you are being asked to do</span></div>
+    <div class="card-body">
+      <p style="font-size:.85rem;color:var(--ink);line-height:1.6;margin-bottom:14px" id="whatToDo"></p>
+      <ul class="info-list">
+        <li class="info-item"><span class="info-dot">1</span><span>Enter the access code shared with you to unlock the form</span></li>
+        <li class="info-item"><span class="info-dot">2</span><span>Fill in your banking details and comments honestly</span></li>
+        <li class="info-item"><span class="info-dot">3</span><span>Download the completed form to your device</span></li>
+        <li class="info-item"><span class="info-dot">4</span><span>Return the downloaded form to the account applicant</span></li>
+      </ul>
+      <div class="caution">
+        <strong>⚠️ GTBank Caution</strong>
+        "It is very dangerous to introduce a person who is not well-known to you."<br>
+        Only proceed if you genuinely know this person and are eligible to serve as a referee.
       </div>
-
-      <!-- Corporate fields -->
-      <div id="s1-corporate" style="display:none">
-        <div class="group-fields">
-          <div class="group-field">
-            <label>Name of company opening the account</label>
-            <div class="readonly-val" id="companyNameDisplay">—</div>
-          </div>
-          <div class="group-field">
-            <label>Name of Director known to you</label>
-            <input type="text" class="tally-input" id="directorKnown" placeholder="Full name of director" />
-            <div class="err-msg" id="err-director">Please enter the director's name.</div>
-          </div>
-        </div>
-      </div>
-
-      <button class="next-btn" onclick="goNext(1)">Continue →</button>
     </div>
   </div>
 
-  <!-- ══ SLIDE 2: Suitability comments ══ -->
-  <div class="slide pos-below" id="s2">
-    <div class="slide-inner">
-      <span class="slide-emoji">💬</span>
-      <h1 class="slide-q">Your comments on their suitability</h1>
-      <p class="slide-sub">Share your honest assessment of their suitability for maintaining a current account.</p>
-
-      <textarea class="tally-textarea" id="suitabilityComments" placeholder="e.g. I have known this individual for 7 years and consider them to be a person of good character and financial integrity…"></textarea>
-      <div class="err-msg" id="err-comments">Please provide your comments before continuing.</div>
-
-      <div class="caution-box" style="margin-top:16px">
-        <strong>⚠️ Caution</strong>
-        It is very dangerous to introduce a person who is not well-known to you.
-      </div>
-
-      <button class="next-btn" onclick="goNext(2)">Continue →</button>
+  <!-- Eligibility -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">✅</span><span class="card-title">Referee eligibility</span></div>
+    <div class="card-body">
+      <ul class="info-list" id="eligibilityList"></ul>
     </div>
   </div>
 
-  <!-- ══ SLIDE 3: Your bank details ══ -->
-  <div class="slide pos-below" id="s3">
-    <div class="slide-inner">
-      <span class="slide-emoji">🏦</span>
-      <h1 class="slide-q">Your banking details</h1>
-      <p class="slide-sub">You must maintain a current account at a bank to serve as referee.</p>
+  <!-- Expiry warning -->
+  <div class="expiry-banner">⏱ <span>This link expires in <strong>24 hours</strong> and can only be used <strong>once</strong>.</span></div>
 
-      <div class="group-fields">
-        <div class="group-field">
-          <label>Name of your bank</label>
-          <input type="text" class="tally-input" id="refBankName" placeholder="e.g. Access Bank" />
-          <div class="err-msg" id="err-refBank">Please enter your bank name.</div>
-        </div>
-        <div class="group-field">
-          <label>Bank branch address</label>
-          <input type="text" class="tally-input" id="refBankAddress" placeholder="e.g. 45 Marina St, Lagos Island" />
-          <div class="err-msg" id="err-refAddr">Please enter your bank address.</div>
-        </div>
-        <div class="group-field">
-          <label>Your account number</label>
-          <input type="text" class="tally-input" id="refAcctNo" placeholder="10-digit account number" inputmode="numeric" maxlength="20" />
-          <div class="err-msg" id="err-refAcct">Please enter your account number.</div>
-        </div>
-        <div class="group-field">
-          <label>Your phone number(s)</label>
-          <input type="tel" class="tally-input" id="refPhone" placeholder="e.g. 08012345678" />
-          <div class="err-msg" id="err-refPhone">Please enter your phone number.</div>
-        </div>
+  <!-- Access code gate -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">🔑</span><span class="card-title">Enter your access code</span></div>
+    <div class="card-body">
+      <div class="code-gate">
+        <div class="code-label">6-digit access code</div>
+        <input type="text" class="code-input" id="codeInput" inputmode="numeric" maxlength="6" placeholder="——————" autocomplete="one-time-code" />
+        <div class="code-err" id="codeErr">Invalid or expired access code. Please check and try again.</div>
+        <p class="code-hint">The code was shared with you separately from this link.</p>
       </div>
-
-      <button class="next-btn" onclick="goNext(3)">Continue →</button>
+      <button class="primary-btn" id="openFormBtn" onclick="submitCode()" style="margin-top:16px">Open Form</button>
     </div>
   </div>
 
-  <!-- ══ SLIDE 4: Your personal details ══ -->
-  <div class="slide pos-below" id="s4">
-    <div class="slide-inner">
-      <span class="slide-emoji">🪪</span>
-      <h1 class="slide-q">Your details as referee</h1>
-      <p class="slide-sub">This will appear on the completed reference form.</p>
+</div>
 
-      <div class="group-fields">
-        <div class="group-field">
-          <label>Your full name</label>
+<!-- ══ FORM STATE ══ -->
+<div id="stateForm" style="display:none" class="page">
+
+  <!-- Account opener (read-only) -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon" id="formTypeIcon">👤</span><span class="card-title" id="formTypeTitle">Account applicant</span></div>
+    <div class="card-body">
+      <div id="indOpener">
+        <div class="summary-row"><span class="summary-key">Full name</span><span class="summary-val" id="openerNameDisplay">—</span></div>
+        <div class="summary-row"><span class="summary-key">Bank</span><span class="summary-val">Guaranty Trust Bank</span></div>
+      </div>
+      <div id="corpOpener" style="display:none">
+        <div class="summary-row"><span class="summary-key">Company</span><span class="summary-val" id="companyDisplay">—</span></div>
+        <div class="summary-row"><span class="summary-key">Director</span><span class="summary-val" id="directorDisplay">—</span></div>
+        <div class="summary-row"><span class="summary-key">Bank</span><span class="summary-val">Guaranty Trust Bank</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About your relationship -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">🤝</span><span class="card-title" id="relationshipTitle">Your relationship</span></div>
+    <div class="card-body">
+      <div class="field-group">
+        <div class="field-wrap" id="yearsWrap">
+          <span class="field-label">How long have you known this person? (years)</span>
+          <input type="number" class="tally-input" id="yearsKnown" placeholder="e.g. 5" min="0" max="99" />
+          <span class="field-err" id="errYears">Please enter how long you have known them.</span>
+        </div>
+        <div class="field-wrap" id="directorWrap" style="display:none">
+          <span class="field-label">Name of Director you know personally</span>
+          <input type="text" class="tally-input" id="directorKnown" placeholder="Full name" />
+          <span class="field-err" id="errDirector">Please enter the director's name.</span>
+        </div>
+        <div class="field-wrap">
+          <span class="field-label">Your comments on their suitability for maintaining a current account</span>
+          <textarea class="tally-textarea" id="comments" placeholder="e.g. I have known this individual for 7 years. They are a person of good character and financial integrity and I consider them suitable for maintaining a current account…"></textarea>
+          <span class="field-err" id="errComments">Please provide your comments.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Your banking details -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">🏦</span><span class="card-title">Your banking details</span></div>
+    <div class="card-body">
+      <div class="field-group">
+        <div class="field-wrap">
+          <span class="field-label">Name of your bank</span>
+          <input type="text" class="tally-input" id="refBank" placeholder="e.g. Access Bank" />
+          <span class="field-err" id="errRefBank">Please enter your bank name.</span>
+        </div>
+        <div class="field-wrap">
+          <span class="field-label">Bank branch address</span>
+          <input type="text" class="tally-input" id="refBankAddr" placeholder="e.g. 45 Marina Street, Lagos Island" />
+          <span class="field-err" id="errRefBankAddr">Please enter your bank address.</span>
+        </div>
+        <div class="input-row">
+          <div class="field-wrap">
+            <span class="field-label">Account number</span>
+            <input type="text" class="tally-input" id="refAcct" inputmode="numeric" maxlength="20" placeholder="10-digit number" />
+            <span class="field-err" id="errRefAcct">Please enter your account number.</span>
+          </div>
+          <div class="field-wrap">
+            <span class="field-label">Phone number(s)</span>
+            <input type="tel" class="tally-input" id="refPhone" placeholder="08012345678" />
+            <span class="field-err" id="errRefPhone">Please enter your phone number.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Your details -->
+  <div class="card">
+    <div class="card-section-head"><span class="card-icon">🪪</span><span class="card-title">Your details as referee</span></div>
+    <div class="card-body">
+      <div class="field-group">
+        <div class="field-wrap">
+          <span class="field-label">Your full name</span>
           <input type="text" class="tally-input" id="refName" placeholder="e.g. Chidi Okonkwo" />
-          <div class="err-msg" id="err-refName">Please enter your full name.</div>
+          <span class="field-err" id="errRefName">Please enter your full name.</span>
         </div>
-        <div class="group-field">
-          <label>Your address</label>
-          <input type="text" class="tally-input" id="refAddress" placeholder="e.g. 12 Adeola Odeku Street, V.I., Lagos" />
-          <div class="err-msg" id="err-refAddress">Please enter your address.</div>
+        <div class="field-wrap">
+          <span class="field-label">Your address</span>
+          <input type="text" class="tally-input" id="refAddr" placeholder="e.g. 12 Adeola Odeku Street, V.I., Lagos" />
+          <span class="field-err" id="errRefAddr">Please enter your address.</span>
         </div>
-        <div class="group-field">
-          <label>Date signed</label>
+        <div class="field-wrap">
+          <span class="field-label">Date</span>
           <input type="date" class="tally-input" id="refDate" />
-          <div class="err-msg" id="err-refDate">Please enter the date.</div>
+          <span class="field-err" id="errRefDate">Please enter the date.</span>
         </div>
       </div>
-
-      <button class="next-btn" onclick="goNext(4)">Review →</button>
     </div>
   </div>
 
-  <!-- ══ SLIDE 5: Review + Download ══ -->
-  <div class="slide pos-below" id="s5">
-    <div class="slide-inner">
-      <span class="slide-emoji">✅</span>
-      <h1 class="slide-q">Review your reference</h1>
-      <p class="slide-sub">Check everything below before downloading your completed form.</p>
+  <button class="primary-btn" onclick="downloadForm()">Download Completed Form</button>
+  <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:8px">Your device will open a print dialog. Select "Save as PDF" to download.</p>
 
-      <div class="review-card" id="reviewCard">
-        <!-- populated by JS -->
+</div>
+
+<!-- ══ DONE STATE ══ -->
+<div id="stateDone" style="display:none" class="page">
+  <div class="card">
+    <div class="done-card">
+      <div class="done-icon">✅</div>
+      <h2 class="done-title">Reference form completed</h2>
+      <p class="done-sub">Thank you. Your completed form has been downloaded. Please send it to <strong id="doneCustomer">the account applicant</strong> or their bank officer.</p>
+      <div style="margin-top:20px;padding:14px 16px;background:var(--orange-l);border-radius:10px;font-size:.8rem;color:var(--ink);line-height:1.6">
+        <strong style="display:block;margin-bottom:4px">GTBank Verification</strong>
+        Where references are not confirmed via self-service platforms, the Bank's representative will contact you directly.<br>
+        Official lines: +234 803 900 4700 · +234 201 908 0000 · USSD: *737*51*54#
       </div>
-
-      <div class="pdf-placeholder">
-        <div class="pdf-icon">📄</div>
-        <span class="pdf-badge">Coming soon</span>
-        <p>PDF generation for the Reference Form is being set up.</p>
-        <p style="font-size:.78rem;color:var(--muted)">Print this page or hand-complete the physical form for now.</p>
-      </div>
-
-      <div class="notes-box">
-        <strong>GTBank verification</strong>
-        <p>Where references are not confirmed via self-service platforms (Internet Banking, USSD *737*51*54#), the Bank's representative will contact you directly for verification.</p>
-        <p style="margin-top:6px">Official call lines: +234 803 900 4700, +234 201 908 0000</p>
-      </div>
-
-      <button class="next-btn" onclick="startOver()" style="background:var(--line);color:var(--ink);">Fill another form</button>
+      <p style="font-size:.75rem;color:var(--muted);margin-top:16px">This link has been marked as used and is no longer active.</p>
     </div>
   </div>
+</div>
 
-</div><!-- /slides -->
+<!-- ══ EXPIRED STATE ══ -->
+<div id="stateExpired" style="display:none" class="page">
+  <div class="card">
+    <div class="done-card">
+      <div class="done-icon">⛔</div>
+      <h2 class="done-title">This link is no longer active</h2>
+      <p class="done-sub" id="expiredMsg">This reference form link has expired or has already been used. Please ask the account applicant to generate a new link.</p>
+    </div>
+  </div>
+</div>
 
 <script>
-// ── Config from URL ───────────────────────────────────────────
+// ── Supabase ──────────────────────────────────────────────────
+const _supa = window.supabase.createClient(
+  'https://dlpbnucipzudsrsbvodp.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
+);
+
+// ── Config ────────────────────────────────────────────────────
 const _cfg = (() => {
-  try {
-    const p = new URLSearchParams(location.search).get('config');
-    return p ? JSON.parse(atob(p)) : {};
-  } catch { return {}; }
+  try { return JSON.parse(atob(new URLSearchParams(location.search).get('config') || '')); }
+  catch { return {}; }
 })();
 
-const CUSTOMER_NAME = _cfg.customer || '';
-const OFFICER_NAME  = _cfg.officer  || '';
-
-// ── State ─────────────────────────────────────────────────────
-const TOTAL_SLIDES = 6;
-let current = 0;
-let formType = ''; // 'individual' | 'corporate'
-
-const FD = {
-  type: '',
-  yearsKnown: '',
-  directorKnown: '',
-  comments: '',
-  refBankName: '',
-  refBankAddress: '',
-  refAcctNo: '',
-  refPhone: '',
-  refName: '',
-  refAddress: '',
-  refDate: '',
-};
+const REF_TYPE    = _cfg.refType    || 'individual';
+const CUSTOMER    = _cfg.customer   || '';
+const DIR_NAME    = _cfg.directorName || '';
+const REFEREE_NAME = _cfg.refereeName || '';
+const SESSION_ID  = _cfg.sessionId  || '';
+const EXPIRES_AT  = _cfg.expiresAt  || 0;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if (OFFICER_NAME) {
-    document.getElementById('ctx-officer').textContent = OFFICER_NAME;
-    document.getElementById('ctx-banner').style.display = 'flex';
+  // Check expiry immediately
+  if (EXPIRES_AT && Date.now() > EXPIRES_AT) {
+    showExpired('This link has expired. Please ask the account applicant to generate a new one.');
+    return;
   }
 
-  document.getElementById('openerNameDisplay').textContent = CUSTOMER_NAME || '(not specified)';
-  document.getElementById('companyNameDisplay').textContent = CUSTOMER_NAME || '(not specified)';
+  // Set landing page content
+  const typeLabel = REF_TYPE === 'individual' ? 'Individual' : 'Company';
+  document.getElementById('landingTitle').textContent =
+    `${CUSTOMER || 'An account applicant'} has shared a GTBank Reference Form with you`;
+  document.getElementById('landingSub').textContent =
+    `They are opening a ${typeLabel} account at Guaranty Trust Bank and have listed you as a referee.`;
+  document.getElementById('customerDisplay').textContent = CUSTOMER || '—';
+  document.getElementById('whatToDo').textContent =
+    `You are being asked to vouch for ${CUSTOMER || 'the account applicant'}'s suitability to hold a current account with Guaranty Trust Bank. By completing this form you confirm that you know this person${REF_TYPE === 'corporate' ? ' and the company' : ''} well.`;
 
-  if (_cfg.note) {
-    const sub = document.getElementById('s0-sub');
-    sub.textContent = `For a GTBank account opening. Note from officer: "${_cfg.note}"`;
-  } else if (CUSTOMER_NAME) {
-    document.getElementById('s0-sub').textContent = `for ${CUSTOMER_NAME}'s GTBank account opening.`;
-  }
+  // Eligibility list
+  const eligibility = REF_TYPE === 'individual' ? [
+    'You must hold a current account with GTCO or any other bank.',
+    'Your account must not be less than 6 months old.',
+    'Salary account holders are not eligible referees.',
+    'You can confirm your reference via Internet Banking or USSD *737*51*54#.',
+  ] : [
+    'You must hold a current account with GTCO or any other bank.',
+    'Referees from other banks must be corporate account holders only.',
+    'Your account must not be less than 6 months old.',
+    'Salary account holders are not eligible referees.',
+  ];
+  document.getElementById('eligibilityList').innerHTML = eligibility.map((e, i) =>
+    `<li class="info-item"><span class="info-dot">${i+1}</span><span>${e}</span></li>`
+  ).join('');
 
-  // Default date to today
-  document.getElementById('refDate').value = new Date().toISOString().slice(0, 10);
-
-  // Restore autosave
-  const saved = localStorage.getItem('gtb_ref_fd');
-  if (saved) {
-    try {
-      const s = JSON.parse(saved);
-      Object.assign(FD, s);
-      if (FD.type) { pickType(FD.type, false); }
-      restoreInputs();
-    } catch {}
-  }
-
-  updateProgress();
+  // Auto-submit code input on 6 digits
+  document.getElementById('codeInput').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    this.classList.remove('err');
+    document.getElementById('codeErr').classList.remove('show');
+    if (this.value.length === 6) submitCode();
+  });
 });
 
-function restoreInputs() {
-  const map = {
-    yearsKnown:'yearsKnown', directorKnown:'directorKnown',
-    comments:'suitabilityComments', refBankName:'refBankName',
-    refBankAddress:'refBankAddress', refAcctNo:'refAcctNo',
-    refPhone:'refPhone', refName:'refName', refAddress:'refAddress',
-    refDate:'refDate',
-  };
-  for (const [k, id] of Object.entries(map)) {
-    const el = document.getElementById(id);
-    if (el && FD[k]) el.value = FD[k];
+// ── Access code validation ────────────────────────────────────
+async function submitCode() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (code.length !== 6) return;
+
+  const btn = document.getElementById('openFormBtn');
+  btn.textContent = 'Checking…';
+  btn.disabled = true;
+
+  if (!SESSION_ID) { showCodeError('Invalid link — missing session ID.'); btn.textContent = 'Open Form'; btn.disabled = false; return; }
+
+  const { data, error } = await _supa
+    .from('form_access_codes')
+    .select('access_code, expires_at')
+    .eq('session_id', SESSION_ID)
+    .single();
+
+  if (error || !data) {
+    showExpired('This link has already been used or does not exist.');
+    return;
   }
+  if (String(data.access_code) !== String(code)) {
+    showCodeError('Incorrect access code. Please check and try again.');
+    btn.textContent = 'Open Form'; btn.disabled = false;
+    return;
+  }
+  if (EXPIRES_AT && Date.now() > EXPIRES_AT) {
+    showExpired('This link has expired.');
+    return;
+  }
+
+  openForm();
 }
 
-// ── Type picker ───────────────────────────────────────────────
-function pickType(type, updateFD = true) {
-  formType = type;
-  if (updateFD) { FD.type = type; autoSave(); }
+function showCodeError(msg) {
+  const input = document.getElementById('codeInput');
+  const err   = document.getElementById('codeErr');
+  input.classList.add('err');
+  err.textContent = msg;
+  err.classList.add('show');
+}
 
-  document.getElementById('choiceIndividual').classList.toggle('selected', type === 'individual');
-  document.getElementById('choiceCorporate').classList.toggle('selected', type === 'corporate');
+function openForm() {
+  document.getElementById('stateLanding').style.display = 'none';
+  document.getElementById('stateForm').style.display    = '';
+  window.scrollTo(0, 0);
 
-  // Slide 1 variants
-  document.getElementById('s1-individual').style.display = type === 'individual' ? '' : 'none';
-  document.getElementById('s1-corporate').style.display  = type === 'corporate'  ? '' : 'none';
-
-  if (type === 'individual') {
-    document.getElementById('s1-emoji').textContent = '👤';
-    document.getElementById('s1-q').textContent     = 'Tell us about the individual';
-    document.getElementById('s1-sub').textContent   = 'Their name will appear on the form heading.';
+  // Populate form header
+  if (REF_TYPE === 'individual') {
+    document.getElementById('formTypeIcon').textContent  = '👤';
+    document.getElementById('formTypeTitle').textContent = 'Account applicant — Individual';
+    document.getElementById('indOpener').style.display   = '';
+    document.getElementById('corpOpener').style.display  = 'none';
+    document.getElementById('openerNameDisplay').textContent = CUSTOMER || '—';
+    document.getElementById('yearsWrap').style.display   = '';
+    document.getElementById('directorWrap').style.display = 'none';
+    document.getElementById('relationshipTitle').textContent = 'Your relationship with the applicant';
   } else {
-    document.getElementById('s1-emoji').textContent = '🏢';
-    document.getElementById('s1-q').textContent     = 'Tell us about the company';
-    document.getElementById('s1-sub').textContent   = 'The company name will appear on the form heading.';
+    document.getElementById('formTypeIcon').textContent  = '🏢';
+    document.getElementById('formTypeTitle').textContent = 'Account applicant — Company';
+    document.getElementById('indOpener').style.display   = 'none';
+    document.getElementById('corpOpener').style.display  = '';
+    document.getElementById('companyDisplay').textContent  = CUSTOMER || '—';
+    document.getElementById('directorDisplay').textContent = DIR_NAME  || '—';
+    document.getElementById('yearsWrap').style.display    = 'none';
+    document.getElementById('directorWrap').style.display = '';
+    document.getElementById('relationshipTitle').textContent = 'Your relationship with the company';
   }
-}
 
-// ── Navigation ────────────────────────────────────────────────
-function goNext(from) {
-  if (!validate(from)) return;
-  saveSlide(from);
-  setSlide(from + 1);
-}
+  // Pre-fill referee name if provided
+  if (REFEREE_NAME) document.getElementById('refName').value = REFEREE_NAME;
 
-function goBack() {
-  if (current > 0) setSlide(current - 1);
-}
-
-function setSlide(n) {
-  const slides = document.querySelectorAll('.slide');
-  slides.forEach((s, i) => {
-    s.classList.remove('pos-active', 'pos-above', 'pos-below');
-    if (i === n)      s.classList.add('pos-active');
-    else if (i < n)   s.classList.add('pos-above');
-    else              s.classList.add('pos-below');
-    s.scrollTop = 0;
-  });
-  current = n;
-  updateProgress();
-  updateNav();
-  if (n === 5) buildReview();
-}
-
-function updateProgress() {
-  document.getElementById('prog-fill').style.width = `${(current / (TOTAL_SLIDES - 1)) * 100}%`;
-}
-
-function updateNav() {
-  const backBtn = document.getElementById('back-btn');
-  const counter = document.getElementById('counter');
-  backBtn.style.display = current > 0 && current < 5 ? 'flex' : 'none';
-  backBtn.onclick = goBack;
-  if (current > 0 && current < 5) {
-    counter.style.display = 'block';
-    counter.textContent   = `${current} / 4`;
-  } else {
-    counter.style.display = 'none';
-  }
+  // Default date today
+  document.getElementById('refDate').value = new Date().toISOString().slice(0, 10);
 }
 
 // ── Validation ────────────────────────────────────────────────
-function validate(slide) {
+function validate() {
   let ok = true;
+  const req = id => {
+    const el = document.getElementById(id);
+    const errId = 'err' + id.charAt(0).toUpperCase() + id.slice(1);
+    const err = document.getElementById(errId);
+    if (!el || !el.value.trim()) { if (err) err.classList.add('show'); ok = false; }
+    else { if (err) err.classList.remove('show'); }
+  };
 
-  const hide = id => { const e = document.getElementById(id); if(e) e.classList.remove('show'); };
-  const show = id => { const e = document.getElementById(id); if(e) e.classList.add('show'); ok = false; };
-
-  if (slide === 0) {
-    hide('err-s0');
-    if (!formType) { show('err-s0'); }
-  }
-
-  if (slide === 1) {
-    if (formType === 'individual') {
-      hide('err-years');
-      const v = document.getElementById('yearsKnown').value.trim();
-      if (!v) show('err-years');
-    } else {
-      hide('err-director');
-      const v = document.getElementById('directorKnown').value.trim();
-      if (!v) show('err-director');
-    }
-  }
-
-  if (slide === 2) {
-    hide('err-comments');
-    const v = document.getElementById('suitabilityComments').value.trim();
-    if (!v) show('err-comments');
-  }
-
-  if (slide === 3) {
-    ['refBankName','refBankAddress','refAcctNo','refPhone'].forEach(id => {
-      hide(`err-${id === 'refBankName' ? 'refBank' : id === 'refBankAddress' ? 'refAddr' : id === 'refAcctNo' ? 'refAcct' : 'refPhone'}`);
-      if (!document.getElementById(id).value.trim()) {
-        show(`err-${id === 'refBankName' ? 'refBank' : id === 'refBankAddress' ? 'refAddr' : id === 'refAcctNo' ? 'refAcct' : 'refPhone'}`);
-      }
-    });
-  }
-
-  if (slide === 4) {
-    ['refName','refAddress','refDate'].forEach(id => {
-      hide(`err-${id}`);
-      if (!document.getElementById(id).value.trim()) show(`err-${id}`);
-    });
-  }
-
+  if (REF_TYPE === 'individual') req('yearsKnown');
+  else req('directorKnown');
+  req('comments');
+  req('refBank'); req('refBankAddr'); req('refAcct'); req('refPhone');
+  req('refName'); req('refAddr'); req('refDate');
   return ok;
 }
 
-// ── Save ──────────────────────────────────────────────────────
-function saveSlide(slide) {
-  if (slide === 1) {
-    FD.yearsKnown    = document.getElementById('yearsKnown').value.trim();
-    FD.directorKnown = document.getElementById('directorKnown').value.trim();
+// ── Download ──────────────────────────────────────────────────
+async function downloadForm() {
+  if (!validate()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+  // Populate print view
+  document.getElementById('pTitle').textContent =
+    REF_TYPE === 'individual' ? 'BANKER\'S REFERENCE FORM — INDIVIDUAL' : 'BANKER\'S REFERENCE FORM — CORPORATE';
+  document.getElementById('pOpenerLabel').textContent =
+    REF_TYPE === 'individual' ? 'Name of individual opening account' : 'Name of company opening account';
+  document.getElementById('pOpener').textContent  = CUSTOMER;
+  document.getElementById('pYearsWrap').style.display    = REF_TYPE === 'individual' ? '' : 'none';
+  document.getElementById('pDirectorWrap').style.display = REF_TYPE === 'corporate'  ? '' : 'none';
+  document.getElementById('pYears').textContent    = document.getElementById('yearsKnown')?.value   || '';
+  document.getElementById('pDirector').textContent = document.getElementById('directorKnown')?.value || DIR_NAME || '';
+  document.getElementById('pComments').textContent = document.getElementById('comments').value;
+  document.getElementById('pRefBank').textContent  = document.getElementById('refBank').value;
+  document.getElementById('pRefBankAddr').textContent = document.getElementById('refBankAddr').value;
+  document.getElementById('pRefAcct').textContent  = document.getElementById('refAcct').value;
+  document.getElementById('pRefPhone').textContent = document.getElementById('refPhone').value;
+  document.getElementById('pRefName').textContent  = document.getElementById('refName').value;
+  document.getElementById('pRefAddr').textContent  = document.getElementById('refAddr').value;
+  document.getElementById('pDate').textContent     = document.getElementById('refDate').value;
+
+  // Mark as used in Supabase (best effort — delete the row)
+  if (SESSION_ID) {
+    await _supa.from('form_access_codes').delete().eq('session_id', SESSION_ID);
   }
-  if (slide === 2) FD.comments      = document.getElementById('suitabilityComments').value.trim();
-  if (slide === 3) {
-    FD.refBankName    = document.getElementById('refBankName').value.trim();
-    FD.refBankAddress = document.getElementById('refBankAddress').value.trim();
-    FD.refAcctNo      = document.getElementById('refAcctNo').value.trim();
-    FD.refPhone       = document.getElementById('refPhone').value.trim();
-  }
-  if (slide === 4) {
-    FD.refName    = document.getElementById('refName').value.trim();
-    FD.refAddress = document.getElementById('refAddress').value.trim();
-    FD.refDate    = document.getElementById('refDate').value;
-  }
-  autoSave();
+
+  document.getElementById('doneCustomer').textContent = CUSTOMER || 'the account applicant';
+
+  // Print, then show done state
+  window.addEventListener('afterprint', function onAfterPrint() {
+    window.removeEventListener('afterprint', onAfterPrint);
+    document.getElementById('stateForm').style.display = 'none';
+    document.getElementById('stateDone').style.display = '';
+    window.scrollTo(0, 0);
+  }, { once: true });
+
+  window.print();
 }
 
-function autoSave() {
-  localStorage.setItem('gtb_ref_fd', JSON.stringify(FD));
-}
-
-// ── Review ────────────────────────────────────────────────────
-function buildReview() {
-  const rows = [];
-  rows.push(['Form type',        formType === 'individual' ? 'Individual Reference' : 'Corporate Reference']);
-  rows.push(['Account opener',   CUSTOMER_NAME || '(not specified)']);
-  if (formType === 'individual') rows.push(['Years known', FD.yearsKnown + ' year(s)']);
-  if (formType === 'corporate')  rows.push(['Director known', FD.directorKnown]);
-  rows.push(['Your comments',    FD.comments]);
-  rows.push(['Your bank',        FD.refBankName]);
-  rows.push(['Bank address',     FD.refBankAddress]);
-  rows.push(['Account number',   FD.refAcctNo]);
-  rows.push(['Phone',            FD.refPhone]);
-  rows.push(['Referee name',     FD.refName]);
-  rows.push(['Referee address',  FD.refAddress]);
-  rows.push(['Date',             FD.refDate]);
-
-  document.getElementById('reviewCard').innerHTML = rows.map(([k, v]) =>
-    `<div class="review-row">
-      <span class="review-key">${k}</span>
-      <span class="review-val">${v || '—'}</span>
-    </div>`
-  ).join('');
-}
-
-function startOver() {
-  localStorage.removeItem('gtb_ref_fd');
-  location.reload();
+// ── Expired / used ────────────────────────────────────────────
+function showExpired(msg) {
+  document.getElementById('stateLanding').style.display = 'none';
+  document.getElementById('stateForm').style.display    = 'none';
+  document.getElementById('expiredMsg').textContent     = msg;
+  document.getElementById('stateExpired').style.display = '';
 }
 </script>
 </body>

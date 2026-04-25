@@ -603,7 +603,7 @@
 
       <!-- Customer / opener details form -->
       <div id="modalFormSection">
-        <div class="form-row two-col">
+        <div id="mGenericNameRow" class="form-row two-col">
           <div class="form-group">
             <label for="mCustFirst" id="mLabelFirst">First name</label>
             <input type="text" id="mCustFirst" placeholder="Kemi" />
@@ -613,7 +613,7 @@
             <input type="text" id="mCustLast" placeholder="Adeyemi" />
           </div>
         </div>
-        <div class="form-row two-col">
+        <div id="mGenericContactRow" class="form-row two-col">
           <div class="form-group">
             <label for="mCustEmail" id="mLabelEmail">Customer email <span class="optional">(optional)</span></label>
             <input type="email" id="mCustEmail" placeholder="kemi@email.com" />
@@ -621,6 +621,60 @@
           <div class="form-group">
             <label for="mCustPhone">Phone number <span class="optional">(optional)</span></label>
             <input type="tel" id="mCustPhone" placeholder="08012345678" />
+          </div>
+        </div>
+
+        <!-- Reference Form specific fields -->
+        <div id="refFields" style="display:none">
+          <div class="form-group" style="margin-bottom:1rem">
+            <label style="margin-bottom:.5rem;display:block">Account type</label>
+            <div class="ref-type-row">
+              <label class="ref-type-opt" id="refTypeIndOpt">
+                <input type="radio" name="mRefType" value="individual" checked onchange="updateRefFields()" />
+                <span>👤 Individual</span>
+              </label>
+              <label class="ref-type-opt" id="refTypeCorpOpt">
+                <input type="radio" name="mRefType" value="corporate" onchange="updateRefFields()" />
+                <span>🏢 Company</span>
+              </label>
+            </div>
+          </div>
+          <div id="refIndFields" class="form-row two-col">
+            <div class="form-group">
+              <label for="mRefFirst">Customer first name</label>
+              <input type="text" id="mRefFirst" placeholder="Ada" />
+            </div>
+            <div class="form-group">
+              <label for="mRefLast">Customer last name</label>
+              <input type="text" id="mRefLast" placeholder="Okonkwo" />
+            </div>
+          </div>
+          <div id="refCorpFields" style="display:none">
+            <div class="form-group" style="margin-bottom:1rem">
+              <label for="mRefCompany">Company name</label>
+              <input type="text" id="mRefCompany" placeholder="Kemi & Sons Ltd" />
+            </div>
+            <div class="form-row two-col">
+              <div class="form-group">
+                <label for="mRefDirFirst">Director first name</label>
+                <input type="text" id="mRefDirFirst" placeholder="Kemi" />
+              </div>
+              <div class="form-group">
+                <label for="mRefDirLast">Director last name</label>
+                <input type="text" id="mRefDirLast" placeholder="Adeyemi" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1rem">
+            <label>Access code sharing</label>
+            <div class="modal-method-row">
+              <label class="modal-method-opt">
+                <input type="radio" name="mCodePref" value="together" checked /> Include in copy message
+              </label>
+              <label class="modal-method-opt">
+                <input type="radio" name="mCodePref" value="separate" /> Send separately
+              </label>
+            </div>
           </div>
         </div>
         <div class="form-group">
@@ -659,7 +713,7 @@
         <h3 style="font-size:1rem;font-weight:700;margin-bottom:.35rem;">Link ready!</h3>
         <p id="linkResultDesc" style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;"></p>
 
-        <div class="access-code-box">
+        <div class="access-code-box" id="accessCodeBox">
           <div class="access-code-label">🔑 Access code — share with your customer separately</div>
           <div class="access-code-row">
             <span class="access-code-digits" id="accessCodeDisplay">000000</span>

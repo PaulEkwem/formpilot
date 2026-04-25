@@ -253,7 +253,7 @@ function buildLink(config) {
     return `${base}gtbank-form.html?config=${encoded}`;
   }
   if (config.bank === 'GTBank' && config.formType === 'Reference Form') {
-    return `${base}gtbank-reference.html?config=${encoded}`;
+    return `${base}gtbank-ref-customer.html?config=${encoded}`;
   }
   return `${base}fill.html?config=${encoded}`;
 }
@@ -304,22 +304,27 @@ function openSendModal(formType, icon) {
   document.getElementById('modalFormName').textContent = formType;
   document.getElementById('modalBankName').textContent = OFFICER_BANK;
 
-  // Adapt labels for Reference Form
+  // Adapt fields for Reference Form
   const isRef = formType === 'Reference Form';
-  document.getElementById('mLabelFirst').innerHTML = isRef
-    ? 'Account opener\'s name <span style="color:#ef4444;font-size:.75rem">*required</span>'
-    : 'First name';
-  document.getElementById('mCustFirst').placeholder = isRef ? 'e.g. Ada Okonkwo or Kemi & Sons Ltd' : 'Kemi';
-  document.getElementById('mLastWrap').style.display  = isRef ? 'none' : '';
-  document.getElementById('mLabelEmail').innerHTML = isRef
-    ? 'Referee\'s email <span class="optional">(optional)</span>'
-    : 'Customer email <span class="optional">(optional)</span>';
+  document.getElementById('mGenericNameRow').style.display    = isRef ? 'none' : '';
+  document.getElementById('mGenericContactRow').style.display = isRef ? 'none' : '';
+  document.getElementById('refFields').style.display          = isRef ? '' : 'none';
   document.getElementById('mLabelNote').innerHTML = isRef
-    ? 'Note to referee <span class="optional">(optional)</span>'
+    ? 'Note to customer <span class="optional">(optional)</span>'
     : 'Note to customer <span class="optional">(optional)</span>';
   document.getElementById('mNote').placeholder = isRef
-    ? 'e.g. Please fill and return before Friday'
+    ? 'e.g. Please forward the referee links as soon as possible'
     : 'e.g. Please fill this before your appointment on Wednesday';
+
+  if (isRef) {
+    const indRadio = document.querySelector('input[name="mRefType"][value="individual"]');
+    if (indRadio) { indRadio.checked = true; updateRefFields(); }
+    ['mRefFirst','mRefLast','mRefCompany','mRefDirFirst','mRefDirLast'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const tog = document.querySelector('input[name="mCodePref"][value="together"]');
+    if (tog) tog.checked = true;
+  }
 
   // Reset values
   document.getElementById('modalFormSection').style.display = '';
@@ -341,6 +346,12 @@ function closeSendModal() {
   document.getElementById('sendModalOverlay').style.display = 'none';
 }
 
+function updateRefFields() {
+  const type = document.querySelector('input[name="mRefType"]:checked').value;
+  document.getElementById('refIndFields').style.display  = type === 'individual' ? '' : 'none';
+  document.getElementById('refCorpFields').style.display = type === 'corporate'  ? '' : 'none';
+}
+
 // ── Modal generate button ─────────────────────────────────────
 let lastGeneratedLink = '';
 let lastGeneratedSessionId = '';
@@ -348,16 +359,61 @@ let lastGeneratedSessionId = '';
 document.getElementById('modalGenerateBtn').addEventListener('click', function () {
   try {
 
+  const bank     = OFFICER_BANK;
+  const formType = _selectedFormType;
+  const note     = document.getElementById('mNote').value.trim();
+  if (!formType) { showToast('No form selected.'); return; }
+
+  // ── Reference Form path ───────────────────────────────────
+  if (formType === 'Reference Form') {
+    const refType  = document.querySelector('input[name="mRefType"]:checked').value;
+    const codePref = document.querySelector('input[name="mCodePref"]:checked').value;
+    let customer = '', directorName = '';
+    if (refType === 'individual') {
+      const f = document.getElementById('mRefFirst').value.trim();
+      const l = document.getElementById('mRefLast').value.trim();
+      if (!f || !l) { showToast('Please enter the customer\'s full name.'); return; }
+      customer = `${f} ${l}`;
+    } else {
+      const co = document.getElementById('mRefCompany').value.trim();
+      const df = document.getElementById('mRefDirFirst').value.trim();
+      const dl = document.getElementById('mRefDirLast').value.trim();
+      if (!co || !df || !dl) { showToast('Please enter company name and director details.'); return; }
+      customer = co; directorName = `${df} ${dl}`;
+    }
+    const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
+    const expiresAt   = Date.now() + expiryHours * 60 * 60 * 1000;
+    const rnd = new Uint32Array(1); crypto.getRandomValues(rnd);
+    const sessionId = 'fp_ref_' + rnd[0].toString(36);
+    const config = { bank, formType: 'Reference Form', refType, customer, directorName, officer: OFFICER_NAME, officerEmail: OFFICER_EMAIL, codePref, sessionId, note, expiresAt };
+    const link = buildLink(config);
+    const initials = customer.slice(0, 2).toUpperCase();
+    ALL_FORMS.unshift({ sessionId, customer, initials, bank, type: 'Reference Form', sent: 'Just now', status: 'pending', sentAt: Date.now(), link, config });
+    saveForms(ALL_FORMS); updateStatCards();
+    const badge = document.querySelector('.nav-badge');
+    if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
+    document.getElementById('generatedLink').textContent = link;
+    document.getElementById('accessCodeBox').style.display = 'none';
+    document.getElementById('linkResultDesc').textContent = `Reference form link ready for ${customer}. Share this link with the customer.`;
+    const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
+    document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabels[expiryHours] || expiryHours + ' hours'}`;
+    const waBtn = document.getElementById('whatsappBtn');
+    waBtn.textContent = '📱 Share on WhatsApp';
+    const waMsg = encodeURIComponent(`Hi, ${OFFICER_NAME} from ${bank} has sent you a GTBank reference form link for your account opening. Open this link to get started: ${link}`);
+    waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
+    document.getElementById('modalFormSection').style.display = 'none';
+    document.getElementById('linkResult').style.display = 'block';
+    return;
+  }
+
+  // ── Standard form path ────────────────────────────────────
   const first    = document.getElementById('mCustFirst').value.trim();
   const last     = document.getElementById('mCustLast').value.trim();
   const custEmail = document.getElementById('mCustEmail').value.trim();
   const custPhone = document.getElementById('mCustPhone').value.trim();
-  const bank     = OFFICER_BANK;
-  const formType = _selectedFormType;
-  const note     = document.getElementById('mNote').value.trim();
 
   if (!first) { showToast('Please enter a name before generating.'); return; }
-  if (!formType) { showToast('No form selected.'); return; }
+  document.getElementById('accessCodeBox').style.display = '';
 
   const rnd = new Uint32Array(2);
   crypto.getRandomValues(rnd);
