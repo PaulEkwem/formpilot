@@ -267,165 +267,18 @@
           <div class="page-header">
             <div>
               <h1>Send a form</h1>
-              <p>Pick a bank and form type, then send the link to your customer.</p>
+              <p id="sendViewSubtitle">Select a form below to send to your customer.</p>
             </div>
           </div>
 
-          <div class="send-layout">
-            <div class="card send-card">
-              <form id="sendForm" novalidate>
-                <div class="send-step" id="sendStep1">
-                  <h3 class="send-step-title">
-                    <span class="send-step-num">1</span> Customer details
-                  </h3>
-                  <div class="form-row two-col">
-                    <div class="form-group">
-                      <label for="custFirst">First name</label>
-                      <input type="text" id="custFirst" placeholder="Kemi" required />
-                    </div>
-                    <div class="form-group">
-                      <label for="custLast">Last name</label>
-                      <input type="text" id="custLast" placeholder="Adeyemi" required />
-                    </div>
-                  </div>
-                  <div class="form-row two-col">
-                    <div class="form-group">
-                      <label for="custEmail">Customer email <span class="optional">(optional)</span></label>
-                      <input type="email" id="custEmail" placeholder="kemi@email.com" />
-                    </div>
-                    <div class="form-group">
-                      <label for="custPhone">Phone number <span class="optional">(optional)</span></label>
-                      <input type="tel" id="custPhone" placeholder="08012345678" />
-                    </div>
-                  </div>
-                </div>
+          <!-- Form card gallery -->
+          <div id="formCardGrid" class="form-card-grid"></div>
 
-                <div class="send-divider"></div>
-
-                <div class="send-step" id="sendStep2">
-                  <h3 class="send-step-title">
-                    <span class="send-step-num">2</span> Form details
-                  </h3>
-                  <div class="form-group">
-                    <label for="sendBank">Bank</label>
-                    <select id="sendBank" required>
-                      <option value="">Select bank</option>
-                      <option>Access Bank</option>
-                      <option>First Bank</option>
-                      <option>GTBank</option>
-                      <option>UBA</option>
-                      <option>Zenith Bank</option>
-                      <option>Stanbic IBTC</option>
-                      <option>FCMB</option>
-                      <option>Fidelity Bank</option>
-                      <option>Union Bank</option>
-                      <option>Sterling Bank</option>
-                      <option>Polaris Bank</option>
-                      <option>Wema Bank</option>
-                    </select>
-                  </div>
-
-                  <!-- Form picker — shown after bank is selected -->
-                  <div id="formPickerWrap" style="display:none">
-                    <label style="font-size:.825rem;font-weight:600;display:block;margin-bottom:.6rem">
-                      Available forms
-                      <span id="formCountBadge" style="margin-left:.4rem;font-size:.72rem;font-weight:700;background:var(--primary-light);color:var(--primary);padding:.15rem .5rem;border-radius:999px;"></span>
-                    </label>
-                    <div id="formPicker" class="form-picker-grid"></div>
-                  </div>
-
-                  <!-- No forms state -->
-                  <div id="noFormsState" style="display:none" class="no-forms-state">
-                    <div class="no-forms-icon">🚧</div>
-                    <p>No forms available for this bank yet.</p>
-                    <a href="community.html" target="_blank" class="no-forms-link">Request this bank's forms →</a>
-                  </div>
-
-                  <input type="hidden" id="sendFormType" required />
-                  <div class="form-group">
-                    <label for="sendNote">Note to customer <span class="optional">(optional)</span></label>
-                    <textarea id="sendNote" rows="2" placeholder="e.g. Please fill this before your appointment on Wednesday"></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="linkExpiry">Link expires in</label>
-                    <select id="linkExpiry">
-                      <option value="24">24 hours</option>
-                      <option value="48">48 hours</option>
-                      <option value="72">3 days</option>
-                      <option value="168" selected>7 days</option>
-                      <option value="720">30 days</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="send-divider"></div>
-
-                <div class="send-step" id="sendStep3">
-                  <h3 class="send-step-title">
-                    <span class="send-step-num">3</span> How to send
-                  </h3>
-                  <div class="send-method-group">
-                    <label class="send-method">
-                      <input type="radio" name="sendMethod" value="copy" checked />
-                      <div class="method-card">
-                        <span class="method-icon">🔗</span>
-                        <div>
-                          <strong>Copy link</strong>
-                          <span>Share via WhatsApp, SMS, or anywhere</span>
-                        </div>
-                      </div>
-                    </label>
-                    <label class="send-method">
-                      <input type="radio" name="sendMethod" value="email" />
-                      <div class="method-card">
-                        <span class="method-icon">📧</span>
-                        <div>
-                          <strong>Send by email</strong>
-                          <span>Delivered to the customer's inbox</span>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="send-action-row">
-                  <button type="button" class="btn-preview" id="previewFormBtn">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    Preview form
-                  </button>
-                  <button type="submit" class="btn-primary btn-send">Generate link</button>
-                </div>
-              </form>
-            </div>
-
-            <!-- Link result panel (hidden until generated) -->
-            <div class="card link-result" id="linkResult" hidden>
-              <div class="link-result-icon">✅</div>
-              <h3>Link ready!</h3>
-              <p id="linkResultDesc">Copy the link and access code below, then share them with <strong id="linkCustomerName">your customer</strong>.</p>
-
-              <div class="access-code-box">
-                <div class="access-code-label">🔑 Access code — share this with your customer separately</div>
-                <div class="access-code-row">
-                  <span class="access-code-digits" id="accessCodeDisplay">000000</span>
-                  <button class="copy-btn" onclick="copyAccessCode()">Copy</button>
-                </div>
-                <div class="access-code-hint">Customer will need this code to unlock the form. Do not include it in the same message as the link.</div>
-              </div>
-
-              <div class="link-box" style="margin-top:12px">
-                <span id="generatedLink">formpilot.app/fill/access-a7f3k2</span>
-                <button class="copy-btn" id="copyLinkBtn" onclick="copyGeneratedLink()">Copy</button>
-              </div>
-              <div class="link-result-actions">
-                <button class="btn-outline btn-sm" id="whatsappBtn">Share on WhatsApp</button>
-                <button class="btn-ghost-sm" onclick="resetSendForm()">Send another</button>
-              </div>
-              <div class="link-meta">
-                <span id="linkExpiryLabel">🕐 Link expires in 7 days</span>
-                <span>🔒 No data stored on our servers</span>
-              </div>
-            </div>
+          <!-- No forms for this bank -->
+          <div id="noFormsForBank" style="display:none;text-align:center;padding:3rem 1rem;">
+            <div style="font-size:2.5rem;margin-bottom:.75rem;">🚧</div>
+            <p style="color:var(--muted);margin-bottom:1rem;">No forms built for your bank yet.</p>
+            <a href="#" onclick="switchView('community')" style="color:var(--primary);font-weight:600;">Request forms →</a>
           </div>
         </div>
 
@@ -732,5 +585,105 @@
     </div>
 
     <script src="assets/js/dashboard.js"></script>
+  <!-- ══════════ SEND MODAL ══════════ -->
+  <div id="sendModalOverlay" style="display:none;" onclick="if(event.target===this)closeSendModal()">
+    <div id="sendModal" class="send-modal">
+
+      <!-- Modal header -->
+      <div class="send-modal-header">
+        <div class="send-modal-form-info">
+          <span id="modalFormIcon" class="send-modal-icon"></span>
+          <div>
+            <div id="modalFormName" class="send-modal-form-name"></div>
+            <div id="modalBankName" class="send-modal-bank-name"></div>
+          </div>
+        </div>
+        <button class="send-modal-close" onclick="closeSendModal()" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Customer details form -->
+      <div id="modalFormSection">
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="mCustFirst">First name</label>
+            <input type="text" id="mCustFirst" placeholder="Kemi" required />
+          </div>
+          <div class="form-group">
+            <label for="mCustLast">Last name</label>
+            <input type="text" id="mCustLast" placeholder="Adeyemi" required />
+          </div>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="mCustEmail">Customer email <span class="optional">(optional)</span></label>
+            <input type="email" id="mCustEmail" placeholder="kemi@email.com" />
+          </div>
+          <div class="form-group">
+            <label for="mCustPhone">Phone number <span class="optional">(optional)</span></label>
+            <input type="tel" id="mCustPhone" placeholder="08012345678" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="mNote">Note to customer <span class="optional">(optional)</span></label>
+          <textarea id="mNote" rows="2" placeholder="e.g. Please fill this before your appointment on Wednesday"></textarea>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="mLinkExpiry">Link expires in</label>
+            <select id="mLinkExpiry">
+              <option value="24">24 hours</option>
+              <option value="48">48 hours</option>
+              <option value="72">3 days</option>
+              <option value="168" selected>7 days</option>
+              <option value="720">30 days</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>How to send</label>
+            <div class="modal-method-row">
+              <label class="modal-method-opt">
+                <input type="radio" name="mSendMethod" value="copy" checked /> Copy link
+              </label>
+              <label class="modal-method-opt">
+                <input type="radio" name="mSendMethod" value="email" /> Email
+              </label>
+            </div>
+          </div>
+        </div>
+        <button id="modalGenerateBtn" class="btn-primary btn-block" style="margin-top:.5rem;">Generate link</button>
+      </div>
+
+      <!-- Link result (shown after generation) -->
+      <div id="linkResult" style="display:none;">
+        <div class="link-result-icon">✅</div>
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:.35rem;">Link ready!</h3>
+        <p id="linkResultDesc" style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;"></p>
+
+        <div class="access-code-box">
+          <div class="access-code-label">🔑 Access code — share with your customer separately</div>
+          <div class="access-code-row">
+            <span class="access-code-digits" id="accessCodeDisplay">000000</span>
+            <button class="copy-btn" onclick="copyAccessCode()">Copy</button>
+          </div>
+          <div class="access-code-hint">Customer needs this to unlock the form. Don't send it in the same message as the link.</div>
+        </div>
+
+        <div class="link-box" style="margin-top:12px">
+          <span id="generatedLink"></span>
+          <button class="copy-btn" id="copyLinkBtn" onclick="copyGeneratedLink()">Copy</button>
+        </div>
+        <div class="link-result-actions">
+          <button class="btn-outline btn-sm" id="whatsappBtn">Share on WhatsApp</button>
+          <button class="btn-ghost-sm" onclick="resetSendForm()">Send another</button>
+        </div>
+        <div class="link-meta">
+          <span id="linkExpiryLabel">🕐 Link expires in 7 days</span>
+          <span>🔒 No data stored on our servers</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   </body>
 </html>

@@ -14,6 +14,7 @@ const FORM_LIBRARY = {
     { type: 'Account Opening — Corporate',                       icon: '🏢' },
     { type: 'Account Opening — Trustees',                        icon: '⚖️' },
     { type: 'Account Opening — Societies',                       icon: '🤝' },
+    { type: 'Reference Form',                                    icon: '📝' },
     { type: 'KYC Update',                                        icon: '🔄' },
     { type: 'GAPS / Internet Banking',                           icon: '💻' },
   ],
@@ -134,6 +135,7 @@ function switchView(viewId) {
   topbarTitle.textContent = LABELS[viewId] || '';
   if (viewId === 'forms') { reloadForms(); applyFilters(); }
   if (viewId === 'overview') reloadForms();
+  if (viewId === 'send') renderFormCards();
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.getElementById('sidebar').classList.remove('open');
 }
@@ -250,76 +252,101 @@ function buildLink(config) {
       (config.formType.includes('Sole Proprietorship') || config.formType.includes('Partnership'))) {
     return `${base}gtbank-form.html?config=${encoded}`;
   }
+  if (config.bank === 'GTBank' && config.formType === 'Reference Form') {
+    return `${base}gtbank-reference.html?config=${encoded}`;
+  }
   return `${base}fill.html?config=${encoded}`;
 }
 
-// ── Form picker ───────────────────────────────────────────────
-let selectedFormType = '';
+// ── Form card gallery ─────────────────────────────────────────
+const READY_FORMS = new Set([
+  'GTBank|Account Opening — Sole Proprietorship / Partnership',
+  'GTBank|Reference Form',
+]);
+let _selectedFormType = '';
+let _selectedFormIcon = '';
 
-document.getElementById('sendBank').addEventListener('change', function () {
-  const bank  = this.value;
-  const forms = FORM_LIBRARY[bank];
-  const wrap  = document.getElementById('formPickerWrap');
-  const none  = document.getElementById('noFormsState');
-  const input = document.getElementById('sendFormType');
+function renderFormCards() {
+  const grid  = document.getElementById('formCardGrid');
+  const noForms = document.getElementById('noFormsForBank');
+  const forms = FORM_LIBRARY[OFFICER_BANK];
 
-  // Reset selection
-  selectedFormType = '';
-  input.value = '';
-
-  if (!bank) { wrap.style.display = 'none'; none.style.display = 'none'; return; }
-
-  if (!forms || forms.length === 0) {
-    wrap.style.display = 'none';
-    none.style.display = 'block';
+  if (!OFFICER_BANK || !forms || forms.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    noForms.style.display = 'block';
     return;
   }
 
-  none.style.display = 'none';
-  wrap.style.display = 'block';
-  document.getElementById('formCountBadge').textContent = `${forms.length} available`;
+  noForms.style.display = 'none';
+  grid.style.display = 'grid';
 
-  document.getElementById('formPicker').innerHTML = forms.map(f => `
-    <button type="button" class="form-pill" data-type="${f.type}" onclick="selectFormType(this, '${f.type.replace(/'/g,"\\'")}')">
-      <span class="form-pill-icon">${f.icon}</span>
-      <span>${f.type}</span>
-      <span class="form-pill-check">✓</span>
-    </button>
-  `).join('');
-});
-
-function selectFormType(btn, type) {
-  document.querySelectorAll('.form-pill').forEach(p => p.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedFormType = type;
-  document.getElementById('sendFormType').value = type;
+  grid.innerHTML = forms.map(f => {
+    const key     = `${OFFICER_BANK}|${f.type}`;
+    const ready   = READY_FORMS.has(key);
+    const safeType = f.type.replace(/'/g, "\\'");
+    const safeIcon = f.icon.replace(/'/g, "\\'");
+    return `
+      <div class="form-card${ready ? '' : ' coming-soon'}" onclick="${ready ? `openSendModal('${safeType}','${safeIcon}')` : ''}">
+        <span class="form-card-icon">${f.icon}</span>
+        <div class="form-card-name">${f.type}</div>
+        <div class="form-card-meta">${OFFICER_BANK}</div>
+        <span class="form-card-badge${ready ? '' : ' coming'}">${ready ? 'Ready' : 'Coming soon'}</span>
+      </div>`;
+  }).join('');
 }
 
-// ── Send form ─────────────────────────────────────────────────
+function openSendModal(formType, icon) {
+  _selectedFormType = formType;
+  _selectedFormIcon = icon;
+
+  document.getElementById('modalFormIcon').textContent = icon;
+  document.getElementById('modalFormName').textContent = formType;
+  document.getElementById('modalBankName').textContent = OFFICER_BANK;
+
+  // Reset modal state
+  document.getElementById('modalFormSection').style.display = '';
+  document.getElementById('linkResult').style.display = 'none';
+  document.getElementById('mCustFirst').value  = '';
+  document.getElementById('mCustLast').value   = '';
+  document.getElementById('mCustEmail').value  = '';
+  document.getElementById('mCustPhone').value  = '';
+  document.getElementById('mNote').value       = '';
+  document.getElementById('mLinkExpiry').value = '168';
+  const copyRadio = document.querySelector('input[name="mSendMethod"][value="copy"]');
+  if (copyRadio) copyRadio.checked = true;
+
+  document.getElementById('sendModalOverlay').style.display = 'flex';
+  document.getElementById('mCustFirst').focus();
+}
+
+function closeSendModal() {
+  document.getElementById('sendModalOverlay').style.display = 'none';
+}
+
+// ── Modal generate button ─────────────────────────────────────
 let lastGeneratedLink = '';
 let lastGeneratedSessionId = '';
 
-document.getElementById('sendForm').addEventListener('submit', function (e) {
-  e.preventDefault();
+document.getElementById('modalGenerateBtn').addEventListener('click', function () {
   try {
 
-  const first    = document.getElementById('custFirst').value.trim();
-  const last     = document.getElementById('custLast').value.trim();
-  const custEmail = document.getElementById('custEmail').value.trim();
-  const custPhone = document.getElementById('custPhone').value.trim();
-  const bank     = document.getElementById('sendBank').value;
-  const formType = selectedFormType;
-  const note     = document.getElementById('sendNote').value.trim();
+  const first    = document.getElementById('mCustFirst').value.trim();
+  const last     = document.getElementById('mCustLast').value.trim();
+  const custEmail = document.getElementById('mCustEmail').value.trim();
+  const custPhone = document.getElementById('mCustPhone').value.trim();
+  const bank     = OFFICER_BANK;
+  const formType = _selectedFormType;
+  const note     = document.getElementById('mNote').value.trim();
 
   if (!first || !last) { showToast('Please enter the customer\'s name.'); return; }
-  if (!bank)           { showToast('Please select a bank.'); return; }
-  if (!formType)       { showToast('Please select a form type.'); return; }
+  if (!formType)       { showToast('No form selected.'); return; }
 
   const rnd = new Uint32Array(2);
   crypto.getRandomValues(rnd);
   const sessionId  = 'fp_' + rnd[0].toString(36) + rnd[1].toString(36);
   const accessCode = String(100000 + (rnd[0] % 900000));
-  const expiryHours = parseInt(document.getElementById('linkExpiry').value, 10) || 168;
+  const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
   const expiresAt  = Date.now() + expiryHours * 60 * 60 * 1000;
   const config = {
     bank,
@@ -370,15 +397,12 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
   // Show result
   document.getElementById('generatedLink').textContent = link;
   document.getElementById('accessCodeDisplay').textContent = accessCode;
-  document.getElementById('linkCustomerName').textContent = `${first} ${last}`;
   document.getElementById('linkResultDesc').textContent = `Link ready for ${first} ${last}. Copy it or share directly.`;
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
-  document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabels[expiryHours]||expiryHours+' hours'}`;
-
-  const method = document.querySelector('input[name="sendMethod"]:checked').value;
+  const expiryLabel  = expiryLabels[expiryHours] || expiryHours + ' hours';
+  document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabel}`;
+  const method = document.querySelector('input[name="mSendMethod"]:checked').value;
   const waBtn  = document.getElementById('whatsappBtn');
-  const expiryLabels2 = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
-  const expiryLabel = expiryLabels2[expiryHours] || expiryHours + ' hours';
 
   if (method === 'email' && custEmail) {
     waBtn.textContent = '📧 Send email now';
@@ -391,8 +415,8 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
     waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
   }
 
-  document.getElementById('sendForm').closest('.send-card').style.display = 'none';
-  document.getElementById('linkResult').hidden = false;
+  document.getElementById('modalFormSection').style.display = 'none';
+  document.getElementById('linkResult').style.display = 'block';
 
   } catch(err) {
     console.error('Generate link error:', err);
@@ -401,9 +425,7 @@ document.getElementById('sendForm').addEventListener('submit', function (e) {
 });
 
 function resetSendForm() {
-  document.getElementById('sendForm').reset();
-  document.getElementById('sendForm').closest('.send-card').style.display = '';
-  document.getElementById('linkResult').hidden = true;
+  closeSendModal();
 }
 
 // ── Copy helpers ──────────────────────────────────────────────
@@ -504,15 +526,16 @@ function showToast(message) {
 
 // ── Preview modal ─────────────────────────────────────────────
 function buildPreviewConfig() {
-  const first    = document.getElementById('custFirst').value.trim();
-  const last     = document.getElementById('custLast').value.trim();
-  const bank     = document.getElementById('sendBank').value;
-  const formType = selectedFormType;
+  const bank     = OFFICER_BANK;
+  const formType = _selectedFormType;
 
   if (!bank || !formType) {
-    showToast('Select a bank and form type first to preview.');
+    showToast('Select a form first to preview.');
     return null;
   }
+
+  const first = document.getElementById('mCustFirst').value.trim();
+  const last  = document.getElementById('mCustLast').value.trim();
 
   return {
     bank,
@@ -523,18 +546,6 @@ function buildPreviewConfig() {
     sessionId:    'preview',
   };
 }
-
-document.getElementById('previewFormBtn').addEventListener('click', () => {
-  const config = buildPreviewConfig();
-  if (!config) return;
-
-  const url = buildLink(config);
-
-  document.getElementById('previewFrame').src    = url;
-  const filePart = url.includes('gtbank-form.html') ? 'gtbank-form.html' : 'fill.html';
-  document.getElementById('previewUrlBar').textContent = `${filePart}?bank=${encodeURIComponent(config.bank)}&form=${encodeURIComponent(config.formType)}`;
-  document.getElementById('previewOverlay').classList.add('open');
-});
 
 document.getElementById('closePreview').addEventListener('click', () => {
   document.getElementById('previewOverlay').classList.remove('open');
