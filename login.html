@@ -102,6 +102,26 @@
             Incorrect email or password. Please try again.
           </div>
 
+          <!-- Forgot password panel -->
+          <div id="forgotPanel" style="display:none;">
+            <div class="auth-form-header" style="margin-bottom:1.25rem;">
+              <h1>Reset your password</h1>
+              <p>Enter your email and we'll send you a reset link.</p>
+            </div>
+            <div id="forgotError" style="display:none;font-size:.85rem;color:#dc2626;font-weight:500;margin-bottom:.75rem;padding:.5rem .75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;"></div>
+            <div id="forgotSent" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;font-size:.875rem;font-weight:500;padding:.75rem 1rem;border-radius:8px;margin-bottom:1rem;">
+              Reset link sent — check your inbox.
+            </div>
+            <div class="form-group">
+              <label for="forgotEmail">Email address</label>
+              <input type="email" id="forgotEmail" placeholder="your@email.com" autocomplete="email" />
+            </div>
+            <button id="forgotBtn" class="btn-primary btn-block btn-submit">Send reset link</button>
+            <p style="text-align:center;margin-top:1rem;font-size:.85rem;">
+              <a href="#" id="backToLogin" style="color:var(--primary);font-weight:600;">← Back to login</a>
+            </p>
+          </div>
+
           <form id="loginForm" class="auth-form" novalidate>
             <div class="form-group">
               <label for="email">Email address</label>
@@ -118,7 +138,7 @@
             <div class="form-group">
               <label for="password">
                 Password
-                <a href="#" class="forgot-link">Forgot password?</a>
+                <a href="#" class="forgot-link" id="forgotLink">Forgot password?</a>
               </label>
               <div class="input-suffix-wrap">
                 <input
@@ -170,6 +190,51 @@
           }));
           window.location.href = 'dashboard.html';
         }
+      });
+
+      // Forgot password toggle
+      document.getElementById('forgotLink').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('errorBanner').style.display = 'none';
+        document.getElementById('forgotPanel').style.display = 'block';
+        document.getElementById('forgotEmail').focus();
+      });
+
+      document.getElementById('backToLogin').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('forgotPanel').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+      });
+
+      document.getElementById('forgotBtn').addEventListener('click', async function () {
+        const btn   = this;
+        const email = document.getElementById('forgotEmail').value.trim();
+        const errEl = document.getElementById('forgotError');
+        const sentEl = document.getElementById('forgotSent');
+
+        if (!email) {
+          errEl.textContent = 'Please enter your email address.';
+          errEl.style.display = 'block';
+          return;
+        }
+        errEl.style.display = 'none';
+        btn.textContent = 'Sending…';
+        btn.disabled = true;
+
+        const { error } = await _supa.auth.resetPasswordForEmail(email, {
+          redirectTo: 'https://formpilot-five.vercel.app/reset-password.html'
+        });
+
+        if (error) {
+          errEl.textContent = error.message;
+          errEl.style.display = 'block';
+        } else {
+          sentEl.style.display = 'block';
+          document.getElementById('forgotEmail').disabled = true;
+        }
+        btn.textContent = 'Send reset link';
+        btn.disabled = false;
       });
 
       // Toggle password visibility
