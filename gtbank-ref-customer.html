@@ -329,9 +329,6 @@ const OFFICER_NAME = _cfg.officer   || 'Your account officer';
 const BANK         = _cfg.bank      || 'Guaranty Trust Bank';
 const REF_TYPE     = _cfg.refType   || 'individual';
 const CUSTOMER     = _cfg.customer  || '';
-const DIR_NAME     = _cfg.directorName || '';
-const CODE_PREF    = _cfg.codePref  || 'together';
-const NOTE         = _cfg.note      || '';
 const BASE_URL     = window.location.href.replace(/gtbank-ref-customer\.html.*$/, '');
 
 let linksGenerated = 0;
@@ -366,26 +363,15 @@ document.addEventListener('DOMContentLoaded', () => {
     `<li class="req-item"><span class="req-dot">${i + 1}</span><span>${r}</span></li>`
   ).join('');
 
-  if (NOTE) {
-    const noteEl = document.createElement('p');
-    noteEl.style.cssText = 'font-size:.82rem;color:#92400E;background:#FEF3C7;border-radius:8px;padding:10px 12px;margin-top:12px;line-height:1.5';
-    noteEl.innerHTML = `📌 <strong>Note from your officer:</strong> ${NOTE}`;
-    document.getElementById('officerDisplay').closest('.section-card').querySelector('div').appendChild(noteEl);
-  }
-
   // Pre-fill form fields from config
   if (CUSTOMER) {
+    const parts = CUSTOMER.split(' ');
     if (REF_TYPE === 'individual') {
-      const parts = CUSTOMER.split(' ');
       document.getElementById('custFirst').value = parts[0] || '';
       document.getElementById('custLast').value  = parts.slice(1).join(' ') || '';
     } else {
-      document.getElementById('companyName').value = CUSTOMER;
-      if (DIR_NAME) {
-        const dp = DIR_NAME.split(' ');
-        document.getElementById('dirFirst').value = dp[0] || '';
-        document.getElementById('dirLast').value  = dp.slice(1).join(' ') || '';
-      }
+      document.getElementById('dirFirst').value = parts[0] || '';
+      document.getElementById('dirLast').value  = parts.slice(1).join(' ') || '';
     }
   }
 
@@ -479,44 +465,24 @@ function renderSlotResult(slot, refName, refLink, refAccessCode, expiresAt) {
   const resultEl = document.getElementById(`slot${slot}-result`);
   const expiryStr = new Date(expiresAt).toLocaleString('en-NG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
 
-  if (CODE_PREF === 'together') {
-    const copyMsg = buildCopyMessage(refName, refLink, refAccessCode, expiryStr, true);
-    resultEl.innerHTML = `
-      <div class="copy-row-label">📋 Ready to copy and send to ${refName}</div>
-      <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:.78rem;color:var(--ink);line-height:1.55">${escapeHtml(copyMsg)}</div>
-      <button class="gen-btn" style="width:100%;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}msg', this)">Copy message</button>
-      <textarea id="slot${slot}msg" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(copyMsg)}</textarea>
-      <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
-  } else {
-    const linkMsg = buildCopyMessage(refName, refLink, null, expiryStr, false);
-    resultEl.innerHTML = `
-      <div class="copy-row-label">📋 Share link and code separately with ${refName}</div>
-      <div style="margin-bottom:8px">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Message (no code)</div>
-        <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;white-space:pre-wrap;font-size:.78rem;line-height:1.55">${escapeHtml(linkMsg)}</div>
-        <button class="gen-btn" style="width:100%;margin-top:6px;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}link', this)">Copy link message</button>
-        <textarea id="slot${slot}link" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(linkMsg)}</textarea>
-      </div>
-      <div>
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Access code (send separately)</div>
-        <div class="sep-code-wrap">
-          <span class="code-display">${refAccessCode}</span>
-          <button class="gen-btn" onclick="navigator.clipboard.writeText('${refAccessCode}').then(()=>showCopied(this))">Copy code</button>
-        </div>
-      </div>
-      <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
-  }
+  const copyMsg = buildCopyMessage(refName, refLink, refAccessCode, expiryStr);
+  resultEl.innerHTML = `
+    <div class="copy-row-label">📋 Ready to copy and send to ${refName}</div>
+    <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:.78rem;color:var(--ink);line-height:1.55">${escapeHtml(copyMsg)}</div>
+    <button class="gen-btn" style="width:100%;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}msg', this)">Copy message</button>
+    <textarea id="slot${slot}msg" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(copyMsg)}</textarea>
+    <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
 
   resultEl.classList.add('show');
 }
 
-function buildCopyMessage(refName, link, code, expiryStr, includeCode) {
+function buildCopyMessage(refName, link, code, expiryStr) {
   const customer = REF_TYPE === 'individual'
     ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
     : document.getElementById('companyName').value.trim();
   let msg = `Hello ${refName},\n\n${customer} has requested you to complete a GTBank reference form as part of their account opening.\n\n`;
   msg += `🔗 Link: ${link}\n`;
-  if (includeCode && code) msg += `🔑 Access Code: ${code}\n`;
+  msg += `🔑 Access Code: ${code}\n`;
   msg += `⏱ Expires: ${expiryStr} (24 hours, one-time use only)\n\n`;
   msg += `Steps:\n1. Open the link\n2. Enter the access code when prompted\n3. Fill your details honestly\n4. Download the completed form\n\n`;
   msg += `⚠️ "It is very dangerous to introduce a person who is not well-known to you." — GTBank\n\n`;

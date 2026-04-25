@@ -309,21 +309,12 @@ function openSendModal(formType, icon) {
   document.getElementById('mGenericNameRow').style.display    = isRef ? 'none' : '';
   document.getElementById('mGenericContactRow').style.display = isRef ? 'none' : '';
   document.getElementById('refFields').style.display          = isRef ? '' : 'none';
-  document.getElementById('mLabelNote').innerHTML = isRef
-    ? 'Note to customer <span class="optional">(optional)</span>'
-    : 'Note to customer <span class="optional">(optional)</span>';
-  document.getElementById('mNote').placeholder = isRef
-    ? 'e.g. Please forward the referee links as soon as possible'
-    : 'e.g. Please fill this before your appointment on Wednesday';
-
   if (isRef) {
     const indRadio = document.querySelector('input[name="mRefType"][value="individual"]');
     if (indRadio) { indRadio.checked = true; updateRefFields(); }
-    ['mRefFirst','mRefLast','mRefCompany','mRefDirFirst','mRefDirLast'].forEach(id => {
+    ['mRefFirst','mRefLast','mRefDirFirst','mRefDirLast'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
-    const tog = document.querySelector('input[name="mCodePref"][value="together"]');
-    if (tog) tog.checked = true;
   }
 
   // Reset values
@@ -333,7 +324,6 @@ function openSendModal(formType, icon) {
   document.getElementById('mCustLast').value   = '';
   document.getElementById('mCustEmail').value  = '';
   document.getElementById('mCustPhone').value  = '';
-  document.getElementById('mNote').value       = '';
   document.getElementById('mLinkExpiry').value = '168';
   const copyRadio = document.querySelector('input[name="mSendMethod"][value="copy"]');
   if (copyRadio) copyRadio.checked = true;
@@ -361,31 +351,28 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
 
   const bank     = OFFICER_BANK;
   const formType = _selectedFormType;
-  const note     = document.getElementById('mNote').value.trim();
   if (!formType) { showToast('No form selected.'); return; }
 
   // ── Reference Form path ───────────────────────────────────
   if (formType === 'Reference Form') {
-    const refType  = document.querySelector('input[name="mRefType"]:checked').value;
-    const codePref = document.querySelector('input[name="mCodePref"]:checked').value;
-    let customer = '', directorName = '';
+    const refType = document.querySelector('input[name="mRefType"]:checked').value;
+    let customer = '';
     if (refType === 'individual') {
       const f = document.getElementById('mRefFirst').value.trim();
       const l = document.getElementById('mRefLast').value.trim();
       if (!f || !l) { showToast('Please enter the customer\'s full name.'); return; }
       customer = `${f} ${l}`;
     } else {
-      const co = document.getElementById('mRefCompany').value.trim();
       const df = document.getElementById('mRefDirFirst').value.trim();
       const dl = document.getElementById('mRefDirLast').value.trim();
-      if (!co || !df || !dl) { showToast('Please enter company name and director details.'); return; }
-      customer = co; directorName = `${df} ${dl}`;
+      if (!df || !dl) { showToast('Please enter the customer\'s full name.'); return; }
+      customer = `${df} ${dl}`;
     }
     const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
     const expiresAt   = Date.now() + expiryHours * 60 * 60 * 1000;
     const rnd = new Uint32Array(1); crypto.getRandomValues(rnd);
     const sessionId = 'fp_ref_' + rnd[0].toString(36);
-    const config = { bank, formType: 'Reference Form', refType, customer, directorName, officer: OFFICER_NAME, officerEmail: OFFICER_EMAIL, codePref, sessionId, note, expiresAt };
+    const config = { bank, formType: 'Reference Form', refType, customer, officer: OFFICER_NAME, officerEmail: OFFICER_EMAIL, sessionId, expiresAt };
     const link = buildLink(config);
     const initials = customer.slice(0, 2).toUpperCase();
     ALL_FORMS.unshift({ sessionId, customer, initials, bank, type: 'Reference Form', sent: 'Just now', status: 'pending', sentAt: Date.now(), link, config });
@@ -431,7 +418,6 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     officerEmail: OFFICER_EMAIL,
     officerPhone: '',
     sessionId,
-    note,
     expiresAt,
     // accessCode intentionally NOT included — stored in Supabase only
   };
