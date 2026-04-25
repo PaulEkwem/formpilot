@@ -662,28 +662,15 @@
             </div>
           </div>
         </div>
-        <div class="form-row two-col">
-          <div class="form-group">
-            <label for="mLinkExpiry">Link expires in</label>
-            <select id="mLinkExpiry">
-              <option value="24">24 hours</option>
-              <option value="48">48 hours</option>
-              <option value="72">3 days</option>
-              <option value="168" selected>7 days</option>
-              <option value="720">30 days</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>How to send</label>
-            <div class="modal-method-row">
-              <label class="modal-method-opt">
-                <input type="radio" name="mSendMethod" value="copy" checked /> Copy link
-              </label>
-              <label class="modal-method-opt">
-                <input type="radio" name="mSendMethod" value="email" /> Email
-              </label>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="mLinkExpiry">Link expires in</label>
+          <select id="mLinkExpiry">
+            <option value="24">24 hours</option>
+            <option value="48">48 hours</option>
+            <option value="72">3 days</option>
+            <option value="168" selected>7 days</option>
+            <option value="720">30 days</option>
+          </select>
         </div>
         <button id="modalGenerateBtn" class="btn-primary btn-block" style="margin-top:.5rem;">Generate link</button>
       </div>

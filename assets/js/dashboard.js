@@ -325,8 +325,6 @@ function openSendModal(formType, icon) {
   document.getElementById('mCustEmail').value  = '';
   document.getElementById('mCustPhone').value  = '';
   document.getElementById('mLinkExpiry').value = '168';
-  const copyRadio = document.querySelector('input[name="mSendMethod"][value="copy"]');
-  if (copyRadio) copyRadio.checked = true;
 
   document.getElementById('sendModalOverlay').style.display = 'flex';
   document.getElementById('mCustFirst').focus();
@@ -460,19 +458,12 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
   const expiryLabel  = expiryLabels[expiryHours] || expiryHours + ' hours';
   document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabel}`;
-  const method = document.querySelector('input[name="mSendMethod"]:checked').value;
-  const waBtn  = document.getElementById('whatsappBtn');
-
-  if (method === 'email' && custEmail) {
-    waBtn.textContent = '📧 Send email now';
-    waBtn.onclick = () => sendViaEmailJS({ first, last: last || '', custEmail, bank, link, accessCode, note, expiryLabel });
-  } else {
-    const waMsg = encodeURIComponent(
-      `Hi ${fullName}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
-    );
-    waBtn.textContent = '📱 Share on WhatsApp';
-    waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
-  }
+  const waBtn = document.getElementById('whatsappBtn');
+  const waMsg = encodeURIComponent(
+    `Hi ${fullName}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
+  );
+  waBtn.textContent = '📱 Share on WhatsApp';
+  waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
 
   document.getElementById('modalFormSection').style.display = 'none';
   document.getElementById('linkResult').style.display = 'block';
