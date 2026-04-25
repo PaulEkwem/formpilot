@@ -601,21 +601,21 @@
         <button class="send-modal-close" onclick="closeSendModal()" aria-label="Close">✕</button>
       </div>
 
-      <!-- Customer details form -->
+      <!-- Customer / opener details form -->
       <div id="modalFormSection">
         <div class="form-row two-col">
           <div class="form-group">
-            <label for="mCustFirst">First name</label>
-            <input type="text" id="mCustFirst" placeholder="Kemi" required />
+            <label for="mCustFirst" id="mLabelFirst">First name</label>
+            <input type="text" id="mCustFirst" placeholder="Kemi" />
           </div>
-          <div class="form-group">
-            <label for="mCustLast">Last name</label>
-            <input type="text" id="mCustLast" placeholder="Adeyemi" required />
+          <div class="form-group" id="mLastWrap">
+            <label for="mCustLast" id="mLabelLast">Last name <span class="optional">(optional)</span></label>
+            <input type="text" id="mCustLast" placeholder="Adeyemi" />
           </div>
         </div>
         <div class="form-row two-col">
           <div class="form-group">
-            <label for="mCustEmail">Customer email <span class="optional">(optional)</span></label>
+            <label for="mCustEmail" id="mLabelEmail">Customer email <span class="optional">(optional)</span></label>
             <input type="email" id="mCustEmail" placeholder="kemi@email.com" />
           </div>
           <div class="form-group">
@@ -624,7 +624,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="mNote">Note to customer <span class="optional">(optional)</span></label>
+          <label for="mNote" id="mLabelNote">Note to customer <span class="optional">(optional)</span></label>
           <textarea id="mNote" rows="2" placeholder="e.g. Please fill this before your appointment on Wednesday"></textarea>
         </div>
         <div class="form-row two-col">

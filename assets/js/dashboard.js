@@ -304,7 +304,24 @@ function openSendModal(formType, icon) {
   document.getElementById('modalFormName').textContent = formType;
   document.getElementById('modalBankName').textContent = OFFICER_BANK;
 
-  // Reset modal state
+  // Adapt labels for Reference Form
+  const isRef = formType === 'Reference Form';
+  document.getElementById('mLabelFirst').innerHTML = isRef
+    ? 'Account opener\'s name <span style="color:#ef4444;font-size:.75rem">*required</span>'
+    : 'First name';
+  document.getElementById('mCustFirst').placeholder = isRef ? 'e.g. Ada Okonkwo or Kemi & Sons Ltd' : 'Kemi';
+  document.getElementById('mLastWrap').style.display  = isRef ? 'none' : '';
+  document.getElementById('mLabelEmail').innerHTML = isRef
+    ? 'Referee\'s email <span class="optional">(optional)</span>'
+    : 'Customer email <span class="optional">(optional)</span>';
+  document.getElementById('mLabelNote').innerHTML = isRef
+    ? 'Note to referee <span class="optional">(optional)</span>'
+    : 'Note to customer <span class="optional">(optional)</span>';
+  document.getElementById('mNote').placeholder = isRef
+    ? 'e.g. Please fill and return before Friday'
+    : 'e.g. Please fill this before your appointment on Wednesday';
+
+  // Reset values
   document.getElementById('modalFormSection').style.display = '';
   document.getElementById('linkResult').style.display = 'none';
   document.getElementById('mCustFirst').value  = '';
@@ -339,8 +356,8 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const formType = _selectedFormType;
   const note     = document.getElementById('mNote').value.trim();
 
-  if (!first || !last) { showToast('Please enter the customer\'s name.'); return; }
-  if (!formType)       { showToast('No form selected.'); return; }
+  if (!first) { showToast('Please enter a name before generating.'); return; }
+  if (!formType) { showToast('No form selected.'); return; }
 
   const rnd = new Uint32Array(2);
   crypto.getRandomValues(rnd);
@@ -348,10 +365,11 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const accessCode = String(100000 + (rnd[0] % 900000));
   const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
   const expiresAt  = Date.now() + expiryHours * 60 * 60 * 1000;
+  const fullName = last ? `${first} ${last}` : first;
   const config = {
     bank,
     formType,
-    customer:     `${first} ${last}`,
+    customer:     fullName,
     custEmail:    custEmail || '',
     officer:      OFFICER_NAME,
     officerEmail: OFFICER_EMAIL,
@@ -372,12 +390,11 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     .then(({ error }) => { if(error) console.error('Failed to store access code:', error.message); });
 
   // Save to forms store
-  const initials = (first[0] + last[0]).toUpperCase();
-  const now = new Date();
+  const initials = (first[0] + (last ? last[0] : first[1] || '')).toUpperCase();
   const sentLabel = 'Just now';
   const newForm = {
     sessionId,
-    customer: `${first} ${last}`,
+    customer: fullName,
     initials,
     bank,
     type: formType,
@@ -397,7 +414,7 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   // Show result
   document.getElementById('generatedLink').textContent = link;
   document.getElementById('accessCodeDisplay').textContent = accessCode;
-  document.getElementById('linkResultDesc').textContent = `Link ready for ${first} ${last}. Copy it or share directly.`;
+  document.getElementById('linkResultDesc').textContent = `Link ready for ${fullName}. Copy it or share directly.`;
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
   const expiryLabel  = expiryLabels[expiryHours] || expiryHours + ' hours';
   document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabel}`;
@@ -406,10 +423,10 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
 
   if (method === 'email' && custEmail) {
     waBtn.textContent = '📧 Send email now';
-    waBtn.onclick = () => sendViaEmailJS({ first, last, custEmail, bank, link, accessCode, note, expiryLabel });
+    waBtn.onclick = () => sendViaEmailJS({ first, last: last || '', custEmail, bank, link, accessCode, note, expiryLabel });
   } else {
     const waMsg = encodeURIComponent(
-      `Hi ${first}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
+      `Hi ${fullName}, I'm your account officer from ${bank}. I've sent you a quick online form to fill — it only takes a few minutes.\n\nHere's your link: ${link}\n\nOnce you're done, you'll download a PDF to send back to me. Let me know if you need help!`
     );
     waBtn.textContent = '📱 Share on WhatsApp';
     waBtn.onclick = () => window.open(`https://wa.me/?text=${waMsg}`, '_blank');
