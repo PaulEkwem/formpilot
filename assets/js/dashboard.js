@@ -62,7 +62,7 @@ if (!session.name) { window.location.href = 'login.html'; }
 function doLogout() {
   supa.auth.signOut().finally(() => {
     sessionStorage.removeItem('fp_user');
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
   });
 }
 
