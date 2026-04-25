@@ -122,17 +122,16 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 @media screen{#printView{display:none}}
 @media print{
   body>*:not(#printView){display:none!important}
-  #printView{display:block!important;font-family:Arial,sans-serif;padding:30px;font-size:11pt;color:#000;line-height:1.5}
-  .print-header{text-align:center;margin-bottom:24px;border-bottom:2px solid #E8470A;padding-bottom:16px}
-  .print-logo{font-size:22pt;font-weight:900;color:#E8470A}
-  .print-title{font-size:14pt;font-weight:bold;margin-top:8px}
-  .print-field{margin-bottom:14px}
-  .print-label{font-size:9pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:3px}
-  .print-value{border-bottom:1px solid #ccc;padding-bottom:4px;min-height:22px;font-size:11pt}
-  .print-multi{border-bottom:1px solid #ccc;padding-bottom:4px;min-height:55px;font-size:11pt;white-space:pre-wrap}
-  .print-section{font-weight:bold;font-size:11pt;margin:18px 0 10px;color:#E8470A;border-bottom:1px solid #E8470A;padding-bottom:4px}
-  .print-footer{margin-top:30px;font-size:8pt;color:#666;text-align:center;border-top:1px solid #ccc;padding-top:12px}
-  .print-caution{font-weight:bold;color:#991B1B;text-transform:uppercase;margin-top:8px}
+  #printView{display:block!important;font-family:Arial,sans-serif;padding:28px 32px;font-size:11pt;color:#000;line-height:1.6}
+  .pf{margin-bottom:14px}
+  .pl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:3px}
+  .pv{border-bottom:1.5px solid #aaa;padding-bottom:3px;min-height:22px;font-size:11pt}
+  .pm{border:1px solid #aaa;padding:8px 10px;min-height:70px;font-size:11pt;white-space:pre-wrap;line-height:1.7}
+  .pbox{display:inline-flex;width:26px;height:26px;border:1px solid #666;align-items:center;justify-content:center;font-size:11pt;font-weight:bold;margin-right:2px}
+  .psep{margin:0 6px;font-size:13pt;font-weight:bold}
+  .pnotes{font-size:8.5pt;color:#333;line-height:1.75;margin:0;padding-left:18px}
+  .pcaution{font-weight:bold;color:#7B1B1B;text-transform:uppercase;font-size:8pt;text-align:center;margin-top:10px}
+  .pfoot{font-size:8pt;color:#666;text-align:center;margin-top:5px}
 }
 </style>
 </head>
@@ -140,40 +139,83 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 
 <!-- Print view -->
 <div id="printView">
-  <div class="print-header">
-    <div class="print-logo">GTCO</div>
-    <div style="font-size:9pt;color:#666">Guaranty Trust Bank Ltd — RC 152321</div>
-    <div class="print-title" id="pTitle">BANKER'S REFERENCE FORM</div>
+
+  <!-- Header -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;padding-bottom:12px;border-bottom:2.5px solid #E8470A">
+    <tr>
+      <td style="font-size:10pt;line-height:2;vertical-align:top">
+        To:<br>The Manager,<br>Guaranty Trust Bank Ltd
+      </td>
+      <td style="text-align:right;vertical-align:top">
+        <div style="font-size:20pt;font-weight:900;color:#E8470A;line-height:1.1">GTCO</div>
+        <div style="font-size:8pt;color:#555">Guaranty Trust Bank Ltd</div>
+        <div style="font-size:8pt;color:#555">RC 152321</div>
+      </td>
+    </tr>
+  </table>
+
+  <p style="margin-bottom:14px">Dear Sir,</p>
+
+  <!-- INDIVIDUAL block -->
+  <div id="pIndividualBlock" style="display:none">
+    <div class="pf"><div class="pl">Name of individual opening account</div><div class="pv" id="pIndName"></div></div>
+    <p style="margin-bottom:14px">I/We have known the above-named individual for <strong id="pIndYears"></strong> year(s) and would like to comment about their suitability for maintaining a current account with yourselves as follows:</p>
   </div>
-  <p style="margin-bottom:16px">To: The Manager, Guaranty Trust Bank Ltd.<br>Dear Sir,</p>
-  <div class="print-field"><div class="print-label" id="pOpenerLabel">Name of individual opening account</div><div class="print-value" id="pOpener"></div></div>
-  <div class="print-field" id="pYearsWrap">
-    <div class="print-label" id="pYearsLabel">Known for (years)</div>
-    <div class="print-value" id="pYears"></div>
+
+  <!-- CORPORATE block -->
+  <div id="pCorporateBlock" style="display:none">
+    <div class="pf"><div class="pl">Name of Company</div><div class="pv" id="pCorpName"></div></div>
+    <p style="margin-bottom:6px">I/We would wish to confirm that I/We know the above-named Company and its Directors for <strong id="pCorpYears"></strong> year(s).</p>
+    <p style="margin-bottom:14px">I/We would like to comment about their suitability for maintaining a current account with yourselves as follows:</p>
   </div>
-  <p id="pCorpYearsSentence" style="margin-bottom:16px;display:none">I/We would wish to confirm that I know the above-named Company and its Directors for <strong id="pCorpYearsVal"></strong> year(s).</p>
-  <div class="print-field" id="pDirectorWrap"><div class="print-label">Name of Director known to referee</div><div class="print-value" id="pDirector"></div></div>
-  <div class="print-section">Suitability Comments</div>
-  <div class="print-field"><div class="print-label">I/We would like to comment about their suitability as follows:</div><div class="print-multi" id="pComments"></div></div>
-  <div class="print-section">Referee's Banking Details</div>
-  <div class="print-field"><div class="print-label">Account Type</div><div class="print-value" id="pRefAcctType"></div></div>
-  <div class="print-field" id="pRefCompanyWrap" style="display:none"><div class="print-label">Company Name</div><div class="print-value" id="pRefCompany"></div></div>
-  <div class="print-field"><div class="print-label">Name of Bank</div><div class="print-value" id="pRefBank"></div></div>
-  <div class="print-field"><div class="print-label">Bank Address</div><div class="print-value" id="pRefBankAddr"></div></div>
-  <div class="print-field"><div class="print-label">Account Number</div><div class="print-value" id="pRefAcct"></div></div>
-  <div class="print-field"><div class="print-label">Phone Number(s)</div><div class="print-value" id="pRefPhone"></div></div>
-  <div class="print-section">Referee Details</div>
-  <p style="margin-bottom:12px">Yours faithfully,</p>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
-    <div class="print-field"><div class="print-label">Signature</div><div class="print-value" style="min-height:60px;padding:4px 0"><img id="pSigImg" style="max-height:56px;max-width:180px;display:none" /></div></div>
-    <div class="print-field"><div class="print-label">Date</div><div class="print-value" id="pDate"></div></div>
+
+  <!-- Suitability comments -->
+  <div class="pf"><div class="pm" id="pComments"></div></div>
+
+  <!-- Banking details -->
+  <p style="margin:14px 0 10px;font-style:italic">I/We maintain a current account with:</p>
+  <div class="pf"><div class="pl">Name of Bank</div><div class="pv" id="pRefBank"></div></div>
+  <div class="pf"><div class="pl">Address</div><div class="pv" id="pRefBankAddr"></div></div>
+  <div class="pf">
+    <div class="pl">My/Our Account No.</div>
+    <div id="pAcctBoxes" style="display:flex;flex-wrap:wrap;gap:3px;padding-top:5px"></div>
   </div>
-  <div class="print-field"><div class="print-label">Name of Referee</div><div class="print-value" id="pRefName"></div></div>
-  <div class="print-field"><div class="print-label">Address of Referee</div><div class="print-value" id="pRefAddr"></div></div>
-  <div class="print-footer">
-    <div class="print-caution">"CAUTION — IT IS VERY DANGEROUS TO INTRODUCE A PERSON WHO IS NOT WELL-KNOWN TO YOU"</div>
-    <div style="margin-top:6px">Completed via FormPilot · formpilot-five.vercel.app · For verification: +234 803 900 4700</div>
+  <div class="pf"><div class="pl">My/Our Phone No.(s)</div><div class="pv" id="pRefPhone"></div></div>
+
+  <p style="margin:16px 0 14px">Yours faithfully,</p>
+
+  <!-- Date + Signature -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px">
+    <tr>
+      <td width="48%" style="vertical-align:top;padding-right:20px">
+        <div class="pl" style="margin-bottom:6px">Date — Day / Month / Year</div>
+        <div id="pDateBoxes" style="display:flex;align-items:center"></div>
+      </td>
+      <td width="52%" style="vertical-align:top">
+        <div class="pl" style="margin-bottom:4px">Signature</div>
+        <div style="min-height:52px;border-bottom:1.5px solid #aaa;padding-bottom:4px">
+          <img id="pSigImg" style="max-height:48px;max-width:160px;display:none" />
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="pf"><div class="pl">Name</div><div class="pv" id="pRefName"></div></div>
+  <div class="pf"><div class="pl">Address</div><div class="pv" id="pRefAddr"></div></div>
+  <div class="pf" id="pDirectorWrap" style="display:none"><div class="pl">Name of Director known to the referee</div><div class="pv" id="pDirector"></div></div>
+
+  <!-- Please note -->
+  <div style="margin-top:20px;border-top:1px solid #bbb;padding-top:12px">
+    <p style="font-size:8.5pt;font-weight:bold;margin-bottom:6px">Please note:</p>
+    <ol class="pnotes">
+      <li>Referees must be a current account holder either in GTCO or any other bank. Referees from other banks must be corporate account holders only.</li>
+      <li>Referee's account must not be less than six months old.</li>
+      <li>Salary account holder(s) are not suitable referees.</li>
+    </ol>
+    <div class="pcaution">"CAUTION" — IT IS VERY DANGEROUS TO INTRODUCE A PERSON WHO IS NOT WELL-KNOWN TO YOU</div>
+    <div class="pfoot">Completed via FormPilot · formpilot-five.vercel.app</div>
   </div>
+
 </div>
 
 <!-- Progress + Nav -->
@@ -571,39 +613,67 @@ function validateAndNext(from, to) {
 
 // ── Download ──────────────────────────────────────────────────
 async function downloadForm() {
-  document.getElementById('pTitle').textContent =
-    REF_TYPE === 'individual' ? 'BANKER\'S REFERENCE FORM — INDIVIDUAL' : 'BANKER\'S REFERENCE FORM — CORPORATE';
-  document.getElementById('pOpenerLabel').textContent =
-    REF_TYPE === 'individual' ? 'Name of individual opening account' : 'Name of company opening account';
-  document.getElementById('pOpener').textContent      = (CUSTOMER || '').toUpperCase();
-  const years = document.getElementById('yearsKnown')?.value || '';
+  const years    = (document.getElementById('yearsKnown')?.value || '').trim();
+  const comments = toSentenceCase(document.getElementById('comments').value);
+  const bank     = document.getElementById('refBank').value.toUpperCase();
+  const bankAddr = document.getElementById('refBankAddr').value.toUpperCase();
+  const acct     = document.getElementById('refAcct').value.trim();
+  const phone    = document.getElementById('refPhone').value.trim();
+  const name     = document.getElementById('refName').value.toUpperCase();
+  const addr     = document.getElementById('refAddr').value.toUpperCase();
+  const dateVal  = document.getElementById('refDate').value; // YYYY-MM-DD
+
+  // ── Individual vs Corporate blocks ────────────────────────────
   if (REF_TYPE === 'individual') {
-    document.getElementById('pYearsWrap').style.display = '';
-    document.getElementById('pYears').textContent = years;
-    document.getElementById('pCorpYearsSentence').style.display = 'none';
+    document.getElementById('pIndividualBlock').style.display = '';
+    document.getElementById('pCorporateBlock').style.display  = 'none';
+    document.getElementById('pIndName').textContent   = (CUSTOMER || '').toUpperCase();
+    document.getElementById('pIndYears').textContent  = years;
+    document.getElementById('pDirectorWrap').style.display = 'none';
   } else {
-    document.getElementById('pYearsWrap').style.display = 'none';
-    document.getElementById('pCorpYearsVal').textContent = years;
-    document.getElementById('pCorpYearsSentence').style.display = '';
+    document.getElementById('pIndividualBlock').style.display = 'none';
+    document.getElementById('pCorporateBlock').style.display  = '';
+    document.getElementById('pCorpName').textContent  = (CUSTOMER || '').toUpperCase();
+    document.getElementById('pCorpYears').textContent = years;
+    document.getElementById('pDirectorWrap').style.display = '';
+    document.getElementById('pDirector').textContent  = (DIRECTOR_NAME || '').toUpperCase();
   }
-  document.getElementById('pDirectorWrap').style.display = REF_TYPE === 'corporate'  ? '' : 'none';
-  document.getElementById('pDirector').textContent = (DIRECTOR_NAME || '').toUpperCase();
-  document.getElementById('pComments').textContent = toSentenceCase(document.getElementById('comments').value);
-  const refAcctType = document.getElementById('refAcctType').value;
-  document.getElementById('pRefAcctType').textContent = refAcctType === 'company' ? 'COMPANY / CORPORATE' : 'INDIVIDUAL';
-  document.getElementById('pRefCompany').textContent  = (document.getElementById('refCompany')?.value || '').toUpperCase();
-  document.getElementById('pRefCompanyWrap').style.display = refAcctType === 'company' ? '' : 'none';
-  document.getElementById('pRefBank').textContent     = document.getElementById('refBank').value.toUpperCase();
-  document.getElementById('pRefBankAddr').textContent = document.getElementById('refBankAddr').value.toUpperCase();
-  document.getElementById('pRefAcct').textContent     = document.getElementById('refAcct').value;
-  document.getElementById('pRefPhone').textContent    = document.getElementById('refPhone').value;
-  document.getElementById('pRefName').textContent     = document.getElementById('refName').value.toUpperCase();
-  document.getElementById('pRefAddr').textContent     = document.getElementById('refAddr').value.toUpperCase();
-  document.getElementById('pDate').textContent     = document.getElementById('refDate').value;
+
+  // ── Comments ──────────────────────────────────────────────────
+  document.getElementById('pComments').textContent = comments;
+
+  // ── Banking details ───────────────────────────────────────────
+  document.getElementById('pRefBank').textContent    = bank;
+  document.getElementById('pRefBankAddr').textContent = bankAddr;
+  document.getElementById('pRefPhone').textContent   = phone;
+
+  // Account number — render each digit in its own box (10 boxes)
+  const acctBoxes = document.getElementById('pAcctBoxes');
+  acctBoxes.innerHTML = Array.from({ length: 10 }, (_, i) =>
+    `<div class="pbox">${acct[i] || ''}</div>`
+  ).join('');
+
+  // ── Date boxes — DD / MM / YYYY ───────────────────────────────
+  const [yr, mo, dy] = dateVal ? dateVal.split('-') : ['', '', ''];
+  const box = c => `<div class="pbox">${c}</div>`;
+  const dateBoxes = document.getElementById('pDateBoxes');
+  dateBoxes.innerHTML =
+    (dy ? [...dy] : ['', '']).map(box).join('') +
+    `<span class="psep">/</span>` +
+    (mo ? [...mo] : ['', '']).map(box).join('') +
+    `<span class="psep">/</span>` +
+    (yr ? [...yr] : ['', '', '', '']).map(box).join('');
+
+  // ── Referee name + address ────────────────────────────────────
+  document.getElementById('pRefName').textContent = name;
+  document.getElementById('pRefAddr').textContent = addr;
+
+  // ── Signature ─────────────────────────────────────────────────
   const pSigImg = document.getElementById('pSigImg');
   if (REF_SIG) { pSigImg.src = REF_SIG; pSigImg.style.display = 'block'; }
   else { pSigImg.style.display = 'none'; }
 
+  // ── Mark link as used ─────────────────────────────────────────
   if (SLUG) {
     await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
   }
