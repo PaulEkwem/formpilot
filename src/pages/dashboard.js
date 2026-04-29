@@ -1,56 +1,14 @@
-// ── Form library — bank → available forms ─────────────────────
-const FORM_LIBRARY = {
-  'Access Bank': [
-    { type: 'Account Opening — Individual',      icon: '👤' },
-    { type: 'Account Opening — Business',         icon: '🏢' },
-    { type: 'KYC Update',                         icon: '🔄' },
-    { type: 'Mandate Form',                       icon: '✍️' },
-    { type: 'Change of Address',                  icon: '📍' },
-    { type: 'Indemnity Form',                     icon: '📋' },
-  ],
-  'GTBank': [
-    { type: 'Account Opening — Individual',                      icon: '👤' },
-    { type: 'Account Opening — Sole Proprietorship / Partnership', icon: '🏪' },
-    { type: 'Account Opening — Corporate',                       icon: '🏢' },
-    { type: 'Account Opening — Trustees',                        icon: '⚖️' },
-    { type: 'Account Opening — Societies',                       icon: '🤝' },
-    { type: 'Reference Form',                                    icon: '📝' },
-    { type: 'KYC Update',                                        icon: '🔄' },
-    { type: 'GAPS / Internet Banking',                           icon: '💻' },
-  ],
-  'Zenith Bank': [
-    { type: 'Account Opening — Individual',  icon: '👤' },
-    { type: 'Account Opening — Business',    icon: '🏢' },
-    { type: 'KYC Update',                    icon: '🔄' },
-    { type: 'Indemnity Form',                icon: '📋' },
-  ],
-  'First Bank': [
-    { type: 'Account Opening — Individual',  icon: '👤' },
-    { type: 'KYC Update',                    icon: '🔄' },
-    { type: 'Mandate Form',                  icon: '✍️' },
-  ],
-  'UBA': [
-    { type: 'Account Opening — Individual',  icon: '👤' },
-    { type: 'Account Opening — Business',    icon: '🏢' },
-    { type: 'KYC Update',                    icon: '🔄' },
-    { type: 'Change of Address',             icon: '📍' },
-  ],
-  'Stanbic IBTC': [
-    { type: 'Account Opening — Individual',  icon: '👤' },
-    { type: 'KYC Update',                    icon: '🔄' },
-  ],
-  'FCMB':         [],
-  'Fidelity Bank':[],
-  'Union Bank':   [],
-  'Sterling Bank':[],
-  'Polaris Bank': [],
-  'Wema Bank':    [],
-};
+// ── Form library — sourced from FP_CONSTANTS (src/config/constants.js) ──
+if (!window.FP_CONSTANTS) {
+  console.error('[dashboard] FP_CONSTANTS not loaded — check script order in dashboard.html');
+}
+const FORM_LIBRARY = (window.FP_CONSTANTS && window.FP_CONSTANTS.FORM_LIBRARY) || {};
 
-// ── Supabase ──────────────────────────────────────────────────
-const _SUPA_URL = 'https://dlpbnucipzudsrsbvodp.supabase.co';
-const _SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c';
-const supa = window.supabase.createClient(_SUPA_URL, _SUPA_KEY);
+// ── Supabase — shared client from src/config/supabase-client.js ─────────
+if (!window.fpSupa) {
+  console.error('[dashboard] fpSupa not loaded — check script order in dashboard.html');
+}
+const supa = window.fpSupa;
 
 // ── Session ───────────────────────────────────────────────────
 const session = (() => {
@@ -83,27 +41,153 @@ if (greetingEl) {
   greetingEl.textContent = `Good ${time}, ${OFFICER_NAME.split(' ')[0]} 👋`;
 }
 
-// ── Forms cache (localStorage). Sprint 3 will replace this with Supabase. ────
-// New officers see an empty state until they generate their first link.
-function loadForms() {
+// ── Forms — Supabase is source of truth, localStorage is read-through cache ───
+//
+// Flow:
+//   1. On load, render from cache instantly (offline-friendly).
+//   2. Async refreshForms() fetches from Supabase, replaces ALL_FORMS, re-renders.
+//   3. Generating a new link inserts to Supabase + appends to ALL_FORMS optimistically.
+//   4. Cache is rewritten after every successful refresh.
+
+function loadCachedForms() {
   try {
     const stored = JSON.parse(localStorage.getItem('fp_forms') || 'null');
     return Array.isArray(stored) ? stored : [];
-  } catch(e) { return []; }
+  } catch (e) { return []; }
 }
 
 function saveForms(forms) {
-  localStorage.setItem('fp_forms', JSON.stringify(forms));
+  // Write-through cache. Source of truth is Supabase.
+  try { localStorage.setItem('fp_forms', JSON.stringify(forms)); } catch (e) {}
 }
 
-let ALL_FORMS = loadForms();
+// ── Display helpers ───────────────────────────────────────────────────
+function relativeTime(ms) {
+  const diff = Date.now() - ms;
+  const min  = Math.floor(diff / 60000);
+  if (min < 1)  return 'Just now';
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24)  return hr === 1 ? '1 hour ago' : `${hr} hours ago`;
+  const d = new Date(ms);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
 
+function initialsFor(name) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '??';
+  if (parts.length === 1) return (parts[0].slice(0, 2) || '??').toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// DB row → dashboard view shape (what the existing render code expects)
+function rowToDashboard(r) {
+  const sentAt = new Date(r.created_at).getTime();
+  return {
+    sessionId: r.slug,
+    customer:  r.customer_name,
+    initials:  initialsFor(r.customer_name),
+    bank:      r.bank,
+    type:      r.form_type,
+    sent:      relativeTime(sentAt),
+    status:    r.status,
+    sentAt,
+    link:      r.link,
+    config:    r.config || {},
+  };
+}
+
+// Dashboard form row → DB insert payload (officer_id auto-set by table default)
+function dashboardToRow(form) {
+  const expiresAt = form.config && form.config.expiresAt
+    ? new Date(form.config.expiresAt).toISOString()
+    : null;
+  return {
+    slug:           form.sessionId,
+    bank:           form.bank,
+    form_type:      form.type,
+    customer_name:  form.customer,
+    customer_email: (form.config && form.config.custEmail) || null,
+    customer_phone: (form.config && form.config.custPhone) || null,
+    director_name:  (form.config && form.config.directorName) || null,
+    ref_type:       (form.config && form.config.refType) || null,
+    status:         form.status || 'pending',
+    config:         form.config || null,
+    link:           form.link || null,
+    expires_at:     expiresAt,
+  };
+}
+
+// ── State ─────────────────────────────────────────────────────────────
+let ALL_FORMS = loadCachedForms();   // start from cache for instant render
+let _formsLoaded = false;
+
+// ── Rendering ─────────────────────────────────────────────────────────
 function reloadForms() {
-  ALL_FORMS = loadForms();
   updateStatCards();
   renderAllForms(ALL_FORMS);
   renderRecentForms();
 }
+
+// ── Async fetch ───────────────────────────────────────────────────────
+async function refreshForms() {
+  if (!supa) return;
+  const { data, error } = await supa
+    .from('forms')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('[dashboard] forms fetch failed:', error.message);
+    return;
+  }
+  ALL_FORMS = (data || []).map(rowToDashboard);
+  _formsLoaded = true;
+  saveForms(ALL_FORMS);
+  reloadForms();
+}
+
+// One-time backfill: if Supabase has no forms for this officer but
+// localStorage has legacy entries, push them up.
+async function backfillIfNeeded() {
+  if (!supa) return;
+  if (localStorage.getItem('fp_forms_backfilled') === '1') return;
+
+  const cached = loadCachedForms();
+  if (!cached.length) {
+    localStorage.setItem('fp_forms_backfilled', '1');
+    return;
+  }
+
+  const { count, error: cErr } = await supa
+    .from('forms').select('*', { count: 'exact', head: true });
+  if (cErr) {
+    console.warn('[dashboard] backfill count check failed:', cErr.message);
+    return;
+  }
+  if (count && count > 0) {
+    localStorage.setItem('fp_forms_backfilled', '1');
+    return;
+  }
+
+  const rows = cached.map(dashboardToRow);
+  const { error } = await supa.from('forms').insert(rows);
+  if (error) {
+    console.warn('[dashboard] backfill insert failed:', error.message);
+    return;
+  }
+  console.log('[dashboard] backfilled', rows.length, 'forms from localStorage');
+  localStorage.setItem('fp_forms_backfilled', '1');
+}
+
+// Kick off async work after first paint. Don't block initial render.
+(async () => {
+  try {
+    await backfillIfNeeded();
+    await refreshForms();
+  } catch (e) {
+    console.error('[dashboard] init refresh failed:', e);
+  }
+})();
 
 // ── Navigation ────────────────────────────────────────────────
 const navItems    = document.querySelectorAll('.nav-item[data-view]');
@@ -393,8 +477,16 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     }).then(({ error }) => { if (error) console.error('Supabase insert:', error.message); });
 
     const initials = customer.slice(0, 2).toUpperCase();
-    ALL_FORMS.unshift({ sessionId: slug, customer, initials, bank, type: 'Reference Form', sent: 'Just now', status: 'pending', sentAt: Date.now(), link, config: { refType, customer, officer: OFFICER_NAME, bank } });
+    const newRefForm = {
+      sessionId: slug, customer, initials, bank, type: 'Reference Form',
+      sent: 'Just now', status: 'pending', sentAt: Date.now(), link,
+      config: { refType, customer, directorName: directorName || null, officer: OFFICER_NAME, bank, expiresAt }
+    };
+    ALL_FORMS.unshift(newRefForm);
     saveForms(ALL_FORMS); updateStatCards();
+    // Persist to forms table (officer's pipeline view) — RLS scopes to current user
+    supa.from('forms').insert(dashboardToRow(newRefForm))
+      .then(({ error }) => { if (error) console.error('forms insert (ref):', error.message); });
     const badge = document.querySelector('.nav-badge');
     if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
     document.getElementById('generatedLink').textContent = link;
@@ -471,6 +563,9 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   ALL_FORMS.unshift(newForm);
   saveForms(ALL_FORMS);
   updateStatCards();
+  // Persist to forms table (officer's pipeline view) — RLS scopes to current user
+  supa.from('forms').insert(dashboardToRow(newForm))
+    .then(({ error }) => { if (error) console.error('forms insert:', error.message); });
   // Update badge
   const badge = document.querySelector('.nav-badge');
   if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;

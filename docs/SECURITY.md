@@ -33,7 +33,7 @@ If you see a service_role key in client code, **rotate it immediately** in Supab
 | Table | anon SELECT | anon INSERT | anon UPDATE | authenticated |
 |---|---|---|---|---|
 | `form_access_codes` | ❌ | ✅ (officer creates) | ❌ | scoped by officer_id |
-| `forms` (planned) | ❌ | ❌ | ❌ | scoped by officer_id |
+| `forms` | ❌ | ❌ | ❌ | scoped by `officer_id = auth.uid()` (Sprint 3) |
 | `audit_log` (planned) | ❌ | via SECURITY DEFINER fn | ❌ | read own only |
 
 Verification logic that needs to read locked-down rows runs in `SECURITY DEFINER` Postgres functions (e.g. `verify_form_code`). These run with the function-owner's privileges, NOT the caller's.

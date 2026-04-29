@@ -59,3 +59,42 @@ The `anon` Supabase key is public by design — security depends entirely on RLS
 3. **Set Edge Function secrets** — `BREVO_API_KEY` and `SENDER_EMAIL` in Supabase Dashboard → Edge Functions → Secrets. Without these, the gtbank-form.html co-signatory email won't send (the link is still created — same fallback behavior as before).
 4. **(Optional) Cancel EmailJS account** — no longer used.
 5. **(Optional) Hard-refresh production** after deploy — old cached `assets/css/*.css` may 404 briefly until cache TTL expires.
+
+---
+
+## Sprint 3 — Forms persistence (2026-04-29)
+
+**What changed:**
+
+- **`supabase/migrations/003_forms_table.sql`** — new `forms` table. Schema covers Reference Form (corporate vs individual) and standard forms in one shape. `officer_id` defaults to `auth.uid()` so client INSERTs never need to pass it. RLS policies scope every operation to `officer_id = auth.uid()`. Indexed on `(officer_id, created_at desc)` for fast dashboard queries and on `slug` for direct lookups.
+- **`dashboard.html`** — now loads `src/config/{env,supabase-client,constants}.js` before `src/pages/dashboard.js`. Config is centralized; further pages (gtbank-form, gtbank-reference, gtbank-ref-customer) will adopt the same pattern in a later cleanup sprint.
+- **`src/pages/dashboard.js`**:
+  - `FORM_LIBRARY` now sourced from `window.FP_CONSTANTS.FORM_LIBRARY`. Adding a new bank no longer requires touching dashboard.js.
+  - Inline Supabase client init removed. Uses shared `window.fpSupa`.
+  - `loadForms()` → `loadCachedForms()`. localStorage is now a read-through cache, NOT source of truth.
+  - New `refreshForms()` async fetch from `forms` table; called once on init plus on manual refreshes.
+  - New `rowToDashboard()` and `dashboardToRow()` mappers.
+  - Generate Link handler (Reference + Standard paths) now ALSO inserts into `forms` table on top of the existing `form_access_codes` insert. RLS auto-scopes the row to the logged-in officer.
+  - One-time `backfillIfNeeded()` migrates any legacy localStorage rows to `forms` on first dashboard load (gated by `fp_forms_backfilled` flag).
+  - Helpers: `relativeTime()` and `initialsFor()` for view computations.
+
+**Why:**
+
+Officers were stuck on a single-device experience because their form list lived in `localStorage`. Switching browsers or clearing cache wiped their pipeline. With the new `forms` table:
+- Forms persist across devices (phone + laptop sync).
+- Foundation for analytics (completion rate, drop-off step) and audit log (Sprint 7).
+- Multi-tenancy ready: each row carries `officer_id`, so future bank-admin views can aggregate without code changes.
+
+The architectural choice to keep `forms` and `form_access_codes` separate was deliberate — different access patterns (officer-only vs anon-with-brute-force-lockout), different RLS policies, cleaner concerns.
+
+**What did NOT change:**
+
+- `gtbank-form.html`, `gtbank-reference.html`, `gtbank-ref-customer.html` still create their own Supabase clients inline. Will consolidate in a later cleanup sprint — they're working and the risk/reward to touch them now is bad.
+- Login/signup/reset-password — still untouched. Auth flow stable.
+- `form_access_codes` schema unchanged.
+
+**Action items for you (post-merge):**
+
+1. **Apply migration 003** — Supabase Dashboard → SQL Editor → paste `supabase/migrations/003_forms_table.sql` → Run.
+2. **Verify RLS** — run `SELECT * FROM pg_policies WHERE tablename = 'forms';` — should show 4 policies (`officer_select_own`, `officer_insert_own`, `officer_update_own`, `officer_delete_own`).
+3. **Test locally**: log in to dashboard. If you had any forms in localStorage, they backfill silently on first load (check console for "backfilled N forms"). Generate a new link → verify it appears in the table → reload page → verify it's still there (proof it came from Supabase, not cache).
