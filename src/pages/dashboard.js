@@ -417,7 +417,7 @@ function renderFormCards() {
     const safeIcon = (f.icon || 'file-text').replace(/'/g, "\\'");
     return `
       <div class="form-card${ready ? '' : ' coming-soon'}" onclick="${ready ? `openSendModal('${safeType}','${safeIcon}')` : ''}">
-        <span class="form-card-icon"><i data-lucide="${safeIcon}"></i></span>
+        <span class="form-card-icon" data-icon="${safeIcon}"><i data-lucide="${safeIcon}"></i></span>
         <div class="form-card-name">${f.type}</div>
         <div class="form-card-meta">${OFFICER_BANK}</div>
         <span class="form-card-badge${ready ? '' : ' coming'}">${ready ? 'Ready' : 'Coming soon'}</span>
@@ -432,6 +432,7 @@ function openSendModal(formType, icon) {
 
   const iconEl = document.getElementById('modalFormIcon');
   if (window.fpIcons && iconEl) {
+    iconEl.setAttribute('data-icon', icon || 'file-text');
     iconEl.innerHTML = window.fpIcons.icon(icon || 'file-text');
     window.fpIcons.refresh();
   } else if (iconEl) {
