@@ -1,0 +1,131 @@
+/* ─────────────────────────────────────────────────────────────────────
+   FormPilot — Design Tokens
+   ─────────────────────────────────────────────────────────────────────
+   Single source of truth for color, spacing, type, radius, shadow.
+   Every component should consume tokens, never hard-coded values.
+
+   Naming: --fp-<category>-<scale>
+   ──────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Color: brand (GTBank orange — premium, warm) ─────────────── */
+  --fp-orange-50:  #FFF6F1;
+  --fp-orange-100: #FFE6D8;
+  --fp-orange-200: #FFC7AB;
+  --fp-orange-300: #FFA078;
+  --fp-orange-400: #FB7641;
+  --fp-orange-500: #E8470A;   /* primary brand */
+  --fp-orange-600: #C73A07;
+  --fp-orange-700: #9E2D04;
+  --fp-orange-800: #6F2003;
+  --fp-orange-900: #421302;
+
+  /* ── Color: neutral (warm-tinted, not cold gray) ─────────────── */
+  --fp-ink-50:  #FAFAF8;
+  --fp-ink-100: #F4F2EE;
+  --fp-ink-200: #EAE5DF;
+  --fp-ink-300: #D6CEC4;
+  --fp-ink-400: #A89E92;
+  --fp-ink-500: #7A6E64;       /* muted body text */
+  --fp-ink-600: #574E45;
+  --fp-ink-700: #3D362F;
+  --fp-ink-800: #2D2416;       /* primary body text */
+  --fp-ink-900: #1A1208;       /* heading */
+
+  /* ── Color: semantic ─────────────────────────────────────────── */
+  --fp-success-50:  #EBF7F0;
+  --fp-success-500: #1A6B3A;
+  --fp-success-700: #0F4D28;
+
+  --fp-danger-50:  #FFF0F0;
+  --fp-danger-500: #C0392B;
+  --fp-danger-700: #8A2920;
+
+  --fp-warning-50:  #FFF8E1;
+  --fp-warning-500: #B07D14;
+
+  --fp-info-50:  #EBF2FA;
+  --fp-info-500: #1E5DAB;
+
+  /* ── Backgrounds ────────────────────────────────────────────── */
+  --fp-bg:       #FFFFFF;
+  --fp-bg-soft:  #FAFAF8;
+  --fp-bg-muted: #F4F2EE;
+
+  /* ── Borders ────────────────────────────────────────────────── */
+  --fp-border:        #EAE5DF;
+  --fp-border-strong: #D6CEC4;
+  --fp-border-focus:  var(--fp-orange-500);
+
+  /* ── Typography ─────────────────────────────────────────────── */
+  --fp-font-serif: 'DM Serif Display', Georgia, serif;
+  --fp-font-sans:  'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fp-font-mono:  ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --fp-text-xs:   12px;
+  --fp-text-sm:   13px;
+  --fp-text-base: 15px;
+  --fp-text-md:   17px;
+  --fp-text-lg:   20px;
+  --fp-text-xl:   24px;
+  --fp-text-2xl:  30px;
+  --fp-text-3xl:  38px;
+  --fp-text-4xl:  48px;
+
+  --fp-leading-tight:  1.2;
+  --fp-leading-snug:   1.4;
+  --fp-leading-normal: 1.55;
+  --fp-leading-relaxed:1.7;
+
+  --fp-tracking-tight:  -0.02em;
+  --fp-tracking-normal: 0;
+  --fp-tracking-wide:   0.06em;
+
+  --fp-weight-normal:   400;
+  --fp-weight-medium:   500;
+  --fp-weight-semibold: 600;
+  --fp-weight-bold:     700;
+
+  /* ── Spacing scale (4-pt base) ─────────────────────────────── */
+  --fp-space-0:  0;
+  --fp-space-1:  4px;
+  --fp-space-2:  8px;
+  --fp-space-3:  12px;
+  --fp-space-4:  16px;
+  --fp-space-5:  20px;
+  --fp-space-6:  24px;
+  --fp-space-8:  32px;
+  --fp-space-10: 40px;
+  --fp-space-12: 48px;
+  --fp-space-16: 64px;
+  --fp-space-20: 80px;
+
+  /* ── Radius ────────────────────────────────────────────────── */
+  --fp-radius-sm:   6px;
+  --fp-radius-md:   10px;
+  --fp-radius-lg:   14px;
+  --fp-radius-xl:   20px;
+  --fp-radius-2xl:  28px;
+  --fp-radius-full: 9999px;
+
+  /* ── Shadow (subtle, premium feel — not Material flat) ────── */
+  --fp-shadow-xs: 0 1px 2px 0 rgb(26 18 8 / 0.05);
+  --fp-shadow-sm: 0 2px 6px -1px rgb(26 18 8 / 0.08), 0 1px 2px -1px rgb(26 18 8 / 0.06);
+  --fp-shadow-md: 0 6px 16px -4px rgb(26 18 8 / 0.1), 0 2px 4px -2px rgb(26 18 8 / 0.06);
+  --fp-shadow-lg: 0 14px 32px -8px rgb(26 18 8 / 0.12), 0 4px 8px -4px rgb(26 18 8 / 0.08);
+  --fp-shadow-xl: 0 24px 60px -16px rgb(26 18 8 / 0.18), 0 8px 16px -8px rgb(26 18 8 / 0.1);
+
+  /* ── Z-index ───────────────────────────────────────────────── */
+  --fp-z-dropdown: 100;
+  --fp-z-sticky:   200;
+  --fp-z-overlay:  300;
+  --fp-z-modal:    400;
+  --fp-z-toast:    500;
+
+  /* ── Motion ────────────────────────────────────────────────── */
+  --fp-ease:       cubic-bezier(.4, 0, .2, 1);
+  --fp-ease-out:   cubic-bezier(0, 0, .2, 1);
+  --fp-duration-fast: 150ms;
+  --fp-duration-base: 220ms;
+  --fp-duration-slow: 380ms;
+}

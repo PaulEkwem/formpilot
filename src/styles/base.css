@@ -1,0 +1,93 @@
+/* ─────────────────────────────────────────────────────────────────────
+   FormPilot — Base styles (reset + typography)
+   ─────────────────────────────────────────────────────────────────────
+   Loaded after tokens.css. Sets app-wide defaults.
+   Page-specific styles in src/styles/pages/*.css override these.
+   ──────────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--fp-font-sans);
+  font-size: var(--fp-text-base);
+  line-height: var(--fp-leading-normal);
+  color: var(--fp-ink-800);
+  background: var(--fp-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Headings: serif for editorial / premium feel ────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--fp-font-serif);
+  color: var(--fp-ink-900);
+  line-height: var(--fp-leading-tight);
+  letter-spacing: var(--fp-tracking-tight);
+  font-weight: var(--fp-weight-normal);
+}
+
+h1 { font-size: var(--fp-text-4xl); }
+h2 { font-size: var(--fp-text-3xl); }
+h3 { font-size: var(--fp-text-2xl); }
+h4 { font-size: var(--fp-text-xl); }
+h5 { font-size: var(--fp-text-lg); }
+h6 { font-size: var(--fp-text-md); }
+
+/* ── Links ─────────────────────────────────────────────────────── */
+a {
+  color: var(--fp-orange-500);
+  text-decoration: none;
+  transition: color var(--fp-duration-fast) var(--fp-ease);
+}
+a:hover { color: var(--fp-orange-600); }
+
+/* ── Lists ─────────────────────────────────────────────────────── */
+ul, ol { list-style: none; }
+
+/* ── Form controls (consistent base) ───────────────────────────── */
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; background: none; border: none; }
+
+img, svg, video, canvas { display: block; max-width: 100%; }
+
+/* ── Focus: visible, accessible, on-brand ──────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--fp-orange-500);
+  outline-offset: 2px;
+  border-radius: var(--fp-radius-sm);
+}
+
+/* ── Selection ─────────────────────────────────────────────────── */
+::selection {
+  background: var(--fp-orange-200);
+  color: var(--fp-ink-900);
+}
+
+/* ── Lucide icon defaults ──────────────────────────────────────── */
+[data-lucide] {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

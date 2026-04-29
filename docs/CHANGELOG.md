@@ -98,3 +98,35 @@ The architectural choice to keep `forms` and `form_access_codes` separate was de
 1. **Apply migration 003** — Supabase Dashboard → SQL Editor → paste `supabase/migrations/003_forms_table.sql` → Run.
 2. **Verify RLS** — run `SELECT * FROM pg_policies WHERE tablename = 'forms';` — should show 4 policies (`officer_select_own`, `officer_insert_own`, `officer_update_own`, `officer_delete_own`).
 3. **Test locally**: log in to dashboard. If you had any forms in localStorage, they backfill silently on first load (check console for "backfilled N forms"). Generate a new link → verify it appears in the table → reload page → verify it's still there (proof it came from Supabase, not cache).
+
+---
+
+## Sprint 4 — Design system foundation (2026-04-29)
+
+**What changed:**
+
+- **`src/styles/tokens.css`** — design tokens: warm-tinted neutrals, GTBank orange palette (50–900), 4-pt spacing scale, premium shadow ladder (xs→xl with realistic light source), radius scale, motion timings, z-index layers. Single source of truth — every page-level CSS should consume `var(--fp-*)` instead of hard-coded values.
+- **`src/styles/base.css`** — reset, typography defaults (DM Serif Display for headings, DM Sans for body), accessible focus states, `prefers-reduced-motion` support, sensible Lucide defaults.
+- **`src/styles/components.css`** — `.fp-btn` (primary/secondary/ghost/danger, sm/lg sizes), `.fp-input/select/textarea` with focus rings, `.fp-card` with hover lift, `.fp-badge` (semantic variants), `.fp-empty` empty-state pattern, `.fp-skeleton` shimmer loader, `.fp-toast`. Class prefix `fp-` to avoid collisions with existing page CSS during incremental migration.
+- **`src/lib/icons.js`** — Lucide helper. `window.fpIcons.icon(name, attrs)` returns inline `<i data-lucide>` markup; `window.fpIcons.refresh()` re-scans the DOM after mutations. Auto-runs on DOMContentLoaded.
+- **`dashboard.html`** — loads tokens/base/components CSS, Lucide CDN (jsdelivr 0.453.0), DM Sans + DM Serif fonts (added alongside Inter for now during incremental migration), and `src/lib/icons.js`.
+- **`dashboard.js`**:
+  - **Bug fix:** form-card icons rendered the literal string "user", "building" etc. as text after Sprint 3 wired up FP_CONSTANTS (which uses Lucide names, not emojis). Now renders `<i data-lucide="${icon}">` and calls `fpIcons.refresh()` after innerHTML mutation.
+  - **Modal icon** also switched from `textContent = "user"` to inline SVG via `fpIcons.icon()`.
+  - **`READY_FORMS`** now sourced from `FP_CONSTANTS.READY_FORMS` instead of inline duplicate.
+  - **Empty states** added to `renderRecentForms()` and `renderAllForms()` — uses `.fp-empty` component with Lucide icon + helpful copy. Differentiates "no forms yet" (new officer) from "no matches" (filter active) and shows skeleton-ish "Loading…" state until first DB fetch completes.
+
+**Why:**
+
+Tokens and components are scaffolding for everything that follows. Sprint 5 (UX polish) will refactor existing pages to consume them. Doing the foundation in its own commit means each later sprint can be small, focused, and reviewable. Fixing the icon regression here (rather than in a separate hotfix commit) keeps the changelog honest — that bug only existed because Sprint 1 anticipated this sprint.
+
+**What did NOT change:**
+
+- Existing `src/styles/pages/dashboard.css` and `landing.css` are untouched. They continue to use their own variables (`--gt-orange`, `--muted`, etc.). Migration to tokens is opt-in per page in later sprints.
+- Sidebar nav SVG icons in `dashboard.html` — they work fine as inline SVGs. Could swap to Lucide later but no urgency.
+- All other HTML pages — Lucide and tokens roll out per-page in upcoming sprints.
+
+**Action items for you:**
+
+1. **Hard-refresh** dashboard after deploy (Ctrl+Shift+R) — fresh CSS files won't be cached.
+2. Visual smoke test: log in → "Send form" tab → verify form cards show real icons (not the word "user"). Click a Ready card → modal also shows the icon. "My forms" tab on a fresh login → see the new empty state with the inbox icon.

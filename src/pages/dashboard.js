@@ -252,6 +252,18 @@ function renderRecentForms() {
   const tbody = document.querySelector('#view-overview .forms-table tbody');
   if (!tbody) return;
   const recent = ALL_FORMS.slice(0, 5);
+  if (!recent.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="6" style="padding:0">
+        <div class="fp-empty">
+          <div class="fp-empty-icon"><i data-lucide="inbox"></i></div>
+          <h3>No forms yet</h3>
+          <p>Generate your first link from the <strong>Send form</strong> tab — your customer fills it on any device and you'll see it appear here.</p>
+        </div>
+      </td></tr>`;
+    if (window.fpIcons) window.fpIcons.refresh();
+    return;
+  }
   tbody.innerHTML = recent.map(row => formRow(row)).join('');
 }
 
@@ -288,7 +300,15 @@ function renderAllForms(data) {
   const tbody = document.getElementById('allFormsBody');
   if (!tbody) return;
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--muted)">No forms found.</td></tr>`;
+    tbody.innerHTML = `
+      <tr><td colspan="6" style="padding:0">
+        <div class="fp-empty">
+          <div class="fp-empty-icon"><i data-lucide="folder-search"></i></div>
+          <h3>${_formsLoaded ? 'No forms match your filters' : 'Loading your forms…'}</h3>
+          <p>${_formsLoaded ? 'Try clearing the search or filter to see all forms.' : 'Hang tight — we\'re fetching your latest pipeline.'}</p>
+        </div>
+      </td></tr>`;
+    if (window.fpIcons) window.fpIcons.refresh();
     return;
   }
   tbody.innerHTML = data.map(row => formRow(row)).join('');
@@ -340,10 +360,7 @@ function buildLink(config) {
 }
 
 // ── Form card gallery ─────────────────────────────────────────
-const READY_FORMS = new Set([
-  'GTBank|Account Opening — Sole Proprietorship / Partnership',
-  'GTBank|Reference Form',
-]);
+const READY_FORMS = (window.FP_CONSTANTS && window.FP_CONSTANTS.READY_FORMS) || new Set();
 let _selectedFormType = '';
 let _selectedFormIcon = '';
 
@@ -366,22 +383,29 @@ function renderFormCards() {
     const key     = `${OFFICER_BANK}|${f.type}`;
     const ready   = READY_FORMS.has(key);
     const safeType = f.type.replace(/'/g, "\\'");
-    const safeIcon = f.icon.replace(/'/g, "\\'");
+    const safeIcon = (f.icon || 'file-text').replace(/'/g, "\\'");
     return `
       <div class="form-card${ready ? '' : ' coming-soon'}" onclick="${ready ? `openSendModal('${safeType}','${safeIcon}')` : ''}">
-        <span class="form-card-icon">${f.icon}</span>
+        <span class="form-card-icon"><i data-lucide="${safeIcon}"></i></span>
         <div class="form-card-name">${f.type}</div>
         <div class="form-card-meta">${OFFICER_BANK}</div>
         <span class="form-card-badge${ready ? '' : ' coming'}">${ready ? 'Ready' : 'Coming soon'}</span>
       </div>`;
   }).join('');
+  if (window.fpIcons) window.fpIcons.refresh();
 }
 
 function openSendModal(formType, icon) {
   _selectedFormType = formType;
   _selectedFormIcon = icon;
 
-  document.getElementById('modalFormIcon').textContent = icon;
+  const iconEl = document.getElementById('modalFormIcon');
+  if (window.fpIcons && iconEl) {
+    iconEl.innerHTML = window.fpIcons.icon(icon || 'file-text');
+    window.fpIcons.refresh();
+  } else if (iconEl) {
+    iconEl.textContent = icon;
+  }
   document.getElementById('modalFormName').textContent = formType;
   document.getElementById('modalBankName').textContent = OFFICER_BANK;
 
