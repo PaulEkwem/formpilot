@@ -83,33 +83,19 @@ if (greetingEl) {
   greetingEl.textContent = `Good ${time}, ${OFFICER_NAME.split(' ')[0]} 👋`;
 }
 
-// ── Seed forms from localStorage or use defaults ──────────────
-const DEFAULT_FORMS = [
-  { sessionId:'s001', customer:'Kemi Adeyemi',    initials:'KA', bank:'Access Bank', type:'Account Opening',   sent:'Today, 9:14 am',        status:'pending',  sentAt: Date.now() - 1000*60*30 },
-  { sessionId:'s002', customer:'Tunde Olawale',   initials:'TO', bank:'GTBank',      type:'KYC Update',         sent:'Yesterday, 3:40 pm',    status:'complete', sentAt: Date.now() - 1000*60*60*20 },
-  { sessionId:'s003', customer:'Chidinma Ibe',    initials:'CI', bank:'Zenith Bank', type:'Account Opening',   sent:'Yesterday, 11:02 am',   status:'complete', sentAt: Date.now() - 1000*60*60*23 },
-  { sessionId:'s004', customer:'Bello Musa',      initials:'BM', bank:'First Bank',  type:'Mandate Form',       sent:'28 Mar, 2:15 pm',       status:'expired',  sentAt: Date.now() - 1000*60*60*48 },
-  { sessionId:'s005', customer:'Fatima Okoro',    initials:'FO', bank:'Access Bank', type:'Account Opening',   sent:'27 Mar, 10:50 am',      status:'pending',  sentAt: Date.now() - 1000*60*60*56 },
-  { sessionId:'s006', customer:'Emeka Nwosu',     initials:'EN', bank:'UBA',         type:'KYC Update',         sent:'26 Mar, 4:05 pm',       status:'complete', sentAt: Date.now() - 1000*60*60*72 },
-  { sessionId:'s007', customer:'Sade Balogun',    initials:'SB', bank:'GTBank',      type:'Account Opening',   sent:'25 Mar, 1:30 pm',       status:'complete', sentAt: Date.now() - 1000*60*60*80 },
-  { sessionId:'s008', customer:'Ibrahim Lawal',   initials:'IL', bank:'Zenith Bank', type:'Change of Address', sent:'24 Mar, 9:00 am',       status:'expired',  sentAt: Date.now() - 1000*60*60*96 },
-  { sessionId:'s009', customer:'Ngozi Eze',       initials:'NE', bank:'Access Bank', type:'Indemnity Form',    sent:'23 Mar, 11:45 am',      status:'complete', sentAt: Date.now() - 1000*60*60*110 },
-  { sessionId:'s010', customer:'Yusuf Abdullahi', initials:'YA', bank:'First Bank',  type:'Account Opening',   sent:'22 Mar, 2:20 pm',       status:'pending',  sentAt: Date.now() - 1000*60*60*125 },
-];
-
+// ── Forms cache (localStorage). Sprint 3 will replace this with Supabase. ────
+// New officers see an empty state until they generate their first link.
 function loadForms() {
   try {
     const stored = JSON.parse(localStorage.getItem('fp_forms') || 'null');
-    return stored || DEFAULT_FORMS;
-  } catch(e) { return DEFAULT_FORMS; }
+    return Array.isArray(stored) ? stored : [];
+  } catch(e) { return []; }
 }
 
 function saveForms(forms) {
   localStorage.setItem('fp_forms', JSON.stringify(forms));
 }
 
-// Init store with defaults if empty
-if (!localStorage.getItem('fp_forms')) saveForms(DEFAULT_FORMS);
 let ALL_FORMS = loadForms();
 
 function reloadForms() {
@@ -358,7 +344,13 @@ let lastGeneratedSessionId = '';
 let lastGeneratedCustomer = '';
 let lastGeneratedBank = '';
 
+// Idempotency guard — prevents double-clicks creating duplicate slugs.
+let _generating = false;
+
 document.getElementById('modalGenerateBtn').addEventListener('click', function () {
+  if (_generating) return;
+  _generating = true;
+  this.disabled = true;
   try {
 
   const bank     = OFFICER_BANK;
@@ -510,6 +502,9 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   } catch(err) {
     console.error('Generate link error:', err);
     showToast('Error generating link — check console (F12) for details');
+  } finally {
+    _generating = false;
+    this.disabled = false;
   }
 });
 

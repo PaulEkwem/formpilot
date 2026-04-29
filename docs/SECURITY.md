@@ -40,11 +40,20 @@ Verification logic that needs to read locked-down rows runs in `SECURITY DEFINER
 
 ## Browser-side defenses
 
-- **CSP header** (Sprint 2) — strict allowlist for scripts from CDN domains we use
-- **SRI** — `integrity="sha384-…"` on every external `<script>` and `<link>`
-- **Permissions-Policy** — camera, mic, geolocation, payment all disabled (already in `vercel.json`)
-- **X-Frame-Options: DENY** — clickjacking protection (already)
-- **Referrer-Policy: no-referrer** — don't leak URLs (already)
+| Header | Value | Purpose |
+|---|---|---|
+| `Content-Security-Policy` | strict allowlist (see vercel.json) | Stops injected scripts from loading or beaconing |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains; preload` | Forces HTTPS for 1 year |
+| `X-Frame-Options` | `DENY` | Clickjacking protection |
+| `X-Content-Type-Options` | `nosniff` | MIME-type confusion attacks |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Don't leak URL params cross-origin |
+| `Permissions-Policy` | camera, mic, geolocation, payment, usb, FLoC all disabled | Reduce attack surface |
+| `Cross-Origin-Opener-Policy` | `same-origin` | Spectre / cross-tab isolation |
+| `Cross-Origin-Resource-Policy` | `same-origin` | Restrict who can embed our resources |
+
+**SRI (Subresource Integrity)** — every external `<script src>` carries an `integrity="sha384-…"` hash + `crossorigin="anonymous"`. If a CDN is compromised and serves modified bytes, the browser refuses to execute. Verified Sprint 2 — all CDN scripts in active HTML files have SRI.
+
+**CSP allowlist** (production): scripts from `js-de.sentry-cdn.com`, `*.sentry.io`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`. Anything else is blocked.
 
 ## Brute-force protection
 

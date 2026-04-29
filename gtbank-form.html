@@ -10,8 +10,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" integrity="sha384-SALc35EccAf6RzGw4iNsyj7kTPr33K7RoGzYu+7heZhT8s0GZouafRiCg1qy44AS" crossorigin="anonymous"></script>
-<script>emailjs.init('QK8T4uVIZyC-K8OsU');</script>
+<script src="src/config/env.js"></script>
+<script src="src/lib/email.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -2770,20 +2770,16 @@ async function confirmSendLink(){
   const base=window.location.href.split('?')[0];
   const link=`${base}?role=s2&session=${sessionId}`;
 
-  // Send via EmailJS
-  try{
-    await emailjs.send('service_vancprr','template_oeqmbz5',{
-      to_email: email,
-      customer_name: n,
-      officer_name: CFG_OFFICER||'Your account officer',
-      bank: 'GTBank',
-      form_link: link,
-      access_code: sessionId.slice(0,8).toUpperCase(),
-      note: `Please fill your signatory details for ${FD.bizName||'the business account'} opening.`,
-      expiry: '7 days',
-    });
-  }catch(e){
-    console.warn('EmailJS error (link still created):',e);
+  // Send via Supabase Edge Function (Brevo)
+  const officerName = CFG_OFFICER || 'Your account officer';
+  const bizName = FD.bizName || 'the business account';
+  const accessCode = sessionId.slice(0,8).toUpperCase();
+  const subject = `${officerName} has invited you to sign a GTBank account opening form`;
+  const text = `Hi ${n},\n\n${officerName} has set up a GTBank business account opening for ${bizName} and asked you to fill in your signatory details.\n\nOpen this link on any device — it auto-saves as you go:\n${link}\n\nAccess code (if asked): ${accessCode}\nLink expires in 7 days.\n\n— FormPilot`;
+  const html = `<p>Hi ${n},</p><p><strong>${officerName}</strong> has set up a GTBank business account opening for <strong>${bizName}</strong> and asked you to fill in your signatory details.</p><p>Open this link on any device — it auto-saves as you go:<br><a href="${link}">${link}</a></p><p>Access code (if asked): <code>${accessCode}</code><br>Link expires in 7 days.</p><p style="color:#888;font-size:12px">— FormPilot</p>`;
+  const result = await window.fpEmail.send({ to: email, subject, text, html });
+  if (!result.ok) {
+    console.warn('Email send failed (link still created):', result.error);
   }
 
   // Show success UI
