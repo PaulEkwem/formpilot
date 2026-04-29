@@ -34,7 +34,8 @@ If you see a service_role key in client code, **rotate it immediately** in Supab
 |---|---|---|---|---|
 | `form_access_codes` | ❌ | ✅ (officer creates) | ❌ | scoped by officer_id |
 | `forms` | ❌ | ❌ | ❌ | scoped by `officer_id = auth.uid()` (Sprint 3) |
-| `audit_log` (planned) | ❌ | via SECURITY DEFINER fn | ❌ | read own only |
+| `audit_log` | ❌ | via `log_audit()` SECURITY DEFINER fn only | ❌ | officer reads own only (Sprint 7) |
+| `deletion_requests` | ❌ | ✅ (anon + auth) | ❌ | service role only (Sprint 7) |
 
 Verification logic that needs to read locked-down rows runs in `SECURITY DEFINER` Postgres functions (e.g. `verify_form_code`). These run with the function-owner's privileges, NOT the caller's.
 
@@ -61,18 +62,38 @@ Verification logic that needs to read locked-down rows runs in `SECURITY DEFINER
 
 ## Compliance posture
 
-| Regulation | Status | Sprint |
+| Regulation | Status | Notes |
 |---|---|---|
-| NDPR (Nigeria Data Protection Regulation) | Not yet compliant — generic privacy policy | Sprint 7 |
-| NDPA 2023 (Nigeria Data Protection Act) | Same as above | Sprint 7 |
+| NDPR (Nigeria Data Protection Regulation) | Partial — infra in place, legal text pending | Audit log + deletion queue shipped Sprint 7. Privacy.html review pending. |
+| NDPA 2023 (Nigeria Data Protection Act) | Partial — same as NDPR | Erasure right (§38) infrastructure in `deletion_requests`. |
 | PCI-DSS | Out of scope (we never touch card data) | — |
-| GDPR | Customers are Nigerian; minimal applicability | — |
+| GDPR | Customers are Nigerian; minimal applicability | Architecture already privacy-friendly: customer data stays on device. |
 
-NDPR essentials we still need:
-- Explicit consent checkboxes (not bundled into ToS)
-- Data subject access request flow
-- Data retention policy (when does form metadata get purged?)
-- Breach notification process
+**NDPR/NDPA infrastructure we have (Sprint 7):**
+
+- ✅ Audit trail: `audit_log` table records every officer action (login, form generated, link copied, resent, logout). Append-only via `log_audit()` SECURITY DEFINER function — officers cannot tamper with their own log.
+- ✅ Erasure right queue: `deletion_requests` table accepts requests from anyone (anon or authenticated). Backed by 30-day SLA per NDPA §38.
+- ✅ Data minimization: customer form data never leaves their device. Only metadata (slug, name, status) hits Supabase.
+- ✅ Brute-force protection: lockout via `verify_form_code()`.
+
+**Still needed (later sprint):**
+
+- Privacy policy review for NDPR-compliant language (consent, lawful basis, retention, rights enumeration). `privacy.html` exists with reasonable structure but content needs lawyer review.
+- Explicit consent checkbox separated from ToS in `signup.html` (currently bundled — fine while we have no marketing emails, but cleaner separation is best practice).
+- Automated retention purge (delete `forms` rows older than X months unless completed).
+- Breach notification runbook (who calls who within 72 hours).
+
+## Audit log — what gets recorded
+
+| Action | Resource | Metadata fields |
+|---|---|---|
+| `auth.logout` | — | — |
+| `dashboard.loaded` | — | — |
+| `form.generated` | `form` (slug) | bank, form_type, ref_type?, expiry_hours |
+| `form.copied` | `form` (slug) | — |
+| `form.resent` | `form` (slug) | bank, form_type |
+
+Officers can SELECT their own audit rows (for transparency to themselves as data subjects). Admin/support reviews via service role.
 
 ## Reporting
 

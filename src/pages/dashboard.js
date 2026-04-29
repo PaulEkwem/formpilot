@@ -19,10 +19,17 @@ const session = (() => {
 if (!session.name) { window.location.href = 'login.html'; }
 
 function doLogout() {
+  if (window.fpAudit) window.fpAudit.log('auth.logout');
   supa.auth.signOut().finally(() => {
     sessionStorage.removeItem('fp_user');
     window.location.href = 'login.html';
   });
+}
+
+// Log dashboard load (first auth event since login). Fire-and-forget.
+if (window.fpAudit) {
+  // Wait a tick so fpAudit / fpSupa are fully initialized.
+  setTimeout(() => window.fpAudit.log('dashboard.loaded'), 50);
 }
 
 const OFFICER_NAME  = session.name  || '';
@@ -535,6 +542,11 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     // Persist to forms table (officer's pipeline view) — RLS scopes to current user
     supa.from('forms').insert(dashboardToRow(newRefForm))
       .then(({ error }) => { if (error) console.error('forms insert (ref):', error.message); });
+    // Audit
+    if (window.fpAudit) window.fpAudit.log('form.generated', {
+      resource_type: 'form', resource_id: slug,
+      metadata: { bank, form_type: 'Reference Form', ref_type: refType, expiry_hours: expiryHours }
+    });
     const badge = document.querySelector('.nav-badge');
     if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
     document.getElementById('generatedLink').textContent = link;
@@ -614,6 +626,11 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   // Persist to forms table (officer's pipeline view) — RLS scopes to current user
   supa.from('forms').insert(dashboardToRow(newForm))
     .then(({ error }) => { if (error) console.error('forms insert:', error.message); });
+  // Audit
+  if (window.fpAudit) window.fpAudit.log('form.generated', {
+    resource_type: 'form', resource_id: sessionId,
+    metadata: { bank, form_type: formType, expiry_hours: expiryHours }
+  });
   // Update badge
   const badge = document.querySelector('.nav-badge');
   if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
@@ -820,6 +837,9 @@ function copyFormLink(sessionId) {
   navigator.clipboard.writeText(form.link).then(() => {
     showToast('Link copied to clipboard');
   }).catch(() => prompt('Copy this link:', form.link));
+  if (window.fpAudit) window.fpAudit.log('form.copied', {
+    resource_type: 'form', resource_id: sessionId
+  });
 }
 
 async function resendForm(sessionId) {
@@ -848,6 +868,10 @@ async function resendForm(sessionId) {
       .eq('slug', sessionId);
     if (error) console.warn('forms resend update:', error.message);
   }
+  if (window.fpAudit) window.fpAudit.log('form.resent', {
+    resource_type: 'form', resource_id: sessionId,
+    metadata: { bank: form.bank, form_type: form.type }
+  });
   showToast(`Link refreshed for ${form.customer}`);
 }
 

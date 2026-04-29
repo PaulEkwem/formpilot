@@ -215,3 +215,46 @@ Once those 5 questions are answered, the actual `index.html` rebuild is ~2 hours
 **Action item for you:**
 
 Read `docs/landing-copy-draft.md`. Tell me which hero you want and answer the 5 questions at the bottom. Then I rebuild.
+
+---
+
+## Sprint 7 — NDPR audit log + deletion queue (2026-04-29)
+
+**What changed:**
+
+- **`supabase/migrations/004_audit_log.sql`**:
+  - `audit_log` table — append-only by RLS absence (no UPDATE/DELETE policy). Officers SELECT their own only. INSERTs only via `log_audit()` SECURITY DEFINER function which auto-injects `officer_id = auth.uid()` — caller cannot spoof attribution.
+  - `deletion_requests` table — accepts INSERTs from anon + authenticated (data subject erasure right per NDPA §38). No SELECT/UPDATE/DELETE for clients; service role handles via Supabase Studio.
+  - Two indexes on each table (officer+created, action+created, status+requested, email).
+- **`src/lib/audit.js`** — `window.fpAudit.log(action, opts)` wraps the RPC call. Fire-and-forget; never throws. Documents the action vocabulary.
+- **`dashboard.html`** — loads `src/lib/audit.js`.
+- **`src/pages/dashboard.js`** — wires audit calls into:
+  - Page load (`dashboard.loaded`)
+  - Logout (`auth.logout`)
+  - Standard form generated (`form.generated` + bank/type/expiry metadata)
+  - Reference form generated (`form.generated` + ref_type)
+  - Resend (`form.resent`)
+  - Copy link (`form.copied`)
+- **`docs/SECURITY.md`** — RLS map updated with new tables; compliance posture rewritten to reflect what's now in place vs still needed.
+
+**Why:**
+
+NDPR/NDPA compliance is half infrastructure, half legal text. This sprint nails the infrastructure half:
+- Accountability principle (NDPR §2.1(1)(g)) → audit trail records who did what when.
+- Erasure right (NDPA §38) → standardized intake queue with 30-day SLA.
+- Anti-tampering → SECURITY DEFINER function means officers can't fake their own log entries.
+
+The legal text half (privacy.html review for NDPR-compliant consent/retention/rights language) is genuinely a lawyer-review task, not an engineering task. Deferring rather than improvising bad legal copy.
+
+**What did NOT change:**
+
+- `privacy.html` content — needs a Nigerian-law-aware lawyer review. Shipped with structure intact for that review to happen against.
+- `signup.html` — still bundles ToS + Privacy in one checkbox. Fine for now (no marketing emails), best to split when we add marketing comms.
+- Customer-side tracking — `gtbank-form.html` etc. don't fire audit events. Audit is officer-actions-only for now (don't track customer behavior — privacy stance).
+- Automated retention purge — defer until we have real volume + a defensible retention period (likely 12 months from completion).
+
+**Action items for you:**
+
+1. **Apply migration 004** — Supabase Dashboard → SQL Editor → paste `supabase/migrations/004_audit_log.sql` → Run. Verify with `SELECT log_audit('test.event'); SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 1;` — should return one row attributed to your user.
+2. **Test audit flow** — log in to dashboard → check Supabase Studio → Table Editor → `audit_log` → should see `dashboard.loaded` event. Generate a link → see `form.generated`. Copy → `form.copied`. Resend → `form.resent`. Logout → `auth.logout`.
+3. **Privacy.html lawyer review** — when ready for launch, pass the existing privacy.html through a Nigerian data-privacy lawyer to validate NDPR/NDPA compliance.
