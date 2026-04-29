@@ -191,3 +191,27 @@ The 6 smoke tests verify the basic skeleton (each public page loads + dashboard 
 2. **Install Playwright browsers**: `npx playwright install chromium` (one-time, ~150 MB).
 3. **Run tests locally**: `npm run test:e2e` (or `npm run test:e2e:ui` for the visual debugger).
 4. **Push the workflow** — once you push `main`, GitHub Actions runs CI on every future PR. No secrets needed for current tests.
+
+---
+
+## Sprint 7 (partial) — Landing copy draft (2026-04-29)
+
+**What changed:**
+
+- **`docs/landing-copy-draft.md`** — full copy proposal for the landing page rebuild: 3 hero options (with my pick), trust bar, "How it works" steps, "Why officers switch" cards, banks-supported bar, pricing placeholder, footer CTA, and a detailed visual direction.
+- **No code shipped.** `index.html` is untouched.
+
+**Why:**
+
+Per Paul's stated working style ("write copy for approval before shipping"), the landing rebuild is gated on his review of:
+1. Hero copy choice (A/B/C)
+2. Pricing model decision
+3. Bank logo permission
+4. Real completion-rate stat (or remove)
+5. Whether a demo video exists
+
+Once those 5 questions are answered, the actual `index.html` rebuild is ~2 hours and ships in a single focused commit. Not bundling it into a "do everything" sprint where copy decisions get made by me unilaterally.
+
+**Action item for you:**
+
+Read `docs/landing-copy-draft.md`. Tell me which hero you want and answer the 5 questions at the bottom. Then I rebuild.
