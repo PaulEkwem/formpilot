@@ -107,6 +107,10 @@ textarea { resize: vertical; }
 .nav-item:hover { background: var(--bg-alt); color: var(--text); }
 .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
 .nav-icon { display: flex; align-items: center; flex-shrink: 0; }
+.nav-icon [data-lucide], .nav-icon svg { width: 18px; height: 18px; stroke-width: 2; }
+.menu-btn [data-lucide], .menu-btn svg { width: 20px; height: 20px; }
+.notif-btn [data-lucide], .notif-btn svg { width: 18px; height: 18px; }
+.icon-action [data-lucide], .icon-action svg { width: 14px; height: 14px; }
 .nav-badge {
   margin-left: auto;
   background: var(--primary);
