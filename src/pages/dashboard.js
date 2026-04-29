@@ -248,9 +248,29 @@ function updateStatCards() {
 }
 
 // ── Recent forms (overview) ───────────────────────────────────
+function skeletonRows(n = 3) {
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    html += `
+      <tr>
+        <td><div class="customer-cell"><span class="fp-skeleton-circle"></span><span class="fp-skeleton" style="width:120px"></span></div></td>
+        <td><span class="fp-skeleton-pill"></span></td>
+        <td><span class="fp-skeleton" style="width:140px"></span></td>
+        <td><span class="fp-skeleton" style="width:80px"></span></td>
+        <td><span class="fp-skeleton-pill"></span></td>
+        <td><span class="fp-skeleton" style="width:50px"></span></td>
+      </tr>`;
+  }
+  return html;
+}
+
 function renderRecentForms() {
   const tbody = document.querySelector('#view-overview .forms-table tbody');
   if (!tbody) return;
+  if (!_formsLoaded && !ALL_FORMS.length) {
+    tbody.innerHTML = skeletonRows(3);
+    return;
+  }
   const recent = ALL_FORMS.slice(0, 5);
   if (!recent.length) {
     tbody.innerHTML = `
@@ -299,13 +319,17 @@ function formRow(row) {
 function renderAllForms(data) {
   const tbody = document.getElementById('allFormsBody');
   if (!tbody) return;
+  if (!_formsLoaded && !data.length) {
+    tbody.innerHTML = skeletonRows(5);
+    return;
+  }
   if (!data.length) {
     tbody.innerHTML = `
       <tr><td colspan="6" style="padding:0">
         <div class="fp-empty">
           <div class="fp-empty-icon"><i data-lucide="folder-search"></i></div>
-          <h3>${_formsLoaded ? 'No forms match your filters' : 'Loading your forms…'}</h3>
-          <p>${_formsLoaded ? 'Try clearing the search or filter to see all forms.' : 'Hang tight — we\'re fetching your latest pipeline.'}</p>
+          <h3>No forms match your filters</h3>
+          <p>Try clearing the search or filter to see all forms.</p>
         </div>
       </td></tr>`;
     if (window.fpIcons) window.fpIcons.refresh();
@@ -798,36 +822,50 @@ function copyFormLink(sessionId) {
   }).catch(() => prompt('Copy this link:', form.link));
 }
 
-function resendForm(sessionId) {
+async function resendForm(sessionId) {
   const form = ALL_FORMS.find(f => f.sessionId === sessionId);
   if (!form) { showToast('Form not found'); return; }
-  // Mark as pending again (re-issued)
+
+  const ok = window.fpModal ? await window.fpModal.confirm({
+    title: `Resend link to ${form.customer}?`,
+    message: 'The original link will continue to work. This refreshes its status to "pending" so you can track it.',
+    confirmText: 'Resend',
+    cancelText: 'Cancel',
+  }) : true;
+  if (!ok) return;
+
   form.status = 'pending';
   form.sent   = 'Just now';
   form.sentAt = Date.now();
   saveForms(ALL_FORMS);
-  showToast(`Link resent to ${form.customer}`);
   applyFilters();
   renderRecentForms();
   updateStatCards();
+
+  if (supa) {
+    const { error } = await supa.from('forms')
+      .update({ status: 'pending' })
+      .eq('slug', sessionId);
+    if (error) console.warn('forms resend update:', error.message);
+  }
+  showToast(`Link refreshed for ${form.customer}`);
 }
 
 // ── Poll for completions ──────────────────────────────────────
-// Check localStorage every 5 s (works when customer fills in same browser)
-setInterval(() => {
-  const fresh = loadForms();
-  const changed = fresh.some(f => {
-    const old = ALL_FORMS.find(o => o.sessionId === f.sessionId);
-    return old && old.status !== f.status;
-  });
-  if (changed) {
-    ALL_FORMS = fresh;
-    updateStatCards();
-    renderRecentForms();
-    applyFilters();
-    showToast('A customer just completed their form! 🎉');
+// Re-fetch from Supabase every 30s. Detects status changes (e.g. customer
+// completed their form) even when they fill on a different device.
+setInterval(async () => {
+  if (!supa) return;
+  const before = ALL_FORMS.map(f => `${f.sessionId}:${f.status}`).join(',');
+  await refreshForms();
+  const after = ALL_FORMS.map(f => `${f.sessionId}:${f.status}`).join(',');
+  if (before && after && before !== after) {
+    const newlyComplete = ALL_FORMS.some(f =>
+      f.status === 'complete' && !before.includes(`${f.sessionId}:complete`)
+    );
+    if (newlyComplete) showToast('A customer just completed their form! 🎉');
   }
-}, 5000);
+}, 30000);
 
 // ── Toast ─────────────────────────────────────────────────────
 let toastTimer;

@@ -130,3 +130,27 @@ Tokens and components are scaffolding for everything that follows. Sprint 5 (UX 
 
 1. **Hard-refresh** dashboard after deploy (Ctrl+Shift+R) — fresh CSS files won't be cached.
 2. Visual smoke test: log in → "Send form" tab → verify form cards show real icons (not the word "user"). Click a Ready card → modal also shows the icon. "My forms" tab on a fresh login → see the new empty state with the inbox icon.
+
+---
+
+## Sprint 5 — UX polish (loading, confirm, trust) (2026-04-29)
+
+**What changed:**
+
+- **`src/styles/components.css`** — added `.fp-skeleton-pill`, `.fp-skeleton-circle`, `.fp-confirm-overlay/card`, `.fp-trust-banner/row`. Backdrop-blur + pop animation on confirm modal.
+- **`src/ui/modal.js`** — new lightweight confirmation modal. `await window.fpModal.confirm({title, message, confirmText, cancelText, danger})`. Lazy DOM build, Esc cancels, Enter confirms, click-outside dismisses. No dependencies beyond Lucide.
+- **`dashboard.html`** — loads `src/ui/modal.js`.
+- **`src/pages/dashboard.js`**:
+  - **Skeleton rows** while forms load. `renderRecentForms()` and `renderAllForms()` now show shimmering skeleton placeholders when `_formsLoaded` is false. Once data arrives, real rows replace them.
+  - **`resendForm()`** is now async + uses `fpModal.confirm()` instead of silently mutating state. Confirmed resends update the `forms` table in Supabase (status → pending), then optimistically update local state.
+  - **Bug fix:** the 5-second polling interval was calling the removed `loadForms()` function (renamed to `loadCachedForms()` in Sprint 3). It now calls `refreshForms()` every 30 seconds (longer interval — Supabase calls cost more than localStorage reads) and detects newly-completed forms by diffing `sessionId:status` strings.
+
+**Why:**
+
+Skeletons feel premium and tell the user "something's coming" instead of a blank table that looks broken. Confirmation on resend prevents accidental refreshes. The polling fix means no more silent crashes when a form completes — that was a Sprint 3 regression I introduced when renaming `loadForms`.
+
+**What did NOT change (deferred):**
+
+- `gtbank-reference.html` trust banner — `.fp-trust-banner` CSS exists, but applying it cleanly requires reading 800+ lines of that page. Deferred to a focused customer-form polish sprint.
+- PDF preview before download — needs significant pdf-lib → image rendering work; not a quick win.
+- Mobile-first dashboard refinement — needs real device testing, not just CSS guesses.

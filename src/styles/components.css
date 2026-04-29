@@ -170,10 +170,114 @@
   background-size: 200% 100%;
   border-radius: var(--fp-radius-sm);
   animation: fp-shimmer 1.4s infinite;
+  display: inline-block;
+  height: 14px;
+  width: 100%;
+}
+.fp-skeleton-pill {
+  display: inline-block;
+  height: 22px;
+  width: 80px;
+  border-radius: var(--fp-radius-full);
+  background: linear-gradient(90deg,
+    var(--fp-bg-muted) 0%,
+    var(--fp-ink-100) 50%,
+    var(--fp-bg-muted) 100%);
+  background-size: 200% 100%;
+  animation: fp-shimmer 1.4s infinite;
+}
+.fp-skeleton-circle {
+  display: inline-block;
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  background: linear-gradient(90deg,
+    var(--fp-bg-muted) 0%,
+    var(--fp-ink-100) 50%,
+    var(--fp-bg-muted) 100%);
+  background-size: 200% 100%;
+  animation: fp-shimmer 1.4s infinite;
 }
 @keyframes fp-shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* ─── Confirmation modal (lightweight, JS-driven) ──────────── */
+.fp-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(26 18 8 / 0.5);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--fp-z-modal);
+  padding: var(--fp-space-4);
+  animation: fp-fade-in var(--fp-duration-base) var(--fp-ease);
+}
+.fp-confirm-overlay.show { display: flex; }
+.fp-confirm-card {
+  background: var(--fp-bg);
+  border-radius: var(--fp-radius-xl);
+  box-shadow: var(--fp-shadow-xl);
+  padding: var(--fp-space-6);
+  max-width: 420px;
+  width: 100%;
+  animation: fp-pop var(--fp-duration-base) var(--fp-ease-out);
+}
+.fp-confirm-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--fp-radius-full);
+  background: var(--fp-warning-50);
+  color: var(--fp-warning-500);
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--fp-space-4);
+}
+.fp-confirm-icon.danger { background: var(--fp-danger-50); color: var(--fp-danger-500); }
+.fp-confirm-title {
+  font-family: var(--fp-font-serif);
+  font-size: var(--fp-text-xl);
+  color: var(--fp-ink-900);
+  margin-bottom: var(--fp-space-2);
+}
+.fp-confirm-message {
+  font-size: var(--fp-text-sm);
+  color: var(--fp-ink-500);
+  line-height: var(--fp-leading-relaxed);
+  margin-bottom: var(--fp-space-5);
+}
+.fp-confirm-actions { display: flex; gap: var(--fp-space-3); justify-content: flex-end; }
+@keyframes fp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fp-pop {
+  from { opacity: 0; transform: scale(.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ─── Trust banner (customer-facing forms) ────────────────────── */
+.fp-trust-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fp-space-2);
+  padding: var(--fp-space-4) var(--fp-space-5);
+  background: linear-gradient(135deg, var(--fp-orange-50), #fff);
+  border: 1px solid var(--fp-orange-100);
+  border-radius: var(--fp-radius-lg);
+  margin-bottom: var(--fp-space-5);
+}
+.fp-trust-row {
+  display: flex;
+  align-items: center;
+  gap: var(--fp-space-2);
+  font-size: var(--fp-text-xs);
+  color: var(--fp-ink-600);
+}
+.fp-trust-row strong { color: var(--fp-ink-900); font-weight: var(--fp-weight-semibold); }
+.fp-trust-row [data-lucide] {
+  width: 14px; height: 14px;
+  color: var(--fp-success-500);
+  flex-shrink: 0;
 }
 
 /* ─── Toast (lightweight, no JS overhead) ────────────────────── */
