@@ -16,26 +16,38 @@ Paul Ekwem — building this as a product for Nigerian bank officers and their c
 
 ```
 Form Filler App/
-├── index.html              — Landing / marketing page
-├── login.html              — Officer login
-├── signup.html             — Officer signup
-├── dashboard.html          — Officer dashboard (main app shell)
-├── fill.html               — Generic customer form filler (multi-bank)
-├── gtbank-form.html        — GTBank Sole Prop/Partnership dedicated form (full 7-screen flow)
-├── about.html
-├── community.html
-├── privacy.html
-├── terms.html
-├── assets/
-│   ├── css/
-│   │   ├── dashboard.css   — Dashboard styles
-│   │   └── landing.css     — Landing page styles
-│   └── js/
-│       └── dashboard.js    — Dashboard logic (form library, link generation, routing)
-└── data/
-    ├── gtbank-sole-prop-fields.md       — Field reference extracted from PDF
-    ├── gtbank-sole-prop-full-content.md — Full page-by-page PDF content
-    └── fieldMappings.json
+├── *.html                  — All page entry points stay at root (URLs stable)
+│   ├── index / about / community / privacy / terms — public marketing
+│   ├── login / signup / reset-password — officer auth
+│   ├── dashboard.html      — Officer dashboard (main app shell)
+│   ├── fill.html           — Generic customer form filler (multi-bank fallback)
+│   ├── gtbank-form.html    — GTBank Sole Prop/Partnership form (7-screen flow)
+│   ├── gtbank-reference.html      — Referee fills + signs reference form
+│   └── gtbank-ref-customer.html   — Customer-side intake for reference flow
+│
+├── src/
+│   ├── config/
+│   │   ├── env.js                  — Public env (Supabase URL, anon key, app URL)
+│   │   ├── supabase-client.js      — Centralized window.fpSupa client
+│   │   └── constants.js            — FORM_LIBRARY, BANKS, ROLES, EXPIRY_OPTIONS
+│   ├── lib/
+│   │   └── form-engine.js          — Two-pass PDF analyse + fill engine
+│   ├── pages/
+│   │   └── dashboard.js            — Dashboard logic (link gen, routing, table)
+│   ├── ui/                         — Reusable UI components (toast, modal — TBD)
+│   └── styles/pages/               — landing.css, dashboard.css
+│
+├── supabase/
+│   ├── migrations/
+│   │   └── 001_initial_schema.sql  — form_access_codes + verify_form_code fn
+│   └── functions/send-email/       — Edge Function for Brevo SMTP
+│
+├── pdfs/                           — Bank PDF templates
+├── data/                           — Field mappings + reference docs
+├── tests/                          — Unit + E2E tests (TBD Sprint 6)
+├── docs/                           — ARCHITECTURE, SECURITY, DEPLOYMENT, CHANGELOG
+├── archive/                        — Old prototypes (do not edit)
+└── package.json / vercel.json / .gitignore / .env.example
 ```
 
 ---
@@ -117,12 +129,26 @@ Form Filler App/
 ---
 
 ## Pending / Next Work
-- Tally.so-style redesign of `gtbank-form.html` — full viewport slides, one question per screen, emoji stickers, auto-advance on selection, keyboard navigation (user requested, not yet built)
+
+See `docs/CHANGELOG.md` for sprint progress.
+
+**Engineering sprints:**
+- Sprint 2 — Security foundation (RLS audit, CSP, kill EmailJS, remove dummy data)
+- Sprint 3 — Move `fp_forms` localStorage → Supabase `forms` table with RLS
+- Sprint 4 — Design system (tokens, Lucide icons, unified DM Sans/Serif)
+- Sprint 5 — UX polish (loading states, PDF preview, trust layer)
+- Sprint 6 — CI + tests (Playwright, Vitest, GitHub Actions)
+- Sprint 7 — NDPR compliance + audit log
+
+**Product features pending:**
 - "Same as business address" toggle in signatory residential address
 - "Copy from owner" toggle for next of kin
 - Mandate visual cards (sole / joint / custom)
-- GTBank Corporate form
-- GTBank Individual form
+- GTBank Corporate / Individual / KYC forms
+
+**Sprint 1 migration debt** (clear in Sprint 2):
+- `login.html`, `signup.html`, `dashboard.html`, all `gtbank-*.html` still create their own Supabase clients inline. Migrate to `<script src="src/config/supabase-client.js">` + use `window.fpSupa`.
+- `dashboard.js` still has hardcoded `FORM_LIBRARY`. Migrate to `window.FP_CONSTANTS.FORM_LIBRARY`.
 
 ---
 

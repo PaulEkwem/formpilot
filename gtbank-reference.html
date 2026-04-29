@@ -5,6 +5,9 @@
 <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
 <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
+<script src="src/lib/form-engine.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GTBank — Reference Form</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
@@ -118,105 +121,9 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .overlay-title{font-family:'DM Serif Display',serif;font-size:clamp(24px,5vw,34px);color:var(--dark);margin-bottom:10px;line-height:1.2}
 .overlay-sub{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:20px}
 
-/* PRINT ONLY */
-@media screen{#printView{display:none}}
-@media print{
-  body>*:not(#printView){display:none!important}
-  #printView{display:block!important;font-family:Arial,sans-serif;padding:28px 32px;font-size:11pt;color:#000;line-height:1.6}
-  .pf{margin-bottom:14px}
-  .pl{font-size:8.5pt;font-weight:bold;text-transform:uppercase;letter-spacing:.05em;color:#555;margin-bottom:3px}
-  .pv{border-bottom:1.5px solid #aaa;padding-bottom:3px;min-height:22px;font-size:11pt}
-  .pm{border:1px solid #aaa;padding:8px 10px;min-height:70px;font-size:11pt;white-space:pre-wrap;line-height:1.7}
-  .pbox{display:inline-flex;width:26px;height:26px;border:1px solid #666;align-items:center;justify-content:center;font-size:11pt;font-weight:bold;margin-right:2px}
-  .psep{margin:0 6px;font-size:13pt;font-weight:bold}
-  .pnotes{font-size:8.5pt;color:#333;line-height:1.75;margin:0;padding-left:18px}
-  .pcaution{font-weight:bold;color:#7B1B1B;text-transform:uppercase;font-size:8pt;text-align:center;margin-top:10px}
-  .pfoot{font-size:8pt;color:#666;text-align:center;margin-top:5px}
-}
 </style>
 </head>
 <body>
-
-<!-- Print view -->
-<div id="printView">
-
-  <!-- Header -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:18px;padding-bottom:12px;border-bottom:2.5px solid #E8470A">
-    <tr>
-      <td style="font-size:10pt;line-height:2;vertical-align:top">
-        To:<br>The Manager,<br>Guaranty Trust Bank Ltd
-      </td>
-      <td style="text-align:right;vertical-align:top">
-        <div style="font-size:20pt;font-weight:900;color:#E8470A;line-height:1.1">GTCO</div>
-        <div style="font-size:8pt;color:#555">Guaranty Trust Bank Ltd</div>
-        <div style="font-size:8pt;color:#555">RC 152321</div>
-      </td>
-    </tr>
-  </table>
-
-  <p style="margin-bottom:14px">Dear Sir,</p>
-
-  <!-- INDIVIDUAL block -->
-  <div id="pIndividualBlock" style="display:none">
-    <div class="pf"><div class="pl">Name of individual opening account</div><div class="pv" id="pIndName"></div></div>
-    <p style="margin-bottom:14px">I/We have known the above-named individual for <strong id="pIndYears"></strong> year(s) and would like to comment about their suitability for maintaining a current account with yourselves as follows:</p>
-  </div>
-
-  <!-- CORPORATE block -->
-  <div id="pCorporateBlock" style="display:none">
-    <div class="pf"><div class="pl">Name of Company</div><div class="pv" id="pCorpName"></div></div>
-    <p style="margin-bottom:6px">I/We would wish to confirm that I/We know the above-named Company and its Directors for <strong id="pCorpYears"></strong> year(s).</p>
-    <p style="margin-bottom:14px">I/We would like to comment about their suitability for maintaining a current account with yourselves as follows:</p>
-  </div>
-
-  <!-- Suitability comments -->
-  <div class="pf"><div class="pm" id="pComments"></div></div>
-
-  <!-- Banking details -->
-  <p style="margin:14px 0 10px;font-style:italic">I/We maintain a current account with:</p>
-  <div class="pf"><div class="pl">Name of Bank</div><div class="pv" id="pRefBank"></div></div>
-  <div class="pf"><div class="pl">Address</div><div class="pv" id="pRefBankAddr"></div></div>
-  <div class="pf">
-    <div class="pl">My/Our Account No.</div>
-    <div id="pAcctBoxes" style="display:flex;flex-wrap:wrap;gap:3px;padding-top:5px"></div>
-  </div>
-  <div class="pf"><div class="pl">My/Our Phone No.(s)</div><div class="pv" id="pRefPhone"></div></div>
-
-  <p style="margin:16px 0 14px">Yours faithfully,</p>
-
-  <!-- Date + Signature -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px">
-    <tr>
-      <td width="48%" style="vertical-align:top;padding-right:20px">
-        <div class="pl" style="margin-bottom:6px">Date — Day / Month / Year</div>
-        <div id="pDateBoxes" style="display:flex;align-items:center"></div>
-      </td>
-      <td width="52%" style="vertical-align:top">
-        <div class="pl" style="margin-bottom:4px">Signature</div>
-        <div style="min-height:52px;border-bottom:1.5px solid #aaa;padding-bottom:4px">
-          <img id="pSigImg" style="max-height:48px;max-width:160px;display:none" />
-        </div>
-      </td>
-    </tr>
-  </table>
-
-  <div class="pf"><div class="pl">Name</div><div class="pv" id="pRefName"></div></div>
-  <div class="pf"><div class="pl">Address</div><div class="pv" id="pRefAddr"></div></div>
-  <div class="pf" id="pDirectorWrap" style="display:none"><div class="pl">Name of Director known to the referee</div><div class="pv" id="pDirector"></div></div>
-
-  <!-- Please note -->
-  <div style="margin-top:20px;border-top:1px solid #bbb;padding-top:12px">
-    <p style="font-size:8.5pt;font-weight:bold;margin-bottom:6px">Please note:</p>
-    <ol class="pnotes">
-      <li>Referees must be a current account holder either in GTCO or any other bank. Referees from other banks must be corporate account holders only.</li>
-      <li>Referee's account must not be less than six months old.</li>
-      <li>Salary account holder(s) are not suitable referees.</li>
-    </ol>
-    <div class="pcaution">"CAUTION" — IT IS VERY DANGEROUS TO INTRODUCE A PERSON WHO IS NOT WELL-KNOWN TO YOU</div>
-    <div class="pfoot">Completed via FormPilot · formpilot-five.vercel.app</div>
-  </div>
-
-</div>
 
 <!-- Progress + Nav -->
 <div id="prog-track"><div id="prog-fill"></div></div>
@@ -425,8 +332,8 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
       <h1 class="slide-q">You're all set</h1>
       <p class="slide-sub">Your reference form is complete. Download it and return it to <strong id="s6Customer">the applicant</strong>.</p>
 
-      <button class="primary-btn" onclick="downloadForm()">Download Reference Form</button>
-      <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.65">Your device will open a print dialog.<br>Select <strong>Save as PDF</strong> to download.</p>
+      <button class="primary-btn" id="dl-btn" onclick="downloadForm()">Download Reference Form</button>
+      <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.65">The completed GTBank form will download as a PDF to your device.</p>
     </div>
   </div>
 
@@ -613,79 +520,89 @@ function validateAndNext(from, to) {
 
 // ── Download ──────────────────────────────────────────────────
 async function downloadForm() {
-  const years    = (document.getElementById('yearsKnown')?.value || '').trim();
-  const comments = toSentenceCase(document.getElementById('comments').value);
-  const bank     = document.getElementById('refBank').value.toUpperCase();
-  const bankAddr = document.getElementById('refBankAddr').value.toUpperCase();
-  const acct     = document.getElementById('refAcct').value.trim();
-  const phone    = document.getElementById('refPhone').value.trim();
-  const name     = document.getElementById('refName').value.toUpperCase();
-  const addr     = document.getElementById('refAddr').value.toUpperCase();
-  const dateVal  = document.getElementById('refDate').value; // YYYY-MM-DD
+  const btn = document.getElementById('dl-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
 
-  // ── Individual vs Corporate blocks ────────────────────────────
-  if (REF_TYPE === 'individual') {
-    document.getElementById('pIndividualBlock').style.display = '';
-    document.getElementById('pCorporateBlock').style.display  = 'none';
-    document.getElementById('pIndName').textContent   = (CUSTOMER || '').toUpperCase();
-    document.getElementById('pIndYears').textContent  = years;
-    document.getElementById('pDirectorWrap').style.display = 'none';
-  } else {
-    document.getElementById('pIndividualBlock').style.display = 'none';
-    document.getElementById('pCorporateBlock').style.display  = '';
-    document.getElementById('pCorpName').textContent  = (CUSTOMER || '').toUpperCase();
-    document.getElementById('pCorpYears').textContent = years;
-    document.getElementById('pDirectorWrap').style.display = '';
-    document.getElementById('pDirector').textContent  = (DIRECTOR_NAME || '').toUpperCase();
-  }
+  try {
+    const pdfFile = REF_TYPE === 'individual'
+      ? 'pdfs/Reference-Form-Individual.pdf'
+      : 'pdfs/Reference-Form-Corporate.pdf';
 
-  // ── Comments ──────────────────────────────────────────────────
-  document.getElementById('pComments').textContent = comments;
+    const resp = await fetch(pdfFile);
+    if (!resp.ok) throw new Error('Could not load GTBank reference form PDF');
+    const pdfBytes = new Uint8Array(await resp.arrayBuffer());
 
-  // ── Banking details ───────────────────────────────────────────
-  document.getElementById('pRefBank').textContent    = bank;
-  document.getElementById('pRefBankAddr').textContent = bankAddr;
-  document.getElementById('pRefPhone').textContent   = phone;
+    const years    = (document.getElementById('yearsKnown')?.value || '').trim();
+    const comments = document.getElementById('comments').value.toUpperCase();
+    const bank     = document.getElementById('refBank').value.toUpperCase();
+    const bankAddr = document.getElementById('refBankAddr').value.toUpperCase();
+    const acct     = document.getElementById('refAcct').value.trim();
+    const phone    = document.getElementById('refPhone').value.trim();
+    const refName  = document.getElementById('refName').value.toUpperCase();
+    const refAddr  = document.getElementById('refAddr').value.toUpperCase();
+    const dateVal  = document.getElementById('refDate').value;
+    const [yr, mo, dy] = dateVal ? dateVal.split('-') : ['', '', ''];
+    const dateStr  = dy && mo && yr ? `${dy}/${mo}/${yr}` : '';
 
-  // Account number — render each digit in its own box (10 boxes)
-  const acctBoxes = document.getElementById('pAcctBoxes');
-  acctBoxes.innerHTML = Array.from({ length: 10 }, (_, i) =>
-    `<div class="pbox">${acct[i] || ''}</div>`
-  ).join('');
+    let fieldValues;
+    if (REF_TYPE === 'individual') {
+      fieldValues = {
+        'NAME OF INDIVIDUAL(S) OPENING AN ACCOUNT': (CUSTOMER || '').toUpperCase(),
+        'individual(s) for':                        years,
+        'as follows:':                              comments,
+        'I/We maintain':                            bank,
+        'Address Bank:':                            bankAddr,
+        'My/Our Account No. is:':                   acct,
+        'And my/our phone No. (s) is/are:':         phone,
+        'Date':                                     dateStr,
+        'Name of REFEREE:':                         refName,
+        'Address of REFEREE:':                      refAddr,
+      };
+    } else {
+      fieldValues = {
+        'Name of Company':                          (CUSTOMER || '').toUpperCase(),
+        'Directors for':                            years,
+        'as follows:':                              comments,
+        'Name of Bank:':                            bank,
+        'Address:':                                 bankAddr,
+        'My/Our Account No. is:':                   acct,
+        'And my/our phone No. (s) is/are:':         phone,
+        'Day':                                      dy,
+        'Month':                                    mo,
+        'Year':                                     yr,
+        'Name':                                     refName,
+        'Address':                                  refAddr,
+        'Name of Director':   DIRECTOR_NAME ? DIRECTOR_NAME.toUpperCase() : '',
+      };
+    }
 
-  // ── Date boxes — DD / MM / YYYY ───────────────────────────────
-  const [yr, mo, dy] = dateVal ? dateVal.split('-') : ['', '', ''];
-  const box = c => `<div class="pbox">${c}</div>`;
-  const dateBoxes = document.getElementById('pDateBoxes');
-  dateBoxes.innerHTML =
-    (dy ? [...dy] : ['', '']).map(box).join('') +
-    `<span class="psep">/</span>` +
-    (mo ? [...mo] : ['', '']).map(box).join('') +
-    `<span class="psep">/</span>` +
-    (yr ? [...yr] : ['', '', '', '']).map(box).join('');
+    const outBytes = await FormEngine.fill(pdfBytes, fieldValues, {
+      signature:      REF_SIG,
+      signatureLabel: 'Signature',
+      debug:          true,
+    });
 
-  // ── Referee name + address ────────────────────────────────────
-  document.getElementById('pRefName').textContent = name;
-  document.getElementById('pRefAddr').textContent = addr;
+    const blob = new Blob([outBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = (CUSTOMER || 'referee').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    a.href = url;
+    a.download = `GTBank-Reference-${safeName}.pdf`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-  // ── Signature ─────────────────────────────────────────────────
-  const pSigImg = document.getElementById('pSigImg');
-  if (REF_SIG) { pSigImg.src = REF_SIG; pSigImg.style.display = 'block'; }
-  else { pSigImg.style.display = 'none'; }
+    if (SLUG) await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
 
-  // ── Mark link as used ─────────────────────────────────────────
-  if (SLUG) {
-    await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
-  }
-
-  window.addEventListener('afterprint', function onDone() {
-    window.removeEventListener('afterprint', onDone);
     document.getElementById('slides').style.display = 'none';
     document.getElementById('stateDone').classList.add('show');
     window.scrollTo(0, 0);
-  }, { once: true });
 
-  window.print();
+  } catch (e) {
+    console.error('PDF generation failed:', e);
+    alert('Could not generate PDF. Please try again.\n\n' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Download Reference Form'; }
+  }
 }
 
 // ── Case helpers ──────────────────────────────────────────────

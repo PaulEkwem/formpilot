@@ -1,6 +1,43 @@
+# Dependencies
 node_modules/
 .venv/
 *.pyc
 __pycache__/
+
+# Build / coverage output
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
 .DS_Store
 Thumbs.db
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Vercel
+.vercel/
+
+# Local Claude / AI artifacts (keep settings.local.json out)
+.claude/settings.local.json
+
+# Sensitive PDFs (uncomment if pdfs/ contains real customer data)
+# pdfs/customer-*.pdf

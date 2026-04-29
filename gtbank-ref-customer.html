@@ -5,7 +5,7 @@
 <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
 <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GTBank — Reference Form</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <style>
@@ -13,519 +13,586 @@
 :root{
   --orange:#E8470A;--orange-l:#FFF0EB;--orange-m:#FDDFD0;
   --dark:#1A1208;--ink:#2D2416;--muted:#7A6E64;--line:#EAE5DF;
-  --bg:#FAFAF8;--success:#1A6B3A;--success-bg:#EBF7F0;--danger:#C0392B;
+  --bg:#FFFFFF;--success:#1A6B3A;--success-bg:#EBF7F0;--danger:#C0392B;
 }
-html,body{min-height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 
-/* ── HEADER ── */
-.gtb-header{background:var(--orange);color:#fff;padding:20px 24px 18px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
-.gtb-logo{width:40px;height:40px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:var(--orange);letter-spacing:-.5px;flex-shrink:0}
-.gtb-header-text h1{font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:400;line-height:1.3}
-.gtb-header-text p{font-size:.78rem;opacity:.85;margin-top:2px}
+/* PROGRESS BAR */
+#prog-track{position:fixed;top:0;left:0;width:100%;height:3px;background:var(--line);z-index:200}
+#prog-fill{height:100%;background:var(--orange);transition:width .4s ease;width:0%}
 
-/* ── PAGE WRAP ── */
-.page{max-width:640px;margin:0 auto;padding:28px 20px 60px}
+/* NAV BAR */
+#nav-bar{position:fixed;top:3px;left:0;right:0;z-index:190;display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+#back-btn{display:none;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;font-family:'DM Sans',sans-serif;padding:8px 10px;border-radius:8px;-webkit-tap-highlight-color:transparent}
+#back-btn:active{background:var(--line)}
+#slide-counter{font-size:12px;color:var(--muted);font-weight:500;display:none}
 
-/* ── SECTION CARD ── */
-.section-card{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
-.section-card-head{padding:16px 20px 0;display:flex;align-items:center;gap:10px}
-.section-card-head .card-icon{font-size:1.4rem}
-.section-card-head h2{font-size:.95rem;font-weight:700;color:var(--dark)}
-.section-card-body{padding:14px 20px 18px}
+/* SLIDES */
+#slides{position:fixed;inset:0;overflow:hidden}
+.slide{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s;padding:72px 20px 40px}
+.slide.pos-active{transform:translateY(0);opacity:1;pointer-events:all}
+.slide.pos-above{transform:translateY(-100%);opacity:0;pointer-events:none}
+.slide.pos-below{transform:translateY(100%);opacity:0;pointer-events:none}
+.slide-inner{max-width:520px;margin:0 auto}
 
-/* ── REQUIREMENTS LIST ── */
-.req-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:4px}
-.req-item{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.5;color:var(--ink)}
-.req-dot{width:20px;height:20px;border-radius:50%;background:var(--orange-l);border:1.5px solid var(--orange-m);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--orange);flex-shrink:0;margin-top:1px}
+/* TYPOGRAPHY */
+.slide-emoji{font-size:40px;margin-bottom:16px;line-height:1;display:block}
+.slide-q{font-family:'DM Serif Display',serif;font-size:clamp(22px,5vw,32px);color:var(--dark);line-height:1.25;margin-bottom:8px;letter-spacing:-.3px}
+.slide-sub{font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:24px}
 
-/* ── WHAT TO EXPECT ── */
-.expect-steps{display:flex;flex-direction:column;gap:0}
-.expect-step{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-.expect-step:last-child{border-bottom:none}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-text{font-size:.85rem;line-height:1.5;color:var(--ink)}
-.step-text strong{display:block;font-weight:600;color:var(--dark);margin-bottom:1px}
+/* SENDER CHIP */
+.sender-chip{display:inline-flex;flex-direction:column;background:var(--orange-l);border:1px solid var(--orange-m);border-radius:10px;padding:12px 16px;margin-bottom:24px;width:100%}
+.sender-chip .s-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.sender-chip .s-name{font-size:16px;font-weight:700;color:var(--dark)}
+.sender-chip .s-bank{font-size:13px;color:var(--muted);margin-top:2px}
 
-/* ── PRIVACY ── */
-.privacy-card{background:var(--orange-l);border:1.5px solid var(--orange-m);border-radius:12px;padding:16px 18px;margin-bottom:20px}
-.privacy-card p{font-size:.8rem;color:var(--ink);line-height:1.6;margin-bottom:12px}
-.privacy-check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.privacy-check input{margin-top:2px;width:16px;height:16px;accent-color:var(--orange);flex-shrink:0}
-.privacy-check span{font-size:.85rem;font-weight:500;color:var(--dark);line-height:1.45}
+/* PRIVACY */
+.privacy-box{background:var(--orange-l);border:1.5px solid var(--orange-m);border-radius:12px;padding:16px;margin-bottom:24px}
+.privacy-box p{font-size:13px;color:var(--ink);line-height:1.65;margin-bottom:14px}
+.priv-label{display:flex;align-items:flex-start;gap:12px;cursor:pointer}
+.priv-label input{width:18px;height:18px;margin-top:1px;accent-color:var(--orange);flex-shrink:0;cursor:pointer}
+.priv-label span{font-size:14px;font-weight:500;color:var(--dark);line-height:1.5}
 
-/* ── OPEN FORM BTN ── */
-.open-btn{width:100%;padding:15px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s;margin-bottom:8px}
-.open-btn:disabled{opacity:.45;cursor:not-allowed}
-.open-btn:not(:disabled):hover{background:#C93D08}
+/* REQUIREMENTS */
+.req-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.req-item{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.55;color:var(--ink)}
+.req-num{min-width:24px;height:24px;border-radius:50%;background:var(--orange-l);border:1.5px solid var(--orange-m);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--orange);flex-shrink:0;margin-top:1px}
 
-/* ── FORM STATE ── */
-.form-section-head{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
-.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:7px 0 5px;outline:none;transition:border-color .2s}
+/* INPUTS — 16px min to prevent iOS zoom */
+.field-wrap{margin-bottom:20px}
+.field-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:6px}
+.tally-input{width:100%;border:none;border-bottom:2px solid var(--line);background:transparent;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--ink);padding:8px 0;outline:none;transition:border-color .2s;-webkit-appearance:none;border-radius:0}
 .tally-input:focus{border-color:var(--orange)}
-.input-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:4px}
-.field-wrap{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
-.field-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
-.confirm-note{font-size:.78rem;color:var(--muted);margin-top:4px;margin-bottom:16px;line-height:1.5}
+.tally-input.err{border-color:var(--danger)}
+.err-msg{font-size:13px;color:var(--danger);margin-top:-12px;margin-bottom:14px;display:none}
+.err-msg.show{display:block}
 
-/* ── REFEREE SLOTS ── */
-.ref-slots{display:flex;flex-direction:column;gap:14px;margin-top:4px}
-.ref-slot{border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
-.slot-head{padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-.slot-head-left{display:flex;align-items:center;gap:8px}
-.slot-num{width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.slot-title{font-size:.875rem;font-weight:700;color:var(--dark)}
-.slot-status{font-size:.72rem;font-weight:600;padding:.2rem .55rem;border-radius:999px}
-.slot-status.pending{background:#FEF3C7;color:#92400E}
-.slot-status.generated{background:#DBEAFE;color:#1E40AF}
-.slot-status.completed{background:var(--success-bg);color:var(--success)}
-.slot-body{padding:14px 16px}
+/* PRIMARY BUTTON */
+.primary-btn{display:block;width:100%;padding:16px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:background .2s;-webkit-tap-highlight-color:transparent;text-align:center}
+.primary-btn:active{background:#C73A07}
+.primary-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* Generate input row */
-.slot-gen-row{display:flex;gap:8px;align-items:flex-end}
-.slot-gen-row .tally-input{flex:1}
-.gen-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s}
-.gen-btn:hover{background:#C93D08}
-.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+/* REFEREE SLOT */
+.ref-slot{border:1.5px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.slot-head{padding:13px 16px;background:#F8F6F4;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.slot-head-left{display:flex;align-items:center;gap:10px}
+.slot-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.slot-title{font-size:15px;font-weight:700;color:var(--dark)}
+.slot-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#FEF3C7;color:#92400E}
+.slot-badge.done{background:var(--success-bg);color:var(--success)}
+.slot-body{padding:16px}
 
-/* Generated state */
-.gen-result{display:none}
-.gen-result.show{display:block}
-.copy-row{display:flex;align-items:center;gap:8px;background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px}
-.copy-row-label{font-size:.72rem;font-weight:700;color:var(--orange);margin-bottom:6px}
-.copy-row-text{flex:1;font-size:.78rem;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.copy-pill{background:var(--orange);color:#fff;border:none;border-radius:6px;padding:.35rem .8rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.copy-pill:hover{background:#C93D08}
-.expiry-note{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:5px}
-.sep-code-wrap{margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.code-display{font-size:1.25rem;font-weight:900;letter-spacing:.18em;color:var(--orange);font-family:'Courier New',monospace}
+/* GENERATE */
+.gen-row{margin-top:8px}
+.gen-btn{display:block;width:100%;margin-top:12px;padding:14px;background:var(--orange);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s;text-align:center}
+.gen-btn:active{background:#C73A07}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed}
 
-/* Slot used indicator */
-.slot-used{text-align:center;padding:14px;color:var(--success);font-weight:600;font-size:.875rem}
+/* SHARE RESULT */
+.copy-result{display:none;margin-top:14px}
+.copy-result.show{display:block}
+.expiry-note{font-size:12px;color:var(--muted);margin-top:10px;margin-bottom:14px}
+.share-link-box{display:flex;align-items:center;background:#F8F6F4;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;gap:10px}
+.share-link-text{flex:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share-copy-btn{background:none;border:none;font-size:12px;font-weight:700;color:var(--orange);cursor:pointer;white-space:nowrap;padding:4px 8px;border-radius:6px;font-family:'DM Sans',sans-serif}
+.share-copy-btn:active{background:var(--orange-l)}
+.wa-btn{display:block;width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
+.wa-btn:active{background:#1da851}
+/* Email expand */
+.email-trigger{display:block;width:100%;padding:14px;background:#fff;color:var(--orange);border:1.5px solid var(--orange);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
+.email-trigger:active{background:var(--orange-l)}
+.email-input-row{display:none;margin-bottom:8px}
+.email-input-row.open{display:block}
+.email-input-inner{display:flex;gap:8px;align-items:center;background:#F8F6F4;border:1.5px solid var(--orange);border-radius:12px;padding:6px 6px 6px 14px}
+.email-input-inner input{flex:1;border:none;background:transparent;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;padding:6px 0}
+.email-send-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.email-cancel{display:block;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:4px;background:none;border:none;font-family:'DM Sans',sans-serif;width:100%}
 
-/* Counter */
-.counter-bar{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 16px;margin-bottom:16px}
-.counter-bar span{font-size:.85rem;color:var(--muted)}
-.counter-bar strong{font-size:.95rem;font-weight:800;color:var(--orange)}
+/* ADD SECOND REF */
+.add-ref-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:none;border:1.5px dashed var(--line);border-radius:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;margin-bottom:14px;-webkit-tap-highlight-color:transparent;transition:all .2s}
+.add-ref-btn:active{border-color:var(--orange);color:var(--orange);background:var(--orange-l)}
 
-/* ── CAUTION ── */
-.caution{background:#FFF5F5;border:1px solid #FCA5A5;border-radius:10px;padding:12px 14px;font-size:.78rem;color:#991B1B;line-height:1.6;margin-top:16px}
-.caution strong{display:block;font-weight:700;margin-bottom:3px}
+/* CAUTION */
+.caution-box{background:#FFF5F5;border:1px solid #FCA5A5;border-radius:10px;padding:13px;font-size:13px;color:#991B1B;line-height:1.65;margin-bottom:20px}
+
+/* DONE */
+.done-wrap{text-align:center;padding-top:20px}
+.done-emoji{font-size:64px;display:block;margin-bottom:16px;animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.done-title{font-family:'DM Serif Display',serif;font-size:clamp(26px,6vw,40px);color:var(--dark);margin-bottom:10px}
+.done-sub{font-size:15px;color:var(--muted);line-height:1.7;margin-bottom:28px}
+.done-note{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.6}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="gtb-header">
-  <div class="gtb-logo">GT</div>
-  <div class="gtb-header-text">
-    <h1 id="headerTitle">Reference Form</h1>
-    <p>Guaranty Trust Bank — Powered by FormPilot</p>
-  </div>
+<div id="prog-track"><div id="prog-fill"></div></div>
+
+<div id="nav-bar">
+  <button id="back-btn" onclick="goBack()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back
+  </button>
+  <span id="slide-counter"></span>
 </div>
 
-<!-- ══ LANDING STATE ══ -->
-<div id="stateLanding" class="page">
+<div id="slides">
 
-  <!-- Who sent this -->
-  <div class="section-card" style="margin-bottom:16px">
-    <div style="padding:20px;text-align:center">
-      <div style="font-size:2rem;margin-bottom:8px">📨</div>
-      <h2 style="font-family:'DM Serif Display',serif;font-size:1.25rem;color:var(--dark);margin-bottom:6px;line-height:1.3" id="introTitle">A reference form has been shared with you</h2>
-      <p style="font-size:.875rem;color:var(--muted);line-height:1.6" id="introSub">for your account opening at Guaranty Trust Bank</p>
-      <div style="margin-top:14px;padding:12px 16px;background:var(--orange-l);border-radius:10px;display:inline-block;text-align:left">
-        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px">Sent by</div>
-        <div style="font-size:.95rem;font-weight:700;color:var(--dark)" id="officerDisplay">Your account officer</div>
-        <div style="font-size:.8rem;color:var(--muted)" id="bankDisplay">Guaranty Trust Bank</div>
+  <!-- ══ SLIDE 0 — WELCOME ══ -->
+  <div class="slide pos-active" id="slide-0">
+    <div class="slide-inner">
+      <span class="slide-emoji">📨</span>
+      <h1 class="slide-q" id="s0Title">A GTBank Reference Form has been shared with you</h1>
+      <p class="slide-sub" id="s0Sub">For your account opening at Guaranty Trust Bank.</p>
+
+      <div class="sender-chip">
+        <span class="s-label">Sent by your account officer</span>
+        <span class="s-name" id="officerDisplay">Your account officer</span>
+        <span class="s-bank" id="bankDisplay">Guaranty Trust Bank</span>
       </div>
-    </div>
-  </div>
 
-  <!-- Referencing requirements -->
-  <div class="section-card">
-    <div class="section-card-head">
-      <span class="card-icon">📋</span>
-      <h2>GTBank Referencing Requirements</h2>
-    </div>
-    <div class="section-card-body">
-      <ul class="req-list" id="reqList">
-        <!-- populated by JS based on refType -->
-      </ul>
-    </div>
-  </div>
-
-  <!-- What to expect -->
-  <div class="section-card">
-    <div class="section-card-head">
-      <span class="card-icon">🗺️</span>
-      <h2>What to expect</h2>
-    </div>
-    <div class="section-card-body">
-      <div class="expect-steps">
-        <div class="expect-step">
-          <span class="step-num">1</span>
-          <div class="step-text"><strong>Confirm your details</strong>Verify your name as it should appear on the reference form.</div>
-        </div>
-        <div class="expect-step">
-          <span class="step-num">2</span>
-          <div class="step-text"><strong>Generate secure links</strong>Create up to 2 referee links — one for each person who will vouch for you.</div>
-        </div>
-        <div class="expect-step">
-          <span class="step-num">3</span>
-          <div class="step-text"><strong>Share with your referees</strong>Send each referee their unique link and access code. The link expires in 24 hours.</div>
-        </div>
-        <div class="expect-step">
-          <span class="step-num">4</span>
-          <div class="step-text"><strong>Referee fills and downloads</strong>Each referee completes the form on their device and downloads it. No data is stored on any server.</div>
-        </div>
+      <div class="privacy-box">
+        <p>🔒 <strong>Your privacy is protected.</strong> This form runs entirely on your device. No personal information is stored on FormPilot's servers. Referee responses are downloaded directly to their devices.</p>
+        <label class="priv-label">
+          <input type="checkbox" id="privacyCheck" onchange="document.getElementById('startBtn').disabled=!this.checked" />
+          <span>I understand — my data is not stored, and I will only share referee links with people who genuinely know me.</span>
+        </label>
       </div>
+
+      <button class="primary-btn" id="startBtn" disabled onclick="goToSlide(1)">Get Started →</button>
     </div>
   </div>
 
-  <!-- Data privacy -->
-  <div class="privacy-card">
-    <p>🔒 <strong>Your privacy is protected.</strong> This form is processed entirely on your device. No personal information is stored on FormPilot's servers. Your referees' responses are downloaded directly to their devices.</p>
-    <label class="privacy-check">
-      <input type="checkbox" id="privacyCheck" onchange="updateOpenBtn()" />
-      <span>I understand and agree — my data is not stored, and I take responsibility for sharing referee links only with people I know well.</span>
-    </label>
+  <!-- ══ SLIDE 1 — REQUIREMENTS ══ -->
+  <div class="slide pos-below" id="slide-1">
+    <div class="slide-inner">
+      <span class="slide-emoji">📋</span>
+      <h1 class="slide-q">What GTBank requires from your referees</h1>
+      <p class="slide-sub">Make sure your referees meet all these conditions before sending them a link.</p>
+      <ul class="req-list" id="reqList"></ul>
+      <button class="primary-btn" onclick="goToSlide(2)">I understand →</button>
+    </div>
   </div>
 
-  <button class="open-btn" id="openFormBtn" onclick="openForm()" disabled>Open Form</button>
-  <p style="text-align:center;font-size:.75rem;color:var(--muted)">By opening this form you confirm you are the account applicant named above.</p>
+  <!-- ══ SLIDE 2 — CONFIRM NAME ══ -->
+  <div class="slide pos-below" id="slide-2">
+    <div class="slide-inner">
+      <span class="slide-emoji" id="s2Emoji">👤</span>
+      <h1 class="slide-q" id="s2Title">Confirm your name</h1>
+      <p class="slide-sub" id="s2Sub">As it should appear on the reference form. Correct it if needed.</p>
 
-</div>
+      <span class="err-msg" id="nameErr">Please fill in all fields before continuing.</span>
 
-<!-- ══ FORM STATE ══ -->
-<div id="stateForm" style="display:none" class="page">
-
-  <!-- Customer details -->
-  <div class="section-card" style="margin-bottom:16px">
-    <div class="section-card-head">
-      <span class="card-icon" id="formTypeIcon">👤</span>
-      <h2 id="formTypeTitle">Confirm your name</h2>
-    </div>
-    <div class="section-card-body">
-      <p class="confirm-note" id="formTypeNote">Please confirm your name as it should appear on the reference form.</p>
-
-      <!-- Individual -->
       <div id="indFields">
-        <div class="input-row">
-          <div class="field-wrap">
-            <span class="field-label">First name</span>
-            <input type="text" class="tally-input" id="custFirst" placeholder="Ada" />
-          </div>
-          <div class="field-wrap">
-            <span class="field-label">Last name</span>
-            <input type="text" class="tally-input" id="custLast" placeholder="Okonkwo" />
-          </div>
+        <div class="field-wrap">
+          <label class="field-label" for="custFirst">First name</label>
+          <input type="text" class="tally-input" id="custFirst" placeholder="Ada" autocomplete="given-name" />
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="custLast">Last name</label>
+          <input type="text" class="tally-input" id="custLast" placeholder="Okonkwo" autocomplete="family-name" />
         </div>
       </div>
 
-      <!-- Corporate -->
       <div id="corpFields" style="display:none">
         <div class="field-wrap">
-          <span class="field-label">Company name</span>
+          <label class="field-label" for="companyName">Company name</label>
           <input type="text" class="tally-input" id="companyName" placeholder="Kemi & Sons Ltd" />
         </div>
-        <div class="input-row">
-          <div class="field-wrap">
-            <span class="field-label">Director first name</span>
-            <input type="text" class="tally-input" id="dirFirst" placeholder="Kemi" />
-          </div>
-          <div class="field-wrap">
-            <span class="field-label">Director last name</span>
-            <input type="text" class="tally-input" id="dirLast" placeholder="Adeyemi" />
-          </div>
+        <div class="field-wrap">
+          <label class="field-label" for="dirFirst">Director first name</label>
+          <input type="text" class="tally-input" id="dirFirst" placeholder="Kemi" />
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="dirLast">Director last name</label>
+          <input type="text" class="tally-input" id="dirLast" placeholder="Adeyemi" />
         </div>
       </div>
+
+      <button class="primary-btn" onclick="confirmName()">Continue →</button>
     </div>
   </div>
 
-  <!-- Referee link generator -->
-  <div class="section-card">
-    <div class="section-card-head">
-      <span class="card-icon">🔗</span>
-      <h2>Generate referee links</h2>
+  <!-- ══ SLIDE 3 — REFEREE LINKS ══ -->
+  <div class="slide pos-below" id="slide-3">
+    <div class="slide-inner">
+      <span class="slide-emoji">🔗</span>
+      <h1 class="slide-q">Generate referee links</h1>
+      <p class="slide-sub">Each link expires in <strong>24 hours</strong> and can only be used <strong>once</strong>. You can send up to 2.</p>
+
+      <!-- Referee 1 -->
+      <p class="field-label" style="margin-bottom:6px;font-size:13px">Referee 1</p>
+      <div class="field-wrap">
+        <label class="field-label" for="ref1Name">Full name</label>
+        <input type="text" class="tally-input" id="ref1Name" placeholder="e.g. Chidi Okonkwo" />
+      </div>
+      <button class="primary-btn" id="gen1Btn" onclick="generateRefLink(1)" style="margin-bottom:20px">Generate link →</button>
+      <div id="slot1-result"></div>
+
+      <!-- Referee 2 — appears after ref 1 is generated -->
+      <button class="add-ref-btn" id="addRef2Btn" style="display:none" onclick="showSlot2()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add a second referee
+      </button>
+
+      <div id="slot2" style="display:none">
+        <p class="field-label" style="margin-bottom:6px;font-size:13px">Referee 2</p>
+        <div class="field-wrap">
+          <label class="field-label" for="ref2Name">Full name</label>
+          <input type="text" class="tally-input" id="ref2Name" placeholder="e.g. Ngozi Eze" />
+        </div>
+        <button class="primary-btn" id="gen2Btn" onclick="generateRefLink(2)" style="margin-bottom:20px">Generate link →</button>
+        <div id="slot2-result"></div>
+      </div>
+
+      <button class="primary-btn" id="doneBtn" style="margin-top:8px" onclick="goToSlide(4)">I'm done →</button>
     </div>
-    <div class="section-card-body">
-      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px;line-height:1.55">Generate a secure link for each of your referees. Each link expires in <strong>24 hours</strong> and can only be used <strong>once</strong>. Do not send the link and access code in the same message.</p>
+  </div>
 
-      <div class="counter-bar">
-        <span>Referee links generated</span>
-        <strong id="linkCounter">0 of 2</strong>
-      </div>
-
-      <div class="ref-slots">
-
-        <!-- Slot 1 -->
-        <div class="ref-slot" id="slot1">
-          <div class="slot-head">
-            <div class="slot-head-left">
-              <span class="slot-num">1</span>
-              <span class="slot-title">Referee 1</span>
-            </div>
-            <span class="slot-status pending" id="slot1-status">Not generated</span>
-          </div>
-          <div class="slot-body" id="slot1-body">
-            <div class="slot-gen-row">
-              <div style="flex:1">
-                <span class="field-label" style="display:block;margin-bottom:5px">Referee's full name</span>
-                <input type="text" class="tally-input" id="ref1Name" placeholder="e.g. Chidi Okonkwo" />
-              </div>
-              <button class="gen-btn" id="gen1Btn" onclick="generateRefLink(1)">Generate</button>
-            </div>
-          </div>
-          <div class="slot-body gen-result" id="slot1-result"></div>
-        </div>
-
-        <!-- Slot 2 -->
-        <div class="ref-slot" id="slot2">
-          <div class="slot-head">
-            <div class="slot-head-left">
-              <span class="slot-num">2</span>
-              <span class="slot-title">Referee 2</span>
-            </div>
-            <span class="slot-status pending" id="slot2-status">Not generated</span>
-          </div>
-          <div class="slot-body" id="slot2-body">
-            <div class="slot-gen-row">
-              <div style="flex:1">
-                <span class="field-label" style="display:block;margin-bottom:5px">Referee's full name</span>
-                <input type="text" class="tally-input" id="ref2Name" placeholder="e.g. Ngozi Eze" />
-              </div>
-              <button class="gen-btn" id="gen2Btn" onclick="generateRefLink(2)">Generate</button>
-            </div>
-          </div>
-          <div class="slot-body gen-result" id="slot2-result"></div>
-        </div>
-
-      </div>
-
-      <div class="caution" style="margin-top:16px">
-        <strong>⚠️ Important</strong>
-        "It is very dangerous to introduce a person who is not well-known to you." — GTBank<br>
-        Only send this form to someone who genuinely knows you and is eligible to serve as a referee.
-      </div>
-
+  <!-- ══ SLIDE 4 — DONE ══ -->
+  <div class="slide pos-below" id="slide-4">
+    <div class="slide-inner done-wrap">
+      <span class="done-emoji">🎉</span>
+      <h1 class="done-title">You're all set!</h1>
+      <p class="done-sub" id="doneSub">Your referee links are ready. Send them to your referees and remind them to complete and download the form within 24 hours.</p>
+      <p class="done-note">🔒 No data has been stored on any server. You can safely close this page.</p>
     </div>
   </div>
 
 </div>
 
 <script>
-// ── Supabase ──────────────────────────────────────────────────
 const _supa = window.supabase.createClient(
   'https://dlpbnucipzudsrsbvodp.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
 );
 
-// ── Config ────────────────────────────────────────────────────
 const _cfg = (() => {
   try { return JSON.parse(atob(new URLSearchParams(location.search).get('config') || '')); }
   catch { return {}; }
 })();
 
-const OFFICER_NAME = _cfg.officer   || 'Your account officer';
-const BANK         = _cfg.bank      || 'Guaranty Trust Bank';
-const REF_TYPE     = _cfg.refType   || 'individual';
-const CUSTOMER     = _cfg.customer  || '';
+const OFFICER_NAME = _cfg.officer  || 'Your account officer';
+const BANK         = _cfg.bank     || 'Guaranty Trust Bank';
+const REF_TYPE     = _cfg.refType  || 'individual';
+const CUSTOMER     = _cfg.customer || '';
 const BASE_URL     = window.location.href.replace(/gtbank-ref-customer\.html.*$/, '');
+const TOTAL        = 5;
+let cur = 0;
+const slotData = {}; // stores { link, msg } per slot for sharing
 
-let linksGenerated = 0;
+// Block expired customer links immediately
+if (_cfg.expiresAt && Date.now() > _cfg.expiresAt) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('slides').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center">
+        <span style="font-size:52px;margin-bottom:16px">⏰</span>
+        <h1 style="font-family:'DM Serif Display',serif;font-size:26px;color:#1A1208;margin-bottom:10px">This link has expired</h1>
+        <p style="font-size:15px;color:#7A6E64;line-height:1.65;max-width:360px">Please contact your account officer at ${BANK} to request a new link.</p>
+      </div>`;
+  });
+}
 
-// ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Header
   document.getElementById('officerDisplay').textContent = OFFICER_NAME;
   document.getElementById('bankDisplay').textContent    = BANK;
+  const isInd = REF_TYPE === 'individual';
+  document.getElementById('s0Title').textContent = `${OFFICER_NAME} has shared a GTBank Reference Form with you`;
+  document.getElementById('s0Sub').textContent   = `This is for your ${isInd ? 'Individual' : 'Company'} account opening at Guaranty Trust Bank.`;
 
-  if (REF_TYPE === 'individual') {
-    document.getElementById('introTitle').textContent = `${OFFICER_NAME} has shared a GTBank Reference Form link with you`;
-    document.getElementById('introSub').textContent   = `This is for your Individual account opening at Guaranty Trust Bank.`;
-  } else {
-    document.getElementById('introTitle').textContent = `${OFFICER_NAME} has shared a GTBank Reference Form link with you`;
-    document.getElementById('introSub').textContent   = `This is for your Company account opening at Guaranty Trust Bank.`;
-  }
-
-  // Referencing requirements
-  const reqs = REF_TYPE === 'individual' ? [
-    'Referees must be a current account holder in GTCO or any other bank.',
-    'Referee\'s account must not be less than six months old.',
-    'Salary account holders are not suitable referees.',
-    'Referees can confirm via Internet Banking or USSD *737*51*54#.',
+  const reqs = isInd ? [
+    'Must be a current account holder in GTCO or any other bank.',
+    'Account must not be less than six months old.',
+    'Salary account holders are not eligible as referees.',
+    'Can confirm via Internet Banking or USSD *737*51*54#.',
   ] : [
-    'Referees must be a current account holder in GTCO or any other bank.',
+    'Must be a current account holder in GTCO or any other bank.',
     'Referees from other banks must be corporate account holders only.',
-    'Referee\'s account must not be less than six months old.',
-    'Salary account holders are not suitable referees.',
+    'Account must not be less than six months old.',
+    'Salary account holders are not eligible as referees.',
   ];
   document.getElementById('reqList').innerHTML = reqs.map((r, i) =>
-    `<li class="req-item"><span class="req-dot">${i + 1}</span><span>${r}</span></li>`
-  ).join('');
+    `<li class="req-item"><span class="req-num">${i+1}</span><span>${r}</span></li>`).join('');
 
-  // Pre-fill form fields from config
+  if (!isInd) {
+    document.getElementById('s2Emoji').textContent = '🏢';
+    document.getElementById('s2Title').textContent = 'Confirm your company details';
+    document.getElementById('s2Sub').textContent   = 'As they should appear on the reference form.';
+    document.getElementById('indFields').style.display  = 'none';
+    document.getElementById('corpFields').style.display = '';
+  }
+
   if (CUSTOMER) {
-    const parts = CUSTOMER.split(' ');
-    if (REF_TYPE === 'individual') {
-      document.getElementById('custFirst').value = parts[0] || '';
-      document.getElementById('custLast').value  = parts.slice(1).join(' ') || '';
+    const p = CUSTOMER.split(' ');
+    if (isInd) {
+      document.getElementById('custFirst').value = p[0] || '';
+      document.getElementById('custLast').value  = p.slice(1).join(' ') || '';
     } else {
-      document.getElementById('dirFirst').value = parts[0] || '';
-      document.getElementById('dirLast').value  = parts.slice(1).join(' ') || '';
+      document.getElementById('dirFirst').value = p[0] || '';
+      document.getElementById('dirLast').value  = p.slice(1).join(' ') || '';
     }
   }
 
-  // Restore generated links from localStorage
   restoreState();
 });
 
-function updateOpenBtn() {
-  document.getElementById('openFormBtn').disabled = !document.getElementById('privacyCheck').checked;
+// ── Navigation ────────────────────────────────────────────────
+function goToSlide(n) {
+  document.getElementById(`slide-${cur}`).className = `slide ${n > cur ? 'pos-above' : 'pos-below'}`;
+  document.getElementById(`slide-${n}`).className   = 'slide pos-active';
+  cur = n;
+  document.getElementById(`slide-${n}`).scrollTop = 0;
+  updateChrome();
 }
 
-function openForm() {
-  document.getElementById('stateLanding').style.display = 'none';
-  document.getElementById('stateForm').style.display    = '';
-  // Show correct field set
-  document.getElementById('indFields').style.display  = REF_TYPE === 'individual' ? '' : 'none';
-  document.getElementById('corpFields').style.display = REF_TYPE === 'corporate'  ? '' : 'none';
-  if (REF_TYPE === 'corporate') {
-    document.getElementById('formTypeIcon').textContent  = '🏢';
-    document.getElementById('formTypeTitle').textContent = 'Confirm your company details';
-    document.getElementById('formTypeNote').textContent  = 'Please confirm your company name and director as they should appear on the reference form.';
-  }
-  window.scrollTo(0, 0);
+function goBack() { if (cur > 0) goToSlide(cur - 1); }
+
+function updateChrome() {
+  document.getElementById('prog-fill').style.width = ((cur / (TOTAL - 1)) * 100) + '%';
+  const show = cur > 0 && cur < TOTAL - 1;
+  document.getElementById('back-btn').style.display    = show ? 'flex' : 'none';
+  document.getElementById('slide-counter').style.display = show ? 'block' : 'none';
+  document.getElementById('slide-counter').textContent   = `${cur} of ${TOTAL - 1}`;
 }
 
-// ── Referee link generation ───────────────────────────────────
-async function generateRefLink(slot) {
-  const nameInput = document.getElementById(`ref${slot}Name`);
-  const refName   = nameInput.value.trim();
-  if (!refName) { nameInput.style.borderColor = 'var(--danger)'; nameInput.focus(); return; }
-  nameInput.style.borderColor = '';
-
-  // Validate customer details are filled
+// ── Name confirmation ─────────────────────────────────────────
+function confirmName() {
+  const err = document.getElementById('nameErr');
+  let ok = true;
   if (REF_TYPE === 'individual') {
-    const f = document.getElementById('custFirst').value.trim();
-    const l = document.getElementById('custLast').value.trim();
-    if (!f || !l) { alert('Please confirm your name first.'); return; }
+    ok = !!(document.getElementById('custFirst').value.trim() && document.getElementById('custLast').value.trim());
   } else {
-    const co = document.getElementById('companyName').value.trim();
-    const df = document.getElementById('dirFirst').value.trim();
-    const dl = document.getElementById('dirLast').value.trim();
-    if (!co || !df || !dl) { alert('Please confirm your company and director details first.'); return; }
+    ok = !!(document.getElementById('companyName').value.trim() && document.getElementById('dirFirst').value.trim() && document.getElementById('dirLast').value.trim());
   }
+  if (!ok) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  goToSlide(3);
+}
 
-  const genBtn = document.getElementById(`gen${slot}Btn`);
-  genBtn.textContent = 'Generating…';
-  genBtn.disabled = true;
+// ── Show slot 2 ───────────────────────────────────────────────
+function showSlot2() {
+  document.getElementById('addRef2Btn').style.display = 'none';
+  document.getElementById('slot2').style.display = '';
+  document.getElementById('ref2Name').focus();
+}
 
-  // Build referee config
+// ── Generate referee link ─────────────────────────────────────
+async function generateRefLink(slot) {
+  const nameEl = document.getElementById(`ref${slot}Name`);
+  const name   = nameEl.value.trim();
+  if (!name) { nameEl.classList.add('err'); nameEl.focus(); return; }
+  nameEl.classList.remove('err');
+
+  const btn = document.getElementById(`gen${slot}Btn`);
+  btn.textContent = '…';
+  btn.disabled = true;
+  nameEl.disabled = true;
+
   const rnd = new Uint32Array(2); crypto.getRandomValues(rnd);
-  const refSessionId  = 'gtb_ref_' + rnd[0].toString(36) + rnd[1].toString(36);
-  const refAccessCode = String(100000 + (rnd[0] % 900000));
-  const expiresAt     = Date.now() + 24 * 60 * 60 * 1000;
+  const sessionId  = 'gtb_ref_' + rnd[0].toString(36) + rnd[1].toString(36);
+  const accessCode = String(100000 + (rnd[0] % 900000));
+  const expiresAt  = Date.now() + 24 * 60 * 60 * 1000;
 
   const customer = REF_TYPE === 'individual'
     ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
     : document.getElementById('companyName').value.trim();
   const directorName = REF_TYPE === 'corporate'
-    ? `${document.getElementById('dirFirst').value.trim()} ${document.getElementById('dirLast').value.trim()}`
-    : '';
+    ? `${document.getElementById('dirFirst').value.trim()} ${document.getElementById('dirLast').value.trim()}` : '';
 
-  const refConfig = { bank: BANK, formType: 'Reference Form — Referee', refType: REF_TYPE, customer, directorName, refereeName: refName, sessionId: refSessionId, expiresAt };
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(refConfig))));
-  const refLink = `${BASE_URL}gtbank-reference.html?config=${encoded}`;
+  const cfg = { bank: BANK, formType: 'Reference Form — Referee', refType: REF_TYPE, customer, directorName, refereeName: name, sessionId, expiresAt };
+  const link = `${BASE_URL}gtbank-reference.html?config=${btoa(unescape(encodeURIComponent(JSON.stringify(cfg))))}`;
 
-  // Store in Supabase
-  const { error } = await _supa.from('form_access_codes').insert({
-    session_id: refSessionId, access_code: refAccessCode, expires_at: expiresAt
-  });
-  if (error) console.error('Supabase error:', error.message);
+  const { error } = await _supa.from('form_access_codes').insert({ session_id: sessionId, access_code: accessCode, expires_at: expiresAt });
+  if (error) console.error('Supabase:', error.message);
 
-  // Save to localStorage
-  const stateKey = `gtb_ref_state_${_cfg.sessionId || 'unknown'}`;
-  const state    = JSON.parse(localStorage.getItem(stateKey) || '{}');
-  state[`slot${slot}`] = { refName, refSessionId, refAccessCode, refLink, generatedAt: Date.now() };
-  localStorage.setItem(stateKey, JSON.stringify(state));
+  const sk = `gtb_ref_state_${_cfg.sessionId || 'x'}`;
+  const st = JSON.parse(localStorage.getItem(sk) || '{}');
+  st[`slot${slot}`] = { refName: name, refLink: link, refAccessCode: accessCode, expiresAt };
+  localStorage.setItem(sk, JSON.stringify(st));
 
-  renderSlotResult(slot, refName, refLink, refAccessCode, expiresAt);
-  linksGenerated++;
-  document.getElementById('linkCounter').textContent = `${linksGenerated} of 2`;
+  renderResult(slot, name, link, accessCode, expiresAt);
+
+  if (slot === 1) {
+    document.getElementById('addRef2Btn').style.display = 'flex';
+  }
 }
 
-function renderSlotResult(slot, refName, refLink, refAccessCode, expiresAt) {
-  const statusEl = document.getElementById(`slot${slot}-status`);
-  statusEl.textContent = 'Generated';
-  statusEl.className   = 'slot-status generated';
+function renderResult(slot, refName, link, code, expiresAt) {
+  document.getElementById(`gen${slot}Btn`).style.display = 'none';
+  document.getElementById(`ref${slot}Name`).disabled = true;
 
-  const bodyEl  = document.getElementById(`slot${slot}-body`);
-  bodyEl.style.display = 'none';
-
-  const resultEl = document.getElementById(`slot${slot}-result`);
   const expiryStr = new Date(expiresAt).toLocaleString('en-NG', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  const msg = buildMsg(refName, link, code, expiryStr);
+  const shortLink = link.length > 48 ? link.slice(0, 48) + '…' : link;
+  slotData[slot] = { link, msg, code, refName, expiryStr };
 
-  const copyMsg = buildCopyMessage(refName, refLink, refAccessCode, expiryStr);
-  resultEl.innerHTML = `
-    <div class="copy-row-label">📋 Ready to copy and send to ${refName}</div>
-    <div style="background:var(--orange-l);border:1px solid var(--orange-m);border-radius:8px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:.78rem;color:var(--ink);line-height:1.55">${escapeHtml(copyMsg)}</div>
-    <button class="gen-btn" style="width:100%;background:#fff;color:var(--orange);border:2px solid var(--orange)" onclick="copyText('${slot}msg', this)">Copy message</button>
-    <textarea id="slot${slot}msg" style="position:absolute;opacity:0;pointer-events:none" readonly>${escapeHtml(copyMsg)}</textarea>
-    <p class="expiry-note" style="margin-top:8px">⏱ Expires: ${expiryStr}</p>`;
+  const el = document.getElementById(`slot${slot}-result`);
+  el.style.display = 'block';
+  el.innerHTML = `
+    <p class="expiry-note">⏱ Expires ${expiryStr} — one-time use</p>
+    <div class="share-link-box">
+      <span class="share-link-text">${esc(shortLink)}</span>
+      <button class="share-copy-btn" id="lnk${slot}Btn" onclick="copySlotLink(${slot},this)">Copy link</button>
+    </div>
 
-  resultEl.classList.add('show');
+    <button class="wa-btn" onclick="shareWhatsApp(${slot})">📱 Share on WhatsApp</button>
+
+    <button class="email-trigger" id="emailTrig${slot}" onclick="openEmail(${slot})">✉️ Send via Email</button>
+    <div class="email-input-row" id="emailRow${slot}">
+      <div class="email-input-inner">
+        <input type="email" id="emailInp${slot}" placeholder="Referee's email address" onkeydown="if(event.key==='Enter')sendEmail(${slot})" />
+        <button class="email-send-btn" onclick="sendEmail(${slot})">Send</button>
+      </div>
+      <button class="email-cancel" onclick="closeEmail(${slot})">Cancel</button>
+    </div>
+
+    <button class="email-trigger" style="border-color:var(--line);color:var(--muted);margin-bottom:0" id="cpyMsg${slot}Btn" onclick="copySlotMsg(${slot},this)">📋 Copy full message</button>`;
 }
 
-function buildCopyMessage(refName, link, code, expiryStr) {
+function shareWhatsApp(slot) {
+  window.open('https://wa.me/?text=' + encodeURIComponent(slotData[slot].msg), '_blank');
+}
+
+function copySlotLink(slot, btn) {
+  navigator.clipboard.writeText(slotData[slot].link).then(() => {
+    const orig = btn.textContent; btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2200);
+  });
+}
+
+function copySlotMsg(slot, btn) {
+  navigator.clipboard.writeText(slotData[slot].msg).then(() => {
+    const orig = btn.textContent; btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2200);
+  });
+}
+
+function openEmail(slot) {
+  document.getElementById(`emailTrig${slot}`).style.display = 'none';
+  document.getElementById(`emailRow${slot}`).classList.add('open');
+  document.getElementById(`emailInp${slot}`).focus();
+}
+
+function closeEmail(slot) {
+  document.getElementById(`emailRow${slot}`).classList.remove('open');
+  document.getElementById(`emailTrig${slot}`).style.display = 'block';
+}
+
+function buildRefEmailHtml(refName, customerName, link, code, expiryStr) {
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+<tr><td style="background:#E8470A;padding:28px 32px">
+  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">GTBank &nbsp;·&nbsp; FormPilot</div>
+  <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Reference Form Request 📝</div>
+</td></tr>
+<tr><td style="padding:32px">
+  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${refName},</p>
+  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 24px"><strong>${customerName}</strong> has listed you as a referee for their GTBank account opening. Please complete the reference form at your earliest convenience.</p>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
+    <td style="background:#FFF0EB;border:1.5px solid #FDDFD0;border-radius:12px;padding:18px 20px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7A6E64;margin-bottom:8px">Your Access Code</div>
+      <div style="font-size:32px;font-weight:800;color:#E8470A;letter-spacing:.2em;line-height:1">${code}</div>
+      <div style="font-size:12px;color:#7A6E64;margin-top:8px">⏱ Expires ${expiryStr} &nbsp;·&nbsp; One-time use only</div>
+    </td>
+  </tr></table>
+  <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
+    <td align="center" style="background:#E8470A;border-radius:12px">
+      <a href="${link}" style="display:block;padding:16px 24px;font-size:16px;font-weight:700;color:#fff;text-decoration:none;text-align:center">Complete Reference Form →</a>
+    </td>
+  </tr></table>
+  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Can't click the button? Copy this link:</p>
+  <p style="font-size:11px;color:#E8470A;word-break:break-all;background:#FFF0EB;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
+</td></tr>
+<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
+  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+</td></tr>
+</table></td></tr></table>
+</body></html>`;
+}
+
+async function sendEmail(slot) {
+  const emailInp = document.getElementById(`emailInp${slot}`);
+  const email = emailInp.value.trim();
+  if (!email || !email.includes('@')) { emailInp.focus(); return; }
+
+  const sendBtn = emailInp.closest('.email-input-inner').querySelector('.email-send-btn');
+  const orig = sendBtn.textContent;
+  sendBtn.textContent = '⏳';
+  sendBtn.disabled = true;
+
+  const { link, msg, code, refName, expiryStr } = slotData[slot];
+  const customerName = REF_TYPE === 'individual'
+    ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
+    : document.getElementById('companyName').value.trim();
+  const html = buildRefEmailHtml(refName, customerName, link, code, expiryStr);
+
+  try {
+    const res = await fetch(
+      'https://dlpbnucipzudsrsbvodp.supabase.co/functions/v1/send-email',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c',
+        },
+        body: JSON.stringify({
+          to: email,
+          subject: 'GTBank Reference Form — please complete',
+          text: msg,
+          html,
+        }),
+      }
+    );
+    const d = await res.json();
+    if (d.ok) {
+      sendBtn.textContent = '✓ Sent!';
+      setTimeout(() => closeEmail(slot), 1800);
+    } else {
+      throw new Error(JSON.stringify(d.error));
+    }
+  } catch (err) {
+    console.error('Email error:', err);
+    sendBtn.textContent = orig;
+    sendBtn.disabled = false;
+    alert('Failed to send: ' + (err.message || JSON.stringify(err)));
+  }
+}
+
+function buildMsg(refName, link, code, expiryStr) {
   const customer = REF_TYPE === 'individual'
     ? `${document.getElementById('custFirst').value.trim()} ${document.getElementById('custLast').value.trim()}`
     : document.getElementById('companyName').value.trim();
-  let msg = `Hello ${refName},\n\n${customer} has requested you to complete a GTBank reference form as part of their account opening.\n\n`;
-  msg += `🔗 Link: ${link}\n`;
-  msg += `🔑 Access Code: ${code}\n`;
-  msg += `⏱ Expires: ${expiryStr} (24 hours, one-time use only)\n\n`;
-  msg += `Steps:\n1. Open the link\n2. Enter the access code when prompted\n3. Fill your details honestly\n4. Download the completed form\n\n`;
-  msg += `⚠️ "It is very dangerous to introduce a person who is not well-known to you." — GTBank\n\n`;
-  msg += `Sent via FormPilot`;
-  return msg;
+  return `Hello ${refName},\n\n${customer} has requested you to complete a GTBank reference form as part of their account opening.\n\n🔗 Link: ${link}\n🔑 Access Code: ${code}\n⏱ Expires: ${expiryStr} (24 hours, one-time use only)\n\nSteps:\n1. Open the link\n2. Enter the access code when prompted\n3. Fill your details honestly\n4. Download the completed form\n\n⚠️ "It is very dangerous to introduce a person who is not well-known to you." — GTBank\n\nSent via FormPilot`;
 }
 
-function copyText(id, btn) {
-  const el = document.getElementById(id);
-  const text = el.value;
-  navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => {
-    el.style.position = 'static'; el.style.opacity = '1';
-    el.select(); document.execCommand('copy');
-    el.style.position = 'absolute'; el.style.opacity = '0';
-    showCopied(btn);
-  });
-}
 
-function showCopied(btn) {
-  const orig = btn.textContent;
-  btn.textContent = '✓ Copied!';
-  btn.style.background = 'var(--success)';
-  btn.style.border = 'none';
-  setTimeout(() => { btn.textContent = orig; btn.style.background = ''; btn.style.border = ''; }, 2500);
-}
 
-function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function restoreState() {
-  const stateKey = `gtb_ref_state_${_cfg.sessionId || 'unknown'}`;
-  const state    = JSON.parse(localStorage.getItem(stateKey) || '{}');
-  let count = 0;
+  const sk = `gtb_ref_state_${_cfg.sessionId || 'x'}`;
+  const st = JSON.parse(localStorage.getItem(sk) || '{}');
+  let changed = false;
   [1, 2].forEach(slot => {
-    const s = state[`slot${slot}`];
+    const s = st[`slot${slot}`];
     if (!s) return;
+    // discard expired slots
+    if (s.expiresAt && Date.now() > s.expiresAt) {
+      delete st[`slot${slot}`]; changed = true; return;
+    }
     document.getElementById(`ref${slot}Name`).value = s.refName;
-    renderSlotResult(slot, s.refName, s.refLink, s.refAccessCode, s.expiresAt || (s.generatedAt + 86400000));
-    count++;
+    if (slot === 2) {
+      document.getElementById('addRef2Btn').style.display = 'none';
+      document.getElementById('slot2').style.display = '';
+    }
+    renderResult(slot, s.refName, s.refLink, s.refAccessCode, s.expiresAt);
+    if (slot === 1) document.getElementById('addRef2Btn').style.display = 'none';
   });
-  linksGenerated = count;
-  document.getElementById('linkCounter').textContent = `${linksGenerated} of 2`;
+  if (changed) localStorage.setItem(sk, JSON.stringify(st));
 }
 </script>
 </body>

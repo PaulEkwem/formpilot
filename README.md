@@ -1,85 +1,75 @@
-# GTBank PDF Form Filler
+# FormPilot
 
-A client-side web application that fills GTBank business account opening forms with customer data and downloads the completed PDF.
+Bank form-filling web app for Nigerian banks. Officers log in, select a bank + form type, and send a guided link to their customer. The customer fills the form on any device — data never leaves their browser — and downloads a print-ready, bank-branded PDF.
 
-## Features
+> Built by [Paul Ekwem](https://github.com/PaulEkwem) at Syndra Technologies.
 
-- Upload GTBank PDF templates
-- Fill customer information (name, BVN, business details, etc.)
-- Automatic text overlay on static PDFs
-- Download filled PDF with 100% visual fidelity
-- Preview filled data before processing
-- Mobile-responsive design
+## What it does
 
-## Setup
+- **Officer side** — sign up, log in, generate shareable form links, track submissions
+- **Customer side** — open the link, fill the form through a guided UI, download a PDF
+- **Reference flow** — customer forwards a referee link; the referee fills + signs; PDF returns to the officer
 
-1. Open `index.html` in a modern web browser (Chrome, Firefox, Edge)
-2. No server required - runs entirely in the browser
+No backend logic for the form fill itself — everything happens in the customer's browser. Auth and link metadata go through Supabase. Email delivery goes through a Supabase Edge Function backed by Brevo.
 
-## Usage
+## Tech stack
 
-1. Select the appropriate GTBank PDF form from your Downloads folder
-2. Fill in the customer details
-3. Click "Preview" to review the data
-4. Click "Fill & Download PDF" to generate and download the completed form
+| Layer | Stack |
+|---|---|
+| Hosting | Vercel (static) |
+| Auth + DB | Supabase (Postgres + RLS) |
+| PDF generation | pdf-lib + pdfjs (browser) |
+| Email | Supabase Edge Function → Brevo SMTP |
+| Observability | Sentry (with session replay) |
+| Fonts | DM Serif Display + DM Sans |
 
-## Customizing Field Mappings
+## Local development
 
-Since GTBank forms are static PDFs (not fillable), the app overlays text at specific coordinates. Each form type needs its own mapping configuration.
-
-### How to Configure Mappings
-
-1. Open the PDF in a PDF viewer (Adobe Reader, Chrome)
-2. Note the exact coordinates (x, y) where each field should appear
-3. Edit `fieldMappings.json` to add/update coordinates for each form type
-
-### Coordinate System
-
-- **x, y**: Position in points (72 points = 1 inch)
-- **page**: Page number (0-based index)
-- **fontSize**: Text size in points
-
-Example mapping:
-
-```json
-"Sole Proprietorship": {
-  "fullName": { "x": 100, "y": 700, "page": 0, "fontSize": 12 }
-}
+```bash
+# Serve the static site on port 5173
+npm run dev
+# → open http://localhost:5173
 ```
 
-### Finding Coordinates
+No build step. All HTML files at the project root, all assets in `src/`.
 
-1. Open PDF in Chrome browser
-2. Right-click > Inspect
-3. Use the ruler tool or measure from page edges
-4. Test with sample data and adjust as needed
+## Project structure
 
-## Supported Forms
+```
+formpilot/
+├── *.html                    # All page entry points (index, login, dashboard, forms…)
+├── src/
+│   ├── config/               # Supabase client, env, constants
+│   ├── lib/                  # Reusable libraries (form-engine, etc.)
+│   ├── pages/                # Page-specific JS (dashboard.js)
+│   ├── ui/                   # Reusable UI components (toast, modal…)
+│   └── styles/               # CSS — tokens, base, components, pages
+├── supabase/
+│   ├── migrations/           # Versioned SQL — apply in order
+│   └── functions/            # Edge Functions (send-email)
+├── pdfs/                     # PDF templates
+├── data/                     # Field mappings + reference docs
+├── tests/                    # Unit + E2E tests
+├── docs/                     # Architecture, security, deployment
+├── scripts/                  # Helper scripts
+└── archive/                  # Old prototypes (do not use)
+```
 
-Based on analysis:
+## Deployment
 
-- Account-Opening-Documentation-Sole-Proprietorship-Partnership-Form-Jan-2026.pdf (20 pages)
-- GAPS-and-GAPS-Lite-Corporate-Internet-Banking-Form.pdf (3 pages)
-- Account-Opening-Documentation-Trustees\_-Jan-2026.pdf (22 pages)
-- Account-Opening-Form-Unincorporated-Societies-Account_Jan-2026.pdf (20 pages)
-- Account-Opening-Documentation-Corporate-Jan-2026.pdf (21 pages)
+Push to `main` → Vercel auto-deploys to https://formpilot-five.vercel.app.
 
-## Technical Details
+Vercel project settings hold these secrets (NOT in this repo):
+- `BREVO_API_KEY`
+- `SENDER_EMAIL`
 
-- Uses `pdf-lib` library for PDF manipulation
-- Client-side processing (no data sent to servers)
-- Supports static PDF templates with coordinate-based text placement
-- Validation for required fields and BVN format
+## Documentation
 
-## Future Enhancements
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — why decisions were made
+- [docs/SECURITY.md](docs/SECURITY.md) — threat model + RLS map
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — how to deploy
+- [docs/CHANGELOG.md](docs/CHANGELOG.md) — sprint-by-sprint changes
 
-- Backend API for secure PDF storage and email delivery
-- OCR for automatic field detection
-- Batch processing for multiple customers
-- Integration with CRM systems
+## License
 
-## Troubleshooting
-
-- **PDF not filling correctly**: Check field mappings in `fieldMappings.json`
-- **Download not working**: Ensure browser allows file downloads
-- **Large PDFs**: May take time to process; wait for completion message
+Proprietary. © Syndra Technologies. All rights reserved.

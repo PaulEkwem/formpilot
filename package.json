@@ -1,0 +1,21 @@
+{
+  "name": "formpilot",
+  "version": "0.1.0",
+  "description": "Bank form-filling web app for Nigerian banks. Officers send guided links; customers fill and download a print-ready PDF — all client-side.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve . -p 5173",
+    "test": "echo \"No tests yet — add to tests/\" && exit 0",
+    "test:e2e": "echo \"Add Playwright in Sprint 6\" && exit 0",
+    "lint": "echo \"Add eslint in Sprint 6\" && exit 0",
+    "format": "echo \"Add prettier in Sprint 6\" && exit 0"
+  },
+  "keywords": ["bank", "forms", "pdf", "nigeria", "fintech"],
+  "author": "Paul Ekwem",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.11.174"
+  }
+}
