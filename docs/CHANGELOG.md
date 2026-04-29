@@ -154,3 +154,40 @@ Skeletons feel premium and tell the user "something's coming" instead of a blank
 - `gtbank-reference.html` trust banner — `.fp-trust-banner` CSS exists, but applying it cleanly requires reading 800+ lines of that page. Deferred to a focused customer-form polish sprint.
 - PDF preview before download — needs significant pdf-lib → image rendering work; not a quick win.
 - Mobile-first dashboard refinement — needs real device testing, not just CSS guesses.
+
+---
+
+## Sprint 6 — CI + tests foundation (2026-04-29)
+
+**What changed:**
+
+- **`.github/workflows/ci.yml`** — runs on every PR + push to main. Two jobs:
+  1. `static-checks` — validates JSON, fails if EmailJS sneaks back in, fails on legacy `assets/` paths, fails on CDN scripts missing SRI.
+  2. `smoke-tests` — Playwright runs against `npx serve` on port 5173, uploads HTML report on failure.
+- **`playwright.config.js`** — Chromium only, auto-starts the dev server, retries 2x on CI, traces on retry, screenshots on failure.
+- **`tests/e2e/smoke.spec.js`** — 6 smoke tests covering: landing page hero/CTA, login/signup form structure, privacy/terms titles, dashboard redirect-when-no-session, viewport meta. No auth flow yet (needs test-user credentials in CI secrets — Sprint 7).
+- **`package.json`** — added `@playwright/test` and `serve` as devDependencies. New scripts: `test:e2e`, `test:e2e:ui` (Playwright UI mode), `test:e2e:headed` (watch the browser run).
+- **`.gitignore`** — added `playwright/.cache/`.
+
+**Why:**
+
+Solo devs need automated guards more than teams do, because future-you in 3 months won't remember why a thing works. The 4 static checks codify earlier sprint decisions:
+- "no EmailJS" → grep gate
+- "Sprint 1 moved assets/ → src/" → grep gate
+- "every CDN script needs SRI" → grep gate
+- "JSON files must parse" → node parse
+
+The 6 smoke tests verify the basic skeleton (each public page loads + dashboard guard works). They run in <30s. As we add features, we add tests alongside, not in big bang sprints.
+
+**What did NOT change:**
+
+- No unit tests yet (Vitest deferred — most of the codebase is HTML+inline JS, hard to unit-test without refactoring to ES modules first; not worth the disruption).
+- No auth E2E tests yet — needs Supabase test users + CI secrets. Add when comfortable.
+- No lint/format yet — eslint/prettier configs deferred to a focused Sprint 7+.
+
+**Action items for you:**
+
+1. **Install dev dependencies once**: `npm install` (downloads `@playwright/test` + `serve`).
+2. **Install Playwright browsers**: `npx playwright install chromium` (one-time, ~150 MB).
+3. **Run tests locally**: `npm run test:e2e` (or `npm run test:e2e:ui` for the visual debugger).
+4. **Push the workflow** — once you push `main`, GitHub Actions runs CI on every future PR. No secrets needed for current tests.

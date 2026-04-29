@@ -32,6 +32,7 @@ yarn-error.log*
 # Test artifacts
 playwright-report/
 test-results/
+playwright/.cache/
 
 # Vercel
 .vercel/

@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "npx serve . -p 5173",
-    "test": "echo \"No tests yet — add to tests/\" && exit 0",
-    "test:e2e": "echo \"Add Playwright in Sprint 6\" && exit 0",
-    "lint": "echo \"Add eslint in Sprint 6\" && exit 0",
-    "format": "echo \"Add prettier in Sprint 6\" && exit 0"
+    "test": "npm run test:e2e",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "lint": "echo \"Add eslint in Sprint 7\" && exit 0",
+    "format": "echo \"Add prettier in Sprint 7\" && exit 0"
   },
   "keywords": ["bank", "forms", "pdf", "nigeria", "fintech"],
   "author": "Paul Ekwem",
@@ -17,5 +19,9 @@
   "dependencies": {
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "serve": "^14.2.4"
   }
 }
