@@ -46,15 +46,18 @@ jobs:
 
       - name: Verify SRI hashes on CDN scripts
         run: |
-          # Find <script src="https://..."> WITHOUT integrity= attribute
+          # Find <script src="https://..."> WITHOUT integrity= attribute,
+          # excluding known-good loader scripts that intentionally have no SRI
+          # (Sentry's loader script rotates by design).
           if grep -RIn --include='*.html' \
                --exclude-dir=node_modules --exclude-dir=archive \
                -E '<script[^>]*src="https://[^"]*"[^>]*>' . \
-             | grep -v 'integrity='; then
+             | grep -v 'integrity=' \
+             | grep -v 'sentry-cdn\.com'; then
             echo "::error::CDN script without SRI integrity hash."
             exit 1
           fi
-          echo "OK — every CDN script has an SRI hash."
+          echo "OK — every CDN script has an SRI hash (Sentry loader excluded by design)."
 
   smoke-tests:
     name: Playwright smoke tests
