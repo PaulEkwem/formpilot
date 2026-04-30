@@ -37,11 +37,10 @@ test.describe('public pages render', () => {
   });
 
   test('dashboard redirects to login when no session', async ({ page }) => {
-    // dashboard.js guards: if (!session.name) redirect to login.html
-    // CI cold-start can be slow — give it 15s for Supabase SDK + dashboard.js
-    // to fully load before the synchronous redirect fires.
-    await page.goto('/dashboard.html', { waitUntil: 'commit' });
-    await page.waitForURL('**/login.html', { timeout: 15_000 });
+    // dashboard.html has an inline auth guard at the top of <head> that
+    // fires BEFORE any external script — so this should redirect in <100ms.
+    await page.goto('/dashboard.html');
+    await page.waitForURL('**/login.html', { timeout: 5_000 });
   });
 });
 

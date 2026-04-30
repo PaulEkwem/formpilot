@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Auth guard — runs before any external script. Redirects unauthenticated
+         visitors instantly so the dashboard never paints for non-logged-in users. -->
+    <script>
+      (function () {
+        try {
+          var s = JSON.parse(sessionStorage.getItem('fp_user') || '{}');
+          if (!s || !s.name) { window.location.replace('login.html'); }
+        } catch (e) { window.location.replace('login.html'); }
+      })();
+    </script>
     <script src="https://js-de.sentry-cdn.com/ed4791c8fab32830252deec1e983dcce.min.js" crossorigin="anonymous"></script>
     <script>Sentry.onLoad(function(){ Sentry.init({ replaysSessionSampleRate:0.1, replaysOnErrorSampleRate:1.0 }); });</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
