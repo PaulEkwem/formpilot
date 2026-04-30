@@ -38,9 +38,13 @@ test.describe('public pages render', () => {
 
   test('dashboard redirects to login when no session', async ({ page }) => {
     // dashboard.html has an inline auth guard at the top of <head> that
-    // fires BEFORE any external script — so this should redirect in <100ms.
-    await page.goto('/dashboard.html');
-    await page.waitForURL('**/login.html', { timeout: 5_000 });
+    // calls location.replace('login.html') before any external script runs.
+    //
+    // Playwright/Chromium quirk: a JS-based redirect during page load can
+    // abort the original navigation, making page.goto() hang or throw.
+    // Workaround: don't await goto, just wait for the URL to settle.
+    await page.goto('/dashboard.html').catch(() => {});
+    await expect(page).toHaveURL(/\/login\.html$/, { timeout: 10_000 });
   });
 });
 
