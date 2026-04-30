@@ -44,7 +44,9 @@ test.describe('public pages render', () => {
     // abort the original navigation, making page.goto() hang or throw.
     // Workaround: don't await goto, just wait for the URL to settle.
     await page.goto('/dashboard.html').catch(() => {});
-    await expect(page).toHaveURL(/\/login\.html$/, { timeout: 10_000 });
+    // `npx serve` strips .html (cleanUrls), so URL settles on /login (no extension).
+    // Vercel can do the same. Match either form.
+    await expect(page).toHaveURL(/\/login(\.html)?$/, { timeout: 10_000 });
   });
 });
 
