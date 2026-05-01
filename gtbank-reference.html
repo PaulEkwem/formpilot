@@ -619,43 +619,102 @@ async function downloadForm() {
     const [yr, mo, dy] = dateVal ? dateVal.split('-') : ['', '', ''];
     const dateStr  = dy && mo && yr ? `${dy}/${mo}/${yr}` : '';
 
-    let fieldValues;
-    if (REF_TYPE === 'individual') {
-      fieldValues = {
-        'NAME OF INDIVIDUAL(S) OPENING AN ACCOUNT': (CUSTOMER || '').toUpperCase(),
-        'individual(s) for':                        years,
-        'as follows:':                              comments,
-        'I/We maintain':                            bank,
-        'Address Bank:':                            bankAddr,
-        'My/Our Account No. is:':                   acct,
-        'And my/our phone No. (s) is/are:':         phone,
-        'Date':                                     dateStr,
-        'Name of REFEREE:':                         refName,
-        'Address of REFEREE:':                      refAddr,
-      };
-    } else {
-      fieldValues = {
-        'Name of Company':                          (CUSTOMER || '').toUpperCase(),
-        'Directors for':                            years,
-        'as follows:':                              comments,
-        'Name of Bank:':                            bank,
-        'Address:':                                 bankAddr,
-        'My/Our Account No. is:':                   acct,
-        'And my/our phone No. (s) is/are:':         phone,
-        'Day':                                      dy,
-        'Month':                                    mo,
-        'Year':                                     yr,
-        'Name':                                     refName,
-        'Address':                                  refAddr,
-        'Name of Director':   DIRECTOR_NAME ? DIRECTOR_NAME.toUpperCase() : '',
-      };
+    // ── Direct pdf-lib drawing with hardcoded coordinates ────────────────
+    // GTBank's reference PDFs are image-based with vector shapes inside
+    // Form XObjects that pdfjs operator-list parsing can't see. FormEngine
+    // detected only ~14 broken (0,0) fields in testing. Hardcoded coords
+    // extracted via PyMuPDF text-position scan against label words; verified
+    // against a rendered PNG of the page.
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const page   = pdfDoc.getPages()[0];
+    const font   = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    function draw(text, x, y, size = 10) {
+      if (!text) return;
+      page.drawText(String(text), { x, y, size, font, color: rgb(0, 0, 0) });
     }
 
-    const outBytes = await FormEngine.fill(pdfBytes, fieldValues, {
-      signature:      REF_SIG,
-      signatureLabel: 'Signature',
-      debug:          true,
-    });
+    // Naive word-wrap for the multi-line comments block
+    function wrapWords(text, maxChars) {
+      const words = String(text || '').split(/\s+/).filter(Boolean);
+      const lines = [];
+      let cur = '';
+      for (const w of words) {
+        const cand = cur ? cur + ' ' + w : w;
+        if (cand.length > maxChars && cur) { lines.push(cur); cur = w; }
+        else cur = cand;
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+
+    if (REF_TYPE === 'individual') {
+      // INDIVIDUAL form coordinates (Reference-Form-Individual.pdf, A4 595x842)
+      draw((CUSTOMER || '').toUpperCase(), 80, 666, 11);   // line above "NAME OF INDIVIDUAL(S)..."
+      draw(years,       440, 605);                          // inline "for ___ years"
+      const commentLines = wrapWords(comments, 90);
+      draw(commentLines[0] || '', 38, 555);                 // 1st blank below "as follows:"
+      draw(commentLines[1] || '', 38, 528);                 // 2nd blank
+      draw(bank,        380, 488);                          // after "(Please state name of Bank)"
+      draw(bankAddr,    110, 462);                          // after "Address Bank:"
+      draw(acct,        158, 408);                          // after "My/Our Account No. is:"
+      draw(phone,       215, 382);                          // after "phone No. (s) is/are:"
+      draw(dateStr,     440, 348);                          // line above "Date" label
+      draw(refName,     145, 303);                          // after "Name of REFEREE:"
+      draw(refAddr,     155, 277);                          // after "Address of REFEREE:"
+    } else {
+      // CORPORATE form (Reference-Form-Corporate.pdf) — coords TBD per layout audit.
+      // Falling back to FormEngine for now until verified.
+      const fieldValues = {
+        'Name of Company':                  (CUSTOMER || '').toUpperCase(),
+        'Directors for':                    years,
+        'as follows:':                      comments,
+        'Name of Bank:':                    bank,
+        'Address:':                         bankAddr,
+        'My/Our Account No. is:':           acct,
+        'And my/our phone No. (s) is/are:': phone,
+        'Day':   dy, 'Month': mo, 'Year': yr,
+        'Name':                             refName,
+        'Address':                          refAddr,
+        'Name of Director': DIRECTOR_NAME ? DIRECTOR_NAME.toUpperCase() : '',
+      };
+      const fb = await FormEngine.fill(pdfBytes, fieldValues, {
+        signature: REF_SIG, signatureLabel: 'Signature', debug: true,
+      });
+      const blob0 = new Blob([fb], { type: 'application/pdf' });
+      const url0  = URL.createObjectURL(blob0);
+      const a0    = document.createElement('a');
+      const safeName0 = (CUSTOMER || 'referee').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      a0.href = url0; a0.download = `GTBank-Reference-${safeName0}.pdf`;
+      document.body.appendChild(a0); a0.click(); document.body.removeChild(a0);
+      setTimeout(() => URL.revokeObjectURL(url0), 5000);
+      if (SLUG) await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
+      document.getElementById('slides').style.display = 'none';
+      document.getElementById('stateDone').classList.add('show');
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    // ── Embed signature image (Individual flow) ──────────────────────────
+    if (REF_SIG) {
+      try {
+        const b64 = REF_SIG.split(',')[1];
+        const imgBytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const img = REF_SIG.startsWith('data:image/png')
+          ? await pdfDoc.embedPng(imgBytes)
+          : await pdfDoc.embedJpg(imgBytes);
+        const aspect = img.width / img.height;
+        const maxH = 28, maxW = 130;
+        const h = Math.min(maxH, maxW / aspect);
+        const w = h * aspect;
+        page.drawImage(img, { x: 290, y: 332, width: w, height: h });
+      } catch (e) {
+        console.warn('Signature embed failed:', e);
+      }
+    }
+
+    const outBytes = await pdfDoc.save();
 
     const blob = new Blob([outBytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
