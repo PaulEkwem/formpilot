@@ -651,18 +651,21 @@ async function downloadForm() {
 
     if (REF_TYPE === 'individual') {
       // INDIVIDUAL form coordinates (Reference-Form-Individual.pdf, A4 595x842)
-      draw((CUSTOMER || '').toUpperCase(), 80, 666, 11);   // line above "NAME OF INDIVIDUAL(S)..."
-      draw(years,       440, 605);                          // inline "for ___ years"
+      // Uniform font size 10 across all fields. ~15-18pt gap after each label
+      // colon for consistent, professional breathing room.
+      const FS = 10;
+      draw((CUSTOMER || '').toUpperCase(),  80, 666, FS);   // line above "NAME OF INDIVIDUAL(S)..."
+      draw(years,                          440, 605, FS);   // inline "for ___ years"
       const commentLines = wrapWords(comments, 90);
-      draw(commentLines[0] || '', 38, 555);                 // 1st blank below "as follows:"
-      draw(commentLines[1] || '', 38, 528);                 // 2nd blank
-      draw(bank,        380, 488);                          // after "(Please state name of Bank)"
-      draw(bankAddr,    110, 462);                          // after "Address Bank:"
-      draw(acct,        158, 408);                          // after "My/Our Account No. is:"
-      draw(phone,       215, 382);                          // after "phone No. (s) is/are:"
-      draw(dateStr,     440, 348);                          // line above "Date" label
-      draw(refName,     145, 303);                          // after "Name of REFEREE:"
-      draw(refAddr,     155, 277);                          // after "Address of REFEREE:"
+      draw(commentLines[0] || '',           38, 555, FS);   // 1st blank below "as follows:"
+      draw(commentLines[1] || '',           38, 528, FS);   // 2nd blank
+      draw(bank,                           385, 488, FS);   // after "(Please state name of Bank)"
+      draw(bankAddr,                       130, 462, FS);   // after "Address Bank:"
+      draw(acct,                           175, 408, FS);   // after "Account No. is:"
+      draw(phone,                          222, 382, FS);   // after "phone No. (s) is/are:"
+      draw(dateStr,                        440, 348, FS);   // line above "Date" label
+      draw(refName,                        155, 303, FS);   // after "Name of REFEREE:"
+      draw(refAddr,                        165, 277, FS);   // after "Address of REFEREE:"
     } else {
       // CORPORATE form (Reference-Form-Corporate.pdf) — coords TBD per layout audit.
       // Falling back to FormEngine for now until verified.
@@ -697,6 +700,8 @@ async function downloadForm() {
     }
 
     // ── Embed signature image (Individual flow) ──────────────────────────
+    // Center the signature on its blank line. The line spans roughly x=218→358
+    // (centered above the "Signature" label at x=218, width ~142pt).
     if (REF_SIG) {
       try {
         const b64 = REF_SIG.split(',')[1];
@@ -708,7 +713,10 @@ async function downloadForm() {
         const maxH = 28, maxW = 130;
         const h = Math.min(maxH, maxW / aspect);
         const w = h * aspect;
-        page.drawImage(img, { x: 290, y: 332, width: w, height: h });
+        const SIG_LINE_X = 218;
+        const SIG_LINE_W = 142;
+        const x = SIG_LINE_X + (SIG_LINE_W - w) / 2;
+        page.drawImage(img, { x, y: 332, width: w, height: h });
       } catch (e) {
         console.warn('Signature embed failed:', e);
       }
