@@ -654,18 +654,42 @@ async function downloadForm() {
       // Uniform font size 10 across all fields. ~15-18pt gap after each label
       // colon for consistent, professional breathing room.
       const FS = 10;
-      draw((CUSTOMER || '').toUpperCase(),  80, 666, FS);   // line above "NAME OF INDIVIDUAL(S)..."
-      draw(years,                          440, 605, FS);   // inline "for ___ years"
+
+      // Selective centering: caption-style fields (label below the line)
+      // get centered values; sentence-style fields (label: value) stay
+      // left-aligned right after the colon.
+      function drawCentered(text, lineX, lineWidth, y, size = FS) {
+        if (!text) return;
+        const t = String(text);
+        const w = font.widthOfTextAtSize(t, size);
+        const x = lineX + (lineWidth - w) / 2;
+        page.drawText(t, { x, y, size, font, color: rgb(0, 0, 0) });
+      }
+
+      // Customer name — caption-style, line spans full width (38 → 557)
+      drawCentered((CUSTOMER || '').toUpperCase(), 38, 519, 666, FS);
+
+      // Years — inline blank between "for" and "years". Nudged up to y=610
+      // so the digit sits cleanly above the underline (was crossing it at 605).
+      draw(years,                          440, 610, FS);
+
+      // Comments — paragraph text, left-aligned (centering body text reads weird)
       const commentLines = wrapWords(comments, 90);
-      draw(commentLines[0] || '',           38, 555, FS);   // 1st blank below "as follows:"
-      draw(commentLines[1] || '',           38, 528, FS);   // 2nd blank
-      draw(bank,                           385, 488, FS);   // after "(Please state name of Bank)"
+      draw(commentLines[0] || '',           38, 555, FS);
+      draw(commentLines[1] || '',           38, 528, FS);
+
+      // Sentence-style "label: value" fields — left-aligned after colon
+      draw(bank,                           385, 488, FS);   // after "(...name of Bank)"
       draw(bankAddr,                       130, 462, FS);   // after "Address Bank:"
       draw(acct,                           175, 408, FS);   // after "Account No. is:"
       draw(phone,                          222, 382, FS);   // after "phone No. (s) is/are:"
-      draw(dateStr,                        440, 348, FS);   // line above "Date" label
-      draw(refName,                        155, 303, FS);   // after "Name of REFEREE:"
-      draw(refAddr,                        165, 277, FS);   // after "Address of REFEREE:"
+
+      // Date — caption-style. Line spans roughly x=395 → 555 (160pt wide)
+      drawCentered(dateStr, 395, 160, 348, FS);
+
+      // Referees — sentence-style
+      draw(refName,                        155, 303, FS);
+      draw(refAddr,                        165, 277, FS);
     } else {
       // CORPORATE form (Reference-Form-Corporate.pdf) — coords TBD per layout audit.
       // Falling back to FormEngine for now until verified.
