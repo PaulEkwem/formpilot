@@ -113,6 +113,45 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .sig-crop-btn.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* TRUST LAYER — bank brand mark + verified-by + privacy assurance */
+.fp-bank-mark{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.fp-bank-logo{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,#FB7641 0%,#E8470A 50%,#C73A07 100%);
+  color:#fff;font-family:'DM Serif Display',serif;font-size:22px;font-weight:700;
+  display:grid;place-items:center;letter-spacing:-.02em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 8px 18px -6px rgba(232,71,10,.45);
+  flex-shrink:0
+}
+.fp-bank-text{display:flex;flex-direction:column;line-height:1.15}
+.fp-bank-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--dark);letter-spacing:-.01em}
+.fp-bank-form-type{font-size:12px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+
+.fp-trust-card{
+  background:#FAFAF8;border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;margin-bottom:24px;display:flex;flex-direction:column;gap:10px
+}
+.fp-trust-row{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;color:var(--ink)}
+.fp-trust-row strong{color:var(--dark);font-weight:600}
+.fp-trust-row .fp-check{
+  width:18px;height:18px;border-radius:50%;background:var(--success-bg);color:var(--success);
+  display:grid;place-items:center;flex-shrink:0;margin-top:1px
+}
+.fp-trust-row .fp-check svg{width:11px;height:11px;stroke-width:3}
+.fp-trust-row .fp-lock{
+  width:18px;height:18px;border-radius:4px;background:#EFF6FF;color:#1E40AF;
+  display:grid;place-items:center;flex-shrink:0;margin-top:1px
+}
+.fp-trust-row .fp-lock svg{width:11px;height:11px;stroke-width:2.2}
+
+.fp-report-link{
+  display:block;text-align:center;font-size:12px;color:var(--muted);
+  margin-top:24px;padding-top:16px;border-top:1px dashed var(--line);
+  text-decoration:none
+}
+.fp-report-link:hover{color:var(--ink)}
+.fp-report-link strong{color:var(--orange);font-weight:600}
+
 /* OVERLAY STATES */
 .overlay-state{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;padding:32px;z-index:300}
 .overlay-state.show{display:flex}
@@ -141,7 +180,16 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
   <!-- SLIDE 0 — WELCOME -->
   <div class="slide pos-active" id="slide-0">
     <div class="slide-inner">
-      <span class="slide-emoji">📝</span>
+
+      <!-- Bank brand mark — establishes "this is a real GTBank thing" -->
+      <div class="fp-bank-mark">
+        <div class="fp-bank-logo" aria-hidden="true">GT</div>
+        <div class="fp-bank-text">
+          <span class="fp-bank-name">Guaranty Trust Bank</span>
+          <span class="fp-bank-form-type">Reference Form</span>
+        </div>
+      </div>
+
       <h1 class="slide-q" id="s0Title">Someone needs your reference</h1>
       <p class="slide-sub" id="s0Sub">The applicant is opening an account with Guaranty Trust Bank.</p>
 
@@ -150,6 +198,22 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
         <span class="a-name" id="customerChip">Loading…</span>
         <span class="a-bank" id="directorChip" style="display:none;font-size:13px;color:var(--ink);font-weight:500;margin-top:2px"></span>
         <span class="a-bank">Guaranty Trust Bank</span>
+      </div>
+
+      <!-- Trust card — verified-by + privacy assurance -->
+      <div class="fp-trust-card">
+        <div class="fp-trust-row" id="sentByRow" style="display:none">
+          <span class="fp-check" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span>Sent to you by <strong id="officerNameRow">your account officer</strong>. They created this link from their FormPilot dashboard.</span>
+        </div>
+        <div class="fp-trust-row">
+          <span class="fp-lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <span>Your data <strong>stays on your device</strong>. The form is filled and the PDF is generated right here in your browser — we never see what you type.</span>
+        </div>
       </div>
 
       <div class="countdown-pill">⏱ <span id="countdown">Loading…</span></div>
@@ -161,6 +225,10 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
       </ul>
 
       <button class="primary-btn" id="startBtn" onclick="goToSlide(1)" disabled>Get Started →</button>
+
+      <a href="mailto:report@formpilot.app?subject=Suspicious%20reference%20form%20link" class="fp-report-link">
+        Didn't expect this link? <strong>Report it →</strong>
+      </a>
     </div>
   </div>
 
@@ -384,7 +452,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const { data, error } = await _supa
     .from('form_access_codes')
-    .select('customer_name, director_name, ref_type, expires_at')
+    .select('customer_name, director_name, ref_type, expires_at, officer_name, bank')
     .eq('session_id', SLUG)
     .maybeSingle();
 
@@ -395,6 +463,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   CUSTOMER      = data.customer_name  || '';
   DIRECTOR_NAME = data.director_name  || '';
   EXPIRES_AT    = data.expires_at     || 0;
+  const OFFICER_NAME = data.officer_name || '';
+
+  // Trust layer — show the officer who created this link, if known
+  if (OFFICER_NAME) {
+    document.getElementById('officerNameRow').textContent = OFFICER_NAME;
+    document.getElementById('sentByRow').style.display = '';
+  }
 
   const typeLabel = REF_TYPE === 'individual' ? 'Individual' : 'Company';
   document.getElementById('s0Title').textContent = `${CUSTOMER || 'An account applicant'} needs your reference`;
