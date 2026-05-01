@@ -789,12 +789,20 @@ function buildCustomerEmailHtml(customerName, officerName, bank, link) {
 </body></html>`;
 }
 
-function sendResultEmail() {
+async function sendResultEmail() {
   const custEmail = document.getElementById('resultEmail').value.trim();
   if (!custEmail || !custEmail.includes('@')) { showToast('Please enter a valid email address.'); return; }
   const btn = document.getElementById('emailSendBtn');
   btn.textContent = '⏳';
   btn.disabled = true;
+
+  if (!window.fpEmail) {
+    console.error('[dashboard] fpEmail helper not loaded — check script order in dashboard.html');
+    btn.textContent = '✉️ Send';
+    btn.disabled = false;
+    showToast('Email helper not loaded. Refresh the page and try again.');
+    return;
+  }
 
   const isRef = lastGeneratedIsReference;
   const subject = isRef
@@ -807,31 +815,22 @@ function sendResultEmail() {
     ? buildReferenceEmailHtml(lastGeneratedCustomer, OFFICER_NAME, lastGeneratedBank, lastGeneratedLink)
     : buildCustomerEmailHtml(lastGeneratedCustomer, OFFICER_NAME, lastGeneratedBank, lastGeneratedLink);
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 15000);
+  const result = await window.fpEmail.send({ to: custEmail, subject, text, html });
 
-  fetch(`${_SUPA_URL}/functions/v1/send-email`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${_SUPA_KEY}` },
-    body: JSON.stringify({ to: custEmail, subject, text, html }),
-    signal: ctrl.signal,
-  })
-  .then(r => { clearTimeout(timer); return r.json(); })
-  .then(d => {
-    if (d.ok) {
-      btn.textContent = '✅ Sent!';
-      showToast(`Email sent to ${custEmail}`);
-    } else {
-      throw new Error(JSON.stringify(d.error));
-    }
-  })
-  .catch((err) => {
-    clearTimeout(timer);
-    console.error('Email error:', err);
+  if (result.ok) {
+    btn.textContent = '✅ Sent!';
+    showToast(`Email sent to ${custEmail}`);
+    if (window.fpAudit) window.fpAudit.log('form.emailed', {
+      resource_type: 'form',
+      resource_id: lastGeneratedSessionId || null,
+      metadata: { to: custEmail, isReference: isRef },
+    });
+  } else {
+    console.error('[dashboard] email send failed:', result.error);
     btn.textContent = '✉️ Send';
     btn.disabled = false;
-    showToast(err.name === 'AbortError' ? 'Email timed out — check your connection and try again.' : 'Failed to send email. Check Supabase function logs.');
-  });
+    showToast('Failed to send email. Check Supabase function logs.');
+  }
 }
 
 function copyFormLink(sessionId) {
