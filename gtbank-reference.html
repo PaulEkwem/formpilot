@@ -615,6 +615,7 @@ async function downloadForm() {
     const phone    = document.getElementById('refPhone').value.trim();
     const refName  = document.getElementById('refName').value.toUpperCase();
     const refAddr  = document.getElementById('refAddr').value.toUpperCase();
+    const refCompany = (document.getElementById('refCompany')?.value || '').toUpperCase();
     const dateVal  = document.getElementById('refDate').value;
     const [yr, mo, dy] = dateVal ? dateVal.split('-') : ['', '', ''];
     const dateStr  = dy && mo && yr ? `${dy}/${mo}/${yr}` : '';
@@ -651,9 +652,8 @@ async function downloadForm() {
 
     if (REF_TYPE === 'individual') {
       // INDIVIDUAL form coordinates (Reference-Form-Individual.pdf, A4 595x842)
-      // Uniform font size 10 across all fields. ~15-18pt gap after each label
-      // colon for consistent, professional breathing room.
-      const FS = 10;
+      // Uniform font size 12 across all fields — readable on print.
+      const FS = 12;
 
       // Selective centering: caption-style fields (label below the line)
       // get centered values; sentence-style fields (label: value) stay
@@ -673,16 +673,17 @@ async function downloadForm() {
       // so the digit sits cleanly above the underline (was crossing it at 605).
       draw(years,                          440, 610, FS);
 
-      // Comments — paragraph text, left-aligned (centering body text reads weird)
-      const commentLines = wrapWords(comments, 90);
+      // Comments — paragraph text, left-aligned (centering body text reads weird).
+      // Wrap tightened from 90 → 75 chars to match larger 12pt width on the line.
+      const commentLines = wrapWords(comments, 75);
       draw(commentLines[0] || '',           38, 555, FS);
       draw(commentLines[1] || '',           38, 528, FS);
 
       // Sentence-style "label: value" fields — left-aligned after colon
       draw(bank,                           385, 488, FS);   // after "(...name of Bank)"
       draw(bankAddr,                       130, 462, FS);   // after "Address Bank:"
-      draw(acct,                           175, 408, FS);   // after "Account No. is:"
-      draw(phone,                          222, 382, FS);   // after "phone No. (s) is/are:"
+      draw(acct,                           175, 411, 14);   // after "Account No. is:" — 14pt for emphasis, nudged up so digits don't touch underline
+      draw(phone,                          222, 384, 14);   // after "phone No. (s) is/are:" — 14pt for emphasis
 
       // Date — caption-style. Line spans roughly x=395 → 555 (160pt wide)
       drawCentered(dateStr, 395, 160, 348, FS);
@@ -691,41 +692,67 @@ async function downloadForm() {
       draw(refName,                        155, 303, FS);
       draw(refAddr,                        165, 277, FS);
     } else {
-      // CORPORATE form (Reference-Form-Corporate.pdf) — coords TBD per layout audit.
-      // Falling back to FormEngine for now until verified.
-      const fieldValues = {
-        'Name of Company':                  (CUSTOMER || '').toUpperCase(),
-        'Directors for':                    years,
-        'as follows:':                      comments,
-        'Name of Bank:':                    bank,
-        'Address:':                         bankAddr,
-        'My/Our Account No. is:':           acct,
-        'And my/our phone No. (s) is/are:': phone,
-        'Day':   dy, 'Month': mo, 'Year': yr,
-        'Name':                             refName,
-        'Address':                          refAddr,
-        'Name of Director': DIRECTOR_NAME ? DIRECTOR_NAME.toUpperCase() : '',
-      };
-      const fb = await FormEngine.fill(pdfBytes, fieldValues, {
-        signature: REF_SIG, signatureLabel: 'Signature', debug: true,
-      });
-      const blob0 = new Blob([fb], { type: 'application/pdf' });
-      const url0  = URL.createObjectURL(blob0);
-      const a0    = document.createElement('a');
-      const safeName0 = (CUSTOMER || 'referee').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      a0.href = url0; a0.download = `GTBank-Reference-${safeName0}.pdf`;
-      document.body.appendChild(a0); a0.click(); document.body.removeChild(a0);
-      setTimeout(() => URL.revokeObjectURL(url0), 5000);
-      if (SLUG) await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
-      document.getElementById('slides').style.display = 'none';
-      document.getElementById('stateDone').classList.add('show');
-      window.scrollTo(0, 0);
-      return;
+      // CORPORATE form coordinates (Reference-Form-Corporate.pdf, A4 595x842).
+      // Coords extracted via PyMuPDF text-position scan against label words.
+      const FS = 12;
+
+      function drawCenteredC(text, lineX, lineWidth, y, size = FS) {
+        if (!text) return;
+        const t = String(text);
+        const w = font.widthOfTextAtSize(t, size);
+        const x = lineX + (lineWidth - w) / 2;
+        page.drawText(t, { x, y, size, font, color: rgb(0, 0, 0) });
+      }
+
+      // Draw a string one character per box, each centered at xCenters[i]
+      function drawBoxedDigits(text, xCenters, y, size = FS) {
+        const s = String(text || '');
+        for (let i = 0; i < s.length && i < xCenters.length; i++) {
+          const ch = s[i];
+          const w = font.widthOfTextAtSize(ch, size);
+          page.drawText(ch, { x: xCenters[i] - w/2, y, size, font, color: rgb(0, 0, 0) });
+        }
+      }
+
+      // Company name — caption-style, line ABOVE "Name of Company" label
+      drawCenteredC((CUSTOMER || '').toUpperCase(), 38, 519, 735, FS);
+
+      // Referee's company — line ABOVE "I/We would wish... Directors for"
+      drawCenteredC(refCompany, 38, 519, 682, FS);
+
+      // Years — line BELOW "I/We would wish... Directors for"
+      drawCenteredC(years, 38, 519, 635, FS);
+
+      // Comments — 2 lines below "as follows:"; nudged above their underlines
+      const commentLinesC = wrapWords(comments, 75);
+      draw(commentLinesC[0] || '',        38, 576, FS);
+      draw(commentLinesC[1] || '',        38, 547, FS);
+
+      // Sentence-style "label: value" fields
+      draw(bank,                         130, 466, FS);
+      draw(bankAddr,                      95, 440, FS);
+
+      // Account number — one digit per box. 10 boxes at x=165.2 + 16.9*i, width 16.6, y_bot 381.2
+      const acctCenters = Array.from({length: 10}, (_, i) => 173.5 + 16.9 * i);
+      drawBoxedDigits(acct, acctCenters, 384, 14);
+
+      draw(phone,                        215, 363, 14);
+
+      // Date — one digit per box, DDMMYYYY. 8 boxes split into Day(2)/Month(2)/Year(4)
+      const dateDigits = (dy || '') + (mo || '') + (yr || '');
+      const dateCenters = [426.7, 442.5, 464.2, 480.0, 501.75, 517.6, 533.15, 549.0];
+      drawBoxedDigits(dateDigits, dateCenters, 296, 14);
+
+      // Referee — bumped above their underlines (Name line y=253.7, Address y=226.9, Director y=200.5)
+      draw(refName,                       80, 256, FS);
+      draw(refAddr,                       95, 230, FS);
+      draw(DIRECTOR_NAME ? DIRECTOR_NAME.toUpperCase() : '', 250, 203, FS);
     }
 
-    // ── Embed signature image (Individual flow) ──────────────────────────
-    // Center the signature on its blank line. The line spans roughly x=218→358
-    // (centered above the "Signature" label at x=218, width ~142pt).
+    // ── Embed signature image (shared by Individual + Corporate) ─────────
+    // Line starts after "Yours faithfully," ends (~x=140) and runs to ~x=360.
+    // Individual signature line at y=348, Corporate at y=302 (above its
+    // "Signature" label at y_pdflib=277).
     if (REF_SIG) {
       try {
         const b64 = REF_SIG.split(',')[1];
@@ -734,13 +761,15 @@ async function downloadForm() {
           ? await pdfDoc.embedPng(imgBytes)
           : await pdfDoc.embedJpg(imgBytes);
         const aspect = img.width / img.height;
-        const maxH = 28, maxW = 130;
+        const maxH = 42, maxW = 180;
         const h = Math.min(maxH, maxW / aspect);
         const w = h * aspect;
-        const SIG_LINE_X = 218;
-        const SIG_LINE_W = 142;
+        // Individual: line spans x=140..360. Corporate: line spans x=38..319 (extracted from PDF drawings).
+        const SIG_LINE_X = REF_TYPE === 'individual' ? 140 : 38;
+        const SIG_LINE_W = REF_TYPE === 'individual' ? 220 : 281;
         const x = SIG_LINE_X + (SIG_LINE_W - w) / 2;
-        page.drawImage(img, { x, y: 332, width: w, height: h });
+        const sigY = REF_TYPE === 'individual' ? 348 : 296;
+        page.drawImage(img, { x, y: sigY, width: w, height: h });
       } catch (e) {
         console.warn('Signature embed failed:', e);
       }
@@ -757,7 +786,7 @@ async function downloadForm() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-    if (SLUG) await _supa.from('form_access_codes').delete().eq('session_id', SLUG);
+    if (SLUG) await _supa.rpc('mark_form_complete', { p_slug: SLUG });
 
     document.getElementById('slides').style.display = 'none';
     document.getElementById('stateDone').classList.add('show');

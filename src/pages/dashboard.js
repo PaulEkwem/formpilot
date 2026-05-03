@@ -703,59 +703,67 @@ function expandEmailShare() {
 
 function collapseEmailShare() {
   document.getElementById('emailInputRow').style.display  = 'none';
-  document.getElementById('emailTriggerBtn').style.display = 'block';
+  document.getElementById('emailTriggerBtn').style.display = 'flex';
   document.getElementById('resultEmail').value = '';
   const btn = document.getElementById('emailSendBtn');
   btn.textContent = 'Send'; btn.disabled = false;
 }
 
 function buildReferenceEmailHtml(customerName, officerName, bank, link) {
-  const emailIconB64 = btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2D2416"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>`);
+  const waMsg = encodeURIComponent(`Hi, I need you to fill a ${bank} reference form for my account opening. It only takes 5 minutes — please open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}`);
+  const mailHref = `mailto:?subject=${bank} Reference Form Request&body=${encodeURIComponent(`Hi,\n\nI need you to fill a ${bank} reference form for my account opening. It only takes about 5 minutes.\n\nPlease open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}\n\nThank you.`)}`;
+  // Iconify CDN serves brand icons via HTTPS — works in Gmail/Apple Mail (data: URIs are stripped by Gmail).
+  // Request 2x size (40px) and display at 20px so Gmail's image proxy rasterizes at retina quality.
+  const waIcon = 'https://api.iconify.design/simple-icons/whatsapp.svg?color=%23ffffff&width=40&height=40';
+  const mailIcon = 'https://api.iconify.design/lucide/mail.svg?color=%232563eb&width=40&height=40';
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
-<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
-<tr><td style="background:#E8470A;padding:28px 32px">
-  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">FormPilot</div>
+<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(15,23,42,.08)">
+<tr><td style="background:#2563eb;background-image:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 32px">
+  <table cellpadding="0" cellspacing="0" style="margin-bottom:10px"><tr>
+    <td style="font-size:13px;font-weight:800;letter-spacing:.02em;color:#fff;padding-right:10px">FormPilot</td>
+    <td style="background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff">${bank} Reference</td>
+  </tr></table>
   <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Your reference form link is ready 📋</div>
 </td></tr>
 <tr><td style="padding:32px">
-  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
-  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 20px">Your account officer <strong>${officerName}</strong> at <strong>${bank}</strong> has generated a banker's reference form link for your account opening.</p>
+  <p style="font-size:16px;color:#0F172A;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
+  <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 20px">Your account officer <strong style="color:#0F172A">${officerName}</strong> at <strong style="color:#0F172A">${bank}</strong> has generated a banker's reference form link for your account opening.</p>
 
-  <table cellpadding="0" cellspacing="0" style="width:100%;background:#FFF8F5;border-radius:12px;border:1px solid #FDDFD0;margin-bottom:24px"><tr><td style="padding:20px 24px">
-    <p style="font-size:13px;font-weight:700;color:#E8470A;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px">Here's what to do:</p>
+  <table cellpadding="0" cellspacing="0" style="width:100%;background:#EFF6FF;border-radius:12px;border:1px solid #BFDBFE;margin-bottom:24px"><tr><td style="padding:20px 24px">
+    <p style="font-size:13px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin:0 0 12px">Here's what to do:</p>
     <table cellpadding="0" cellspacing="0" width="100%">
-      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">1.</span>Forward this link to your chosen referee</td></tr>
-      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">2.</span>Your referee fills in the form online <span style="color:#7A6E64">(takes about 5 minutes)</span></td></tr>
-      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">3.</span>They download the completed PDF and send it back to you</td></tr>
-      <tr><td style="padding:6px 0;font-size:14px;color:#2D2416;line-height:1.6"><span style="font-weight:700;color:#E8470A;margin-right:8px">4.</span>You hand the PDF to your ${bank} officer to complete your account opening</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#0F172A;line-height:1.6"><span style="font-weight:700;color:#1d4ed8;margin-right:8px">1.</span>Forward this link to your chosen referee</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#0F172A;line-height:1.6"><span style="font-weight:700;color:#1d4ed8;margin-right:8px">2.</span>Your referee fills in the form online <span style="color:#64748B">(takes about 5 minutes)</span></td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#0F172A;line-height:1.6"><span style="font-weight:700;color:#1d4ed8;margin-right:8px">3.</span>They download the completed PDF and send it back to you</td></tr>
+      <tr><td style="padding:6px 0;font-size:14px;color:#0F172A;line-height:1.6"><span style="font-weight:700;color:#1d4ed8;margin-right:8px">4.</span>You hand the PDF to your ${bank} officer to complete your account opening</td></tr>
     </table>
   </td></tr></table>
 
-  <p style="font-size:13px;font-weight:700;color:#1A1208;margin:0 0 10px">Send this link to your referee via:</p>
+  <p style="font-size:13px;font-weight:700;color:#0F172A;margin:0 0 10px">Send this link to your referee via:</p>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:10px"><tr>
     <td align="center" style="background:#25D366;border-radius:12px">
-      <a href="https://wa.me/?text=${encodeURIComponent(`Hi, I need you to fill a GTBank reference form for my account opening. It only takes 5 minutes — please open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}`)}" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;text-align:center">📱 Share on WhatsApp</a>
+      <a href="https://wa.me/?text=${waMsg}" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;text-align:center"><img src="${waIcon}" width="20" height="20" alt="" style="vertical-align:-4px;margin-right:8px;border:0" />Share on WhatsApp</a>
     </td>
   </tr></table>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
-    <td align="center" style="border-radius:12px;border:1.5px solid #EAE5DF">
-      <a href="mailto:?subject=GTBank Reference Form Request&body=${encodeURIComponent(`Hi,\n\nI need you to fill a GTBank reference form for my account opening. It only takes about 5 minutes.\n\nPlease open this link, fill in your details, download the completed PDF and send it back to me:\n\n${link}\n\nThank you.`)}" style="display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 24px;font-size:15px;font-weight:700;color:#2D2416;text-decoration:none;text-align:center;width:100%;box-sizing:border-box"><img src="data:image/svg+xml;base64,${emailIconB64}" width="20" height="20" alt="" style="vertical-align:middle" /> Share via Email</a>
+    <td align="center" style="background:#fff;border-radius:12px;border:1.5px solid #2563eb">
+      <a href="${mailHref}" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#2563eb;text-decoration:none;text-align:center"><img src="${mailIcon}" width="20" height="20" alt="" style="vertical-align:-4px;margin-right:8px;border:0" />Share via Email</a>
     </td>
   </tr></table>
 
-  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Or copy the link below and send it yourself:</p>
+  <p style="font-size:12px;color:#64748B;margin:0 0 6px">Or copy the link below and send it yourself:</p>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
-    <td style="background:#FFF0EB;border-radius:8px;padding:12px 14px;border:1px solid #FDDFD0">
-      <a href="${link}" style="font-size:12px;color:#E8470A;word-break:break-all;text-decoration:none;line-height:1.6;display:block">${link}</a>
+    <td style="background:#EFF6FF;border-radius:8px;padding:12px 14px;border:1px solid #BFDBFE">
+      <a href="${link}" style="font-size:12px;color:#2563eb;word-break:break-all;text-decoration:none;line-height:1.6;display:block">${link}</a>
     </td>
   </tr></table>
 
-  <p style="font-size:13px;color:#7A6E64;line-height:1.6;margin:0;border-top:1px solid #EAE5DF;padding-top:20px">Questions? Contact your account officer <strong>${officerName}</strong> directly.</p>
+  <p style="font-size:13px;color:#64748B;line-height:1.6;margin:0;border-top:1px solid #E2E8F0;padding-top:20px">Questions? Contact your account officer <strong style="color:#0F172A">${officerName}</strong> directly.</p>
 </td></tr>
-<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
-  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+<tr><td style="background:#F8FAFC;padding:16px 32px;border-top:1px solid #E2E8F0">
+  <p style="font-size:11px;color:#64748B;margin:0;text-align:center">Sent via <strong style="color:#0F172A">FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
 </td></tr>
 </table></td></tr></table>
 </body></html>`;
@@ -763,27 +771,30 @@ function buildReferenceEmailHtml(customerName, officerName, bank, link) {
 
 function buildCustomerEmailHtml(customerName, officerName, bank, link) {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
-<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
-<tr><td style="background:#E8470A;padding:28px 32px">
-  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">FormPilot</div>
+<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(15,23,42,.08)">
+<tr><td style="background:#2563eb;background-image:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 32px">
+  <table cellpadding="0" cellspacing="0" style="margin-bottom:10px"><tr>
+    <td style="font-size:13px;font-weight:800;letter-spacing:.02em;color:#fff;padding-right:10px">FormPilot</td>
+    <td style="background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff">${bank}</td>
+  </tr></table>
   <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Your bank form is ready 📋</div>
 </td></tr>
 <tr><td style="padding:32px">
-  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
-  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 28px">${officerName} from <strong>${bank}</strong> has sent you a form to complete online. It takes just a few minutes — when you're done, you'll download a ready-to-sign PDF to bring to the bank.</p>
+  <p style="font-size:16px;color:#0F172A;margin:0 0 12px;font-weight:600">Hi ${customerName},</p>
+  <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 28px"><strong style="color:#0F172A">${officerName}</strong> from <strong style="color:#0F172A">${bank}</strong> has sent you a form to complete online. It takes just a few minutes — when you're done, you'll download a ready-to-sign PDF to bring to the bank.</p>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
-    <td align="center" style="background:#E8470A;border-radius:12px">
+    <td align="center" style="background:#2563eb;border-radius:12px">
       <a href="${link}" style="display:block;padding:16px 24px;font-size:16px;font-weight:700;color:#fff;text-decoration:none;text-align:center">Open Your Form →</a>
     </td>
   </tr></table>
-  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Can't click the button? Copy this link:</p>
-  <p style="font-size:11px;color:#E8470A;word-break:break-all;background:#FFF0EB;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
-  <p style="font-size:13px;color:#7A6E64;line-height:1.6;margin:0;border-top:1px solid #EAE5DF;padding-top:20px">Questions? Contact your account officer <strong>${officerName}</strong> directly.</p>
+  <p style="font-size:12px;color:#64748B;margin:0 0 6px">Can't click the button? Copy this link:</p>
+  <p style="font-size:11px;color:#2563eb;word-break:break-all;background:#EFF6FF;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
+  <p style="font-size:13px;color:#64748B;line-height:1.6;margin:0;border-top:1px solid #E2E8F0;padding-top:20px">Questions? Contact your account officer <strong style="color:#0F172A">${officerName}</strong> directly.</p>
 </td></tr>
-<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
-  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+<tr><td style="background:#F8FAFC;padding:16px 32px;border-top:1px solid #E2E8F0">
+  <p style="font-size:11px;color:#64748B;margin:0;text-align:center">Sent via <strong style="color:#0F172A">FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
 </td></tr>
 </table></td></tr></table>
 </body></html>`;

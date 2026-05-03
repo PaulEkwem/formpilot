@@ -12,6 +12,8 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --orange:#E8470A;--orange-l:#FFF0EB;--orange-m:#FDDFD0;
+  --fp-blue:#2563eb;--fp-blue-d:#1d4ed8;--fp-blue-l:#EFF6FF;--fp-blue-m:#BFDBFE;
+  --wa-green:#25D366;--wa-green-d:#1da851;
   --dark:#1A1208;--ink:#2D2416;--muted:#7A6E64;--line:#EAE5DF;
   --bg:#FFFFFF;--success:#1A6B3A;--success-bg:#EBF7F0;--danger:#C0392B;
 }
@@ -96,16 +98,18 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 .share-link-text{flex:1;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .share-copy-btn{background:none;border:none;font-size:12px;font-weight:700;color:var(--orange);cursor:pointer;white-space:nowrap;padding:4px 8px;border-radius:6px;font-family:'DM Sans',sans-serif}
 .share-copy-btn:active{background:var(--orange-l)}
-.wa-btn{display:block;width:100%;padding:14px;background:#25D366;color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
-.wa-btn:active{background:#1da851}
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:var(--wa-green);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
+.wa-btn:active{background:var(--wa-green-d)}
+.wa-btn svg,.email-trigger svg{flex-shrink:0}
 /* Email expand */
-.email-trigger{display:block;width:100%;padding:14px;background:#fff;color:var(--orange);border:1.5px solid var(--orange);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
-.email-trigger:active{background:var(--orange-l)}
+.email-trigger{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;color:var(--fp-blue);border:1.5px solid var(--fp-blue);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;text-align:center}
+.email-trigger:active{background:var(--fp-blue-l)}
 .email-input-row{display:none;margin-bottom:8px}
 .email-input-row.open{display:block}
-.email-input-inner{display:flex;gap:8px;align-items:center;background:#F8F6F4;border:1.5px solid var(--orange);border-radius:12px;padding:6px 6px 6px 14px}
+.email-input-inner{display:flex;gap:8px;align-items:center;background:#F8FAFC;border:1.5px solid var(--fp-blue);border-radius:12px;padding:6px 6px 6px 14px}
 .email-input-inner input{flex:1;border:none;background:transparent;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;padding:6px 0}
-.email-send-btn{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.email-send-btn{background:var(--fp-blue);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap}
+.email-send-btn:active{background:var(--fp-blue-d)}
 .email-cancel{display:block;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;margin-bottom:4px;background:none;border:none;font-family:'DM Sans',sans-serif;width:100%}
 
 /* ADD SECOND REF */
@@ -435,9 +439,9 @@ function renderResult(slot, refName, link, code, expiresAt) {
       <button class="share-copy-btn" id="lnk${slot}Btn" onclick="copySlotLink(${slot},this)">Copy link</button>
     </div>
 
-    <button class="wa-btn" onclick="shareWhatsApp(${slot})">📱 Share on WhatsApp</button>
+    <button class="wa-btn" onclick="shareWhatsApp(${slot})"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>Share on WhatsApp</button>
 
-    <button class="email-trigger" id="emailTrig${slot}" onclick="openEmail(${slot})">✉️ Send via Email</button>
+    <button class="email-trigger" id="emailTrig${slot}" onclick="openEmail(${slot})"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>Send via Email</button>
     <div class="email-input-row" id="emailRow${slot}">
       <div class="email-input-inner">
         <input type="email" id="emailInp${slot}" placeholder="Referee's email address" onkeydown="if(event.key==='Enter')sendEmail(${slot})" />
@@ -480,33 +484,36 @@ function closeEmail(slot) {
 
 function buildRefEmailHtml(refName, customerName, link, code, expiryStr) {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#F5F0EB;font-family:Arial,sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0EB;padding:32px 16px"><tr><td align="center">
-<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
-<tr><td style="background:#E8470A;padding:28px 32px">
-  <div style="font-size:11px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:6px">GTBank &nbsp;·&nbsp; FormPilot</div>
+<body style="margin:0;padding:0;background:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;padding:32px 16px"><tr><td align="center">
+<table width="100%" style="max-width:520px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(15,23,42,.08)">
+<tr><td style="background:#2563eb;background-image:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);padding:28px 32px">
+  <table cellpadding="0" cellspacing="0" style="margin-bottom:10px"><tr>
+    <td style="font-size:13px;font-weight:800;letter-spacing:.02em;color:#fff;padding-right:10px">FormPilot</td>
+    <td style="background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff">GTBank Reference</td>
+  </tr></table>
   <div style="font-size:22px;font-weight:700;color:#fff;line-height:1.25">Reference Form Request 📝</div>
 </td></tr>
 <tr><td style="padding:32px">
-  <p style="font-size:16px;color:#1A1208;margin:0 0 12px;font-weight:600">Hi ${refName},</p>
-  <p style="font-size:15px;color:#5A5048;line-height:1.7;margin:0 0 24px"><strong>${customerName}</strong> has listed you as a referee for their GTBank account opening. Please complete the reference form at your earliest convenience.</p>
+  <p style="font-size:16px;color:#0F172A;margin:0 0 12px;font-weight:600">Hi ${refName},</p>
+  <p style="font-size:15px;color:#475569;line-height:1.7;margin:0 0 24px"><strong style="color:#0F172A">${customerName}</strong> has listed you as a referee for their GTBank account opening. Please complete the reference form at your earliest convenience.</p>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
-    <td style="background:#FFF0EB;border:1.5px solid #FDDFD0;border-radius:12px;padding:18px 20px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7A6E64;margin-bottom:8px">Your Access Code</div>
-      <div style="font-size:32px;font-weight:800;color:#E8470A;letter-spacing:.2em;line-height:1">${code}</div>
-      <div style="font-size:12px;color:#7A6E64;margin-top:8px">⏱ Expires ${expiryStr} &nbsp;·&nbsp; One-time use only</div>
+    <td style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:12px;padding:18px 20px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748B;margin-bottom:8px">Your Access Code</div>
+      <div style="font-size:32px;font-weight:800;color:#1d4ed8;letter-spacing:.2em;line-height:1;font-family:'SF Mono',Menlo,Consolas,monospace">${code}</div>
+      <div style="font-size:12px;color:#64748B;margin-top:8px">⏱ Expires ${expiryStr} &nbsp;·&nbsp; One-time use only</div>
     </td>
   </tr></table>
   <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:24px"><tr>
-    <td align="center" style="background:#E8470A;border-radius:12px">
+    <td align="center" style="background:#2563eb;border-radius:12px">
       <a href="${link}" style="display:block;padding:16px 24px;font-size:16px;font-weight:700;color:#fff;text-decoration:none;text-align:center">Complete Reference Form →</a>
     </td>
   </tr></table>
-  <p style="font-size:12px;color:#7A6E64;margin:0 0 6px">Can't click the button? Copy this link:</p>
-  <p style="font-size:11px;color:#E8470A;word-break:break-all;background:#FFF0EB;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
+  <p style="font-size:12px;color:#64748B;margin:0 0 6px">Can't click the button? Copy this link:</p>
+  <p style="font-size:11px;color:#2563eb;word-break:break-all;background:#EFF6FF;border-radius:8px;padding:10px 14px;margin:0 0 24px;line-height:1.6">${link}</p>
 </td></tr>
-<tr><td style="background:#F8F6F4;padding:16px 32px;border-top:1px solid #EAE5DF">
-  <p style="font-size:11px;color:#7A6E64;margin:0;text-align:center">Sent via <strong>FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
+<tr><td style="background:#F8FAFC;padding:16px 32px;border-top:1px solid #E2E8F0">
+  <p style="font-size:11px;color:#64748B;margin:0;text-align:center">Sent via <strong style="color:#0F172A">FormPilot</strong> &nbsp;·&nbsp; Your data stays on your device &nbsp;·&nbsp; Never stored on our servers</p>
 </td></tr>
 </table></td></tr></table>
 </body></html>`;
