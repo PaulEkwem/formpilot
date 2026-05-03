@@ -10,6 +10,6 @@
 window.FP_ENV = {
   SUPABASE_URL: 'https://dlpbnucipzudsrsbvodp.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c',
-  APP_BASE_URL: 'https://formpilot-five.vercel.app',
+  APP_BASE_URL: 'https://formpilot.ng',
   APP_NAME: 'FormPilot',
 };
