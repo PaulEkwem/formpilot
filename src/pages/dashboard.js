@@ -401,7 +401,7 @@ function generateSlug() {
 // ── Generate link ─────────────────────────────────────────────
 function buildLink(config) {
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))));
-  const base = window.location.href.replace(/dashboard\.html.*$/, '');
+  const base = window.location.origin + '/';
   // Route GTBank Sole Prop / Partnership to dedicated form page
   if (config.bank === 'GTBank' &&
       (config.formType.includes('Sole Proprietorship') || config.formType.includes('Partnership'))) {
@@ -541,7 +541,7 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     const expiryHours = parseInt(document.getElementById('mLinkExpiry').value, 10) || 168;
     const expiresAt   = Date.now() + expiryHours * 60 * 60 * 1000;
     const slug = generateSlug();
-    const BASE = window.location.href.replace(/dashboard\.html.*$/, '');
+    const BASE = window.location.origin + '/';
     const link = `${BASE}gtbank-reference.html?r=${slug}`;
 
     supa.from('form_access_codes').insert({
