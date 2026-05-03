@@ -20,7 +20,6 @@ No backend logic for the form fill itself — everything happens in the customer
 | Auth + DB | Supabase (Postgres + RLS) |
 | PDF generation | pdf-lib + pdfjs (browser) |
 | Email | Supabase Edge Function → Brevo SMTP |
-| Observability | Sentry (with session replay) |
 | Fonts | DM Serif Display + DM Sans |
 
 ## Local development

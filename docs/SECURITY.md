@@ -15,7 +15,6 @@
 **Public (in repo, in browser, fine):**
 - Supabase URL
 - Supabase **anon** key (designed for client use; security is in RLS)
-- Sentry DSN loader URL
 - Vercel domain
 
 **Secret (Vercel env vars only, never in repo):**
@@ -54,7 +53,7 @@ Verification logic that needs to read locked-down rows runs in `SECURITY DEFINER
 
 **SRI (Subresource Integrity)** — every external `<script src>` carries an `integrity="sha384-…"` hash + `crossorigin="anonymous"`. If a CDN is compromised and serves modified bytes, the browser refuses to execute. Verified Sprint 2 — all CDN scripts in active HTML files have SRI.
 
-**CSP allowlist** (production): scripts from `js-de.sentry-cdn.com`, `*.sentry.io`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`. Anything else is blocked.
+**CSP allowlist** (production): scripts from `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`. Anything else is blocked.
 
 ## Brute-force protection
 
