@@ -694,14 +694,14 @@ img { display: block; max-width: 100%; }
 .checkbox-label input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
-  left: 5px;
-  top: 2px;
+  top: 50%;
+  left: 50%;
   width: 5px;
   height: 9px;
   border: 2px solid #fff;
   border-top: none;
   border-left: none;
-  transform: rotate(45deg);
+  transform: translate(-50%, -60%) rotate(45deg);
 }
 .checkbox-label a { color: var(--primary); font-weight: 600; }
 
