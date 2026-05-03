@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+    <script src="src/config/env.js"></script>
+    <script src="src/config/supabase-client.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log in — FormPilot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -171,10 +173,7 @@
     </div>
 
     <script>
-      const _supa = window.supabase.createClient(
-        'https://dlpbnucipzudsrsbvodp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
-      );
+      const _supa = window.fpSupa;
 
       // Auto-redirect if arriving from email verification link (session in URL hash)
       _supa.auth.getSession().then(({ data: { session } }) => {
@@ -221,7 +220,7 @@
         btn.disabled = true;
 
         const { error } = await _supa.auth.resetPasswordForEmail(email, {
-          redirectTo: 'https://formpilot-five.vercel.app/reset-password.html'
+          redirectTo: window.FP_ENV.APP_BASE_URL + '/reset-password.html'
         });
 
         if (error) {

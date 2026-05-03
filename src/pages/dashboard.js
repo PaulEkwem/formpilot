@@ -36,9 +36,30 @@ const OFFICER_NAME  = session.name  || '';
 const OFFICER_EMAIL = session.email || '';
 const OFFICER_BANK  = session.bank  || '';
 
-// Update profile display
+// Update profile display (sidebar + topbar)
 document.querySelectorAll('.profile-info strong').forEach(el => el.textContent = OFFICER_NAME);
 document.querySelectorAll('.profile-info span').forEach(el   => el.textContent = OFFICER_BANK);
+
+const _initials = initialsFor(OFFICER_NAME);
+const _sideAvatar = document.getElementById('sidebarAvatar');
+const _topAvatar  = document.getElementById('topbarAvatar');
+if (_sideAvatar) _sideAvatar.textContent = _initials;
+if (_topAvatar)  _topAvatar.textContent  = _initials;
+
+// Populate settings form
+const _nameParts = (OFFICER_NAME || '').trim().split(/\s+/);
+const _settingsFields = {
+  settingsFirstName: _nameParts[0] || '',
+  settingsLastName:  _nameParts.slice(1).join(' '),
+  settingsEmail:     OFFICER_EMAIL,
+  settingsPhone:     session.phone || '',
+  settingsBank:      OFFICER_BANK,
+  settingsRole:      session.role  || '',
+};
+Object.entries(_settingsFields).forEach(([id, val]) => {
+  const el = document.getElementById(id);
+  if (el) el.value = val;
+});
 
 // Update greeting
 const greetingEl = document.querySelector('#view-overview .page-header h1');

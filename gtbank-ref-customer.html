@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+<script src="src/config/env.js"></script>
+<script src="src/config/supabase-client.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>GTBank — Reference Form</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
@@ -264,10 +266,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 </div>
 
 <script>
-const _supa = window.supabase.createClient(
-  'https://dlpbnucipzudsrsbvodp.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
-);
+const _supa = window.fpSupa;
 
 const _cfg = (() => {
   try { return JSON.parse(atob(new URLSearchParams(location.search).get('config') || '')); }
@@ -535,12 +534,12 @@ async function sendEmail(slot) {
 
   try {
     const res = await fetch(
-      'https://dlpbnucipzudsrsbvodp.supabase.co/functions/v1/send-email',
+      window.FP_ENV.SUPABASE_URL + '/functions/v1/send-email',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c',
+          'Authorization': 'Bearer ' + window.FP_ENV.SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           to: email,

@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+<script src="src/config/env.js"></script>
+<script src="src/config/supabase-client.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
 <script src="src/lib/form-engine.js"></script>
@@ -430,10 +432,7 @@ html,body{height:100%;overflow:hidden;font-family:'DM Sans',sans-serif;backgroun
 </div>
 
 <script>
-const _supa = window.supabase.createClient(
-  'https://dlpbnucipzudsrsbvodp.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRscGJudWNpcHp1ZHNyc2J2b2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2Mjg2NDgsImV4cCI6MjA5MjIwNDY0OH0.DbdGffZsbhZXqerLrG_q1dTh_MOWn6xv5QCYGY-6K-c'
-);
+const _supa = window.fpSupa;
 
 const SLUG = new URLSearchParams(location.search).get('r') || '';
 let REF_TYPE      = 'individual';
