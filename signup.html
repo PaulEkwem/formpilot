@@ -156,6 +156,13 @@
               <span id="agreeError" style="display:none;font-size:.78rem;color:#dc2626;font-weight:500;margin-top:.25rem">Please accept the terms to continue.</span>
             </div>
 
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="marketingConsent" name="marketingConsent" />
+                <span style="font-size:.83rem;color:var(--muted);line-height:1.5">Send me product updates, new bank/form announcements, and banking news. <em>Optional — you can unsubscribe anytime.</em></span>
+              </label>
+            </div>
+
             <div id="signupError" style="display:none;font-size:.85rem;color:#dc2626;font-weight:500;margin-bottom:.5rem;padding:.5rem .75rem;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;"></div>
             <button type="submit" class="btn-primary btn-block btn-submit" id="submitBtn">
               Create free account
@@ -247,12 +254,20 @@
         const bank      = document.getElementById('bank').value;
         const role      = document.getElementById('role').value;
         const phone     = document.getElementById('phone').value.trim();
+        const marketingConsent = document.getElementById('marketingConsent').checked;
+        const consentTimestamp = new Date().toISOString();
 
         const { data, error } = await _supa.auth.signUp({
           email,
           password,
           options: {
-            data: { name: `${firstName} ${lastName}`, bank, role, phone },
+            data: {
+              name: `${firstName} ${lastName}`,
+              bank, role, phone,
+              marketing_consent: marketingConsent,
+              marketing_consent_at: marketingConsent ? consentTimestamp : null,
+              terms_accepted_at: consentTimestamp
+            },
             emailRedirectTo: 'https://formpilot-five.vercel.app/login.html'
           }
         });
