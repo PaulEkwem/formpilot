@@ -220,7 +220,7 @@
         btn.disabled = true;
 
         const { error } = await _supa.auth.resetPasswordForEmail(email, {
-          redirectTo: window.FP_ENV.APP_BASE_URL + '/reset-password.html'
+          redirectTo: window.FP_ENV.APP_BASE_URL + '/reset-password'
         });
 
         if (error) {

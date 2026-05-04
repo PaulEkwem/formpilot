@@ -405,12 +405,12 @@ function buildLink(config) {
   // Route GTBank Sole Prop / Partnership to dedicated form page
   if (config.bank === 'GTBank' &&
       (config.formType.includes('Sole Proprietorship') || config.formType.includes('Partnership'))) {
-    return `${base}gtbank-form.html?config=${encoded}`;
+    return `${base}gtbank-form?config=${encoded}`;
   }
   if (config.bank === 'GTBank' && config.formType === 'Reference Form') {
-    return `${base}gtbank-ref-customer.html?config=${encoded}`;
+    return `${base}gtbank-ref-customer?config=${encoded}`;
   }
-  return `${base}fill.html?config=${encoded}`;
+  return `${base}fill?config=${encoded}`;
 }
 
 // ── Form card gallery ─────────────────────────────────────────
@@ -542,7 +542,7 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     const expiresAt   = Date.now() + expiryHours * 60 * 60 * 1000;
     const slug = generateSlug();
     const BASE = window.location.origin + '/';
-    const link = `${BASE}gtbank-reference.html?r=${slug}`;
+    const link = `${BASE}gtbank-reference?r=${slug}`;
 
     supa.from('form_access_codes').insert({
       session_id:    slug,
