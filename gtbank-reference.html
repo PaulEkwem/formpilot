@@ -493,6 +493,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     ? 'How long have you known them? (years)'
     : 'How long have you known this company and its Directors? (years)';
 
+  // Corporate ref forms: surface the referee's company-name field unconditionally
+  if (REF_TYPE === 'corporate') {
+    const wrap  = document.getElementById('refCompanyWrap');
+    const label = document.querySelector('#refCompanyWrap .field-label');
+    if (wrap)  wrap.style.display = '';
+    if (label) label.textContent = 'Your company / employer name';
+  }
+
   const eligibility = REF_TYPE === 'individual' ? [
     'I hold a current account with GTCO or any other bank.',
     'My account is not less than 6 months old.',
@@ -555,7 +563,14 @@ function updateChrome() {
 // ── Referee account type toggle ───────────────────────────────
 function toggleRefAcctType() {
   const t = document.getElementById('refAcctType').value;
-  document.getElementById('refCompanyWrap').style.display = t === 'company' ? '' : 'none';
+  // Corporate reference forms always need the referee's company name
+  // (it stamps onto the line above "I/We would wish... Directors for").
+  const needCompany = t === 'company' || REF_TYPE === 'corporate';
+  document.getElementById('refCompanyWrap').style.display = needCompany ? '' : 'none';
+  const label = document.querySelector('#refCompanyWrap .field-label');
+  if (label) label.textContent = REF_TYPE === 'corporate' && t !== 'company'
+    ? 'Your company / employer name'
+    : 'Company name';
 }
 
 // ── Eligibility check ─────────────────────────────────────────
@@ -577,7 +592,9 @@ function validateAndNext(from, to) {
     ok = !!document.getElementById('yearsKnown').value.trim() && !!document.getElementById('comments').value.trim();
   } else if (from === 3) {
     const acctType = document.getElementById('refAcctType').value;
-    const companyOk = acctType !== 'company' || !!document.getElementById('refCompany').value.trim();
+    // Corporate ref forms always require the referee's company name (used for the line above "Directors for")
+    const needCompany = acctType === 'company' || REF_TYPE === 'corporate';
+    const companyOk = !needCompany || !!document.getElementById('refCompany').value.trim();
     ok = !!acctType && companyOk && ['refBank','refBankAddr','refAcct','refPhone'].every(id => !!document.getElementById(id).value.trim());
   } else if (from === 4) {
     ok = ['refName','refAddr','refDate'].every(id => !!document.getElementById(id).value.trim());
