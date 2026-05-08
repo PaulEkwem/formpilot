@@ -762,10 +762,16 @@ img { display: block; max-width: 100%; }
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  padding: .25rem;
+  padding: .35rem;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: color .15s;
 }
+.toggle-password:hover { color: var(--primary); }
+.toggle-password svg { width: 18px; height: 18px; stroke-width: 2; }
 
 /* Password strength */
 .password-strength {

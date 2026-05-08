@@ -264,7 +264,9 @@ function updateStatCards() {
   const expired  = ALL_FORMS.filter(f => f.status === 'expired').length;
   const rate     = sent ? Math.round((complete / sent) * 100) : 0;
 
-  const el = id => document.querySelector(`#view-overview .stat-card:${id} .stat-value`);
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const sentThisWeek = ALL_FORMS.filter(f => f.sentAt && f.sentAt > sevenDaysAgo).length;
+
   const statValues = document.querySelectorAll('#view-overview .stat-value');
   if (statValues[0]) statValues[0].textContent = sent;
   if (statValues[1]) statValues[1].textContent = complete;
@@ -272,7 +274,8 @@ function updateStatCards() {
   if (statValues[3]) statValues[3].textContent = expired;
 
   const deltas = document.querySelectorAll('#view-overview .stat-delta');
-  if (deltas[1]) deltas[1].textContent = `${rate}% completion rate`;
+  if (deltas[0]) deltas[0].textContent = sentThisWeek > 0 ? `+${sentThisWeek} this week` : 'No links this week';
+  if (deltas[1]) deltas[1].textContent = sent ? `${rate}% completion rate` : 'No data yet';
 }
 
 // ── Recent forms (overview) ───────────────────────────────────

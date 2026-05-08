@@ -2,11 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
-    <script src="src/config/env.js"></script>
-    <script src="src/config/supabase-client.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log in — FormPilot</title>
+    <meta name="description" content="Log in to FormPilot to send guided bank-form links and track customer completions." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='50%25' y='54%25' text-anchor='middle' dominant-baseline='middle' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif' font-weight='800' font-size='30' fill='white'%3EFP%3C/text%3E%3C/svg%3E" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Log in — FormPilot" />
+    <meta property="og:url" content="https://formpilot.ng/login" />
+    <meta property="og:site_name" content="FormPilot" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.104.1/dist/umd/supabase.min.js" integrity="sha384-ZstPgNL30sIz6Hlxmz87Qsg817okoeAfmzXv89YLICmfsKv3pEdQKOokOL2IpVAS" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.453.0/dist/umd/lucide.min.js" integrity="sha384-0v3Wh0ZtiQBYCYywQoeMDA5mAw5Z01p0lhorqy0BlwFrcN6u3lmN7K0U/e1uezmr" crossorigin="anonymous"></script>
+    <script src="src/config/env.js"></script>
+    <script src="src/config/supabase-client.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -25,9 +32,10 @@
         background: rgba(255,255,255,.15);
         border-radius: 8px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1rem;
         flex-shrink: 0;
+        color: #fff;
       }
+      .login-feature-icon svg { width: 18px; height: 18px; stroke-width: 2; }
       .error-banner {
         background: #fef2f2;
         border: 1px solid #fecaca;
@@ -71,19 +79,19 @@
           <p>Log in to send form links, track completions, and stay on top of your queue.</p>
           <div class="login-features">
             <div class="login-feature">
-              <span class="login-feature-icon">📤</span>
+              <span class="login-feature-icon"><i data-lucide="send"></i></span>
               Send a new form link in under 30 seconds
             </div>
             <div class="login-feature">
-              <span class="login-feature-icon">🔔</span>
+              <span class="login-feature-icon"><i data-lucide="bell-ring"></i></span>
               See which customers have completed their forms
             </div>
             <div class="login-feature">
-              <span class="login-feature-icon">🔁</span>
+              <span class="login-feature-icon"><i data-lucide="refresh-cw"></i></span>
               Resend expired links without starting over
             </div>
             <div class="login-feature">
-              <span class="login-feature-icon">📰</span>
+              <span class="login-feature-icon"><i data-lucide="newspaper"></i></span>
               Check the latest CBN and banking updates
             </div>
           </div>
@@ -149,24 +157,22 @@
                   required
                   autocomplete="current-password"
                 />
-                <button type="button" class="toggle-password" id="togglePwd" aria-label="Show password">👁</button>
+                <button type="button" class="toggle-password" id="togglePwd" aria-label="Show password">
+                  <i data-lucide="eye" id="togglePwdIcon"></i>
+                </button>
               </div>
             </div>
 
             <div class="form-group checkbox-group">
               <label class="checkbox-label">
                 <input type="checkbox" id="remember" name="remember" checked />
-                <span>Keep me logged in for 30 days</span>
+                <span>Keep me logged in</span>
               </label>
             </div>
 
             <button type="submit" class="btn-primary btn-block btn-submit" id="loginBtn">
               Log in
             </button>
-
-            <div class="auth-divider"><span>or</span></div>
-
-            <p class="auth-switch">Don't have an account? <a href="signup.html">Sign up free</a></p>
           </form>
         </div>
       </div>
@@ -234,12 +240,18 @@
         btn.disabled = false;
       });
 
+      // Render Lucide icons (replaces <i data-lucide="…"> with inline SVG)
+      if (window.lucide) window.lucide.createIcons();
+
       // Toggle password visibility
       document.getElementById('togglePwd').addEventListener('click', function () {
         const pwd = document.getElementById('password');
         const isText = pwd.type === 'text';
         pwd.type = isText ? 'password' : 'text';
-        this.textContent = isText ? '👁' : '🙈';
+        this.setAttribute('aria-label', isText ? 'Show password' : 'Hide password');
+        // Re-render icon: replace SVG with new <i data-lucide=…> then re-create
+        this.innerHTML = `<i data-lucide="${isText ? 'eye' : 'eye-off'}" id="togglePwdIcon"></i>`;
+        if (window.lucide) window.lucide.createIcons();
       });
 
       // Login form
