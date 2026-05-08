@@ -469,8 +469,10 @@ function openSendModal(formType, icon) {
 
   // Adapt fields for Reference Form
   const isRef = formType === 'Reference Form';
-  document.getElementById('mGenericNameRow').style.display    = isRef ? 'none' : '';
-  document.getElementById('mGenericContactRow').style.display = isRef ? 'none' : '';
+  const nameRow = document.getElementById('mGenericNameRow');
+  const contactRow = document.getElementById('mGenericContactRow'); // removed in send-form simplification
+  if (nameRow)    nameRow.style.display    = isRef ? 'none' : '';
+  if (contactRow) contactRow.style.display = isRef ? 'none' : '';
   document.getElementById('refFields').style.display          = isRef ? '' : 'none';
   if (isRef) {
     const indRadio = document.querySelector('input[name="mRefType"][value="individual"]');
