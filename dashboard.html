@@ -595,26 +595,14 @@
 
       <!-- Customer / opener details form -->
       <div id="modalFormSection">
-        <div id="mGenericNameRow" class="form-row two-col">
-          <div class="form-group">
-            <label for="mCustFirst" id="mLabelFirst">First name</label>
-            <input type="text" id="mCustFirst" placeholder="Kemi" />
-          </div>
-          <div class="form-group" id="mLastWrap">
-            <label for="mCustLast" id="mLabelLast">Last name <span class="optional">(optional)</span></label>
-            <input type="text" id="mCustLast" placeholder="Adeyemi" />
-          </div>
+        <div id="mGenericNameRow" class="form-group">
+          <label for="mCustFirst" id="mLabelFirst">Customer name</label>
+          <input type="text" id="mCustFirst" placeholder="Kemi Adeyemi" />
         </div>
-        <div id="mGenericContactRow" class="form-row two-col">
-          <div class="form-group">
-            <label for="mCustEmail" id="mLabelEmail">Customer email <span class="optional">(optional)</span></label>
-            <input type="email" id="mCustEmail" placeholder="kemi@email.com" />
-          </div>
-          <div class="form-group">
-            <label for="mCustPhone">Phone number <span class="optional">(optional)</span></label>
-            <input type="tel" id="mCustPhone" placeholder="08012345678" />
-          </div>
-        </div>
+        <!-- Hidden: kept for JS compatibility; not shown to officer. -->
+        <input type="hidden" id="mCustLast" value="" />
+        <input type="hidden" id="mCustEmail" value="" />
+        <input type="hidden" id="mCustPhone" value="" />
 
         <!-- Reference Form specific fields -->
         <div id="refFields" style="display:none">
