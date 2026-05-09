@@ -595,12 +595,17 @@
 
       <!-- Customer / opener details form -->
       <div id="modalFormSection">
-        <div id="mGenericNameRow" class="form-group">
-          <label for="mCustFirst" id="mLabelFirst">Customer name</label>
-          <input type="text" id="mCustFirst" placeholder="Kemi Adeyemi" />
+        <div id="mGenericNameRow" class="form-row two-col">
+          <div class="form-group">
+            <label for="mCustFirst" id="mLabelFirst">First name</label>
+            <input type="text" id="mCustFirst" placeholder="Kemi" />
+          </div>
+          <div class="form-group" id="mLastWrap">
+            <label for="mCustLast" id="mLabelLast">Last name <span class="optional">(optional)</span></label>
+            <input type="text" id="mCustLast" placeholder="Adeyemi" />
+          </div>
         </div>
-        <!-- Hidden: kept for JS compatibility; not shown to officer. -->
-        <input type="hidden" id="mCustLast" value="" />
+        <!-- Email + phone aren't collected on the dashboard; kept as hidden inputs for JS compatibility. -->
         <input type="hidden" id="mCustEmail" value="" />
         <input type="hidden" id="mCustPhone" value="" />
 
