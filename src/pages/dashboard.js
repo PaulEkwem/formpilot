@@ -702,8 +702,23 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   }
 });
 
+// "Send another link" — return to the same modal in its form-fill state
+// (form-type already selected; just the customer-name inputs cleared).
 function resetSendForm() {
-  closeSendModal();
+  document.getElementById('linkResult').style.display = 'none';
+  document.getElementById('modalFormSection').style.display = '';
+
+  // Clear customer-side inputs (generic + reference)
+  ['mCustFirst','mCustLast','mCustEmail','mCustPhone',
+   'mRefFirst','mRefLast','mRefCompany','mRefDirFirst','mRefDirLast']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  // Focus first relevant input — Reference uses its own fields; default is mCustFirst
+  const isRef = document.getElementById('refFields') &&
+                document.getElementById('refFields').style.display !== 'none';
+  const focusId = isRef ? 'mRefFirst' : 'mCustFirst';
+  const focusEl = document.getElementById(focusId);
+  if (focusEl) focusEl.focus();
 }
 
 // Build the post-generation headline with a bolded customer name (DOM-safe — no innerHTML/XSS)
