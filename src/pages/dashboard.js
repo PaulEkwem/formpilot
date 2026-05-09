@@ -580,7 +580,9 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
     if (badge) badge.textContent = ALL_FORMS.filter(f => f.status === 'pending').length;
     document.getElementById('generatedLink').textContent = link;
     document.getElementById('accessCodeBox').style.display = 'none';
-    document.getElementById('linkResultDesc').textContent = `Reference form link ready for ${customer}. Ask them to forward it to their referee.`;
+    const previewBtn = document.getElementById('previewLinkBtn');
+    if (previewBtn) previewBtn.href = link;
+    setLinkResultDesc('Your reference link for ', customer, ' is ready');
     const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
     document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabels[expiryHours] || expiryHours + ' hours'}`;
     lastGeneratedLink        = link;
@@ -668,7 +670,9 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   // Show result
   document.getElementById('generatedLink').textContent = link;
   document.getElementById('accessCodeDisplay').textContent = accessCode;
-  document.getElementById('linkResultDesc').textContent = `Link ready for ${fullName}. Copy it or share directly.`;
+  const previewBtn = document.getElementById('previewLinkBtn');
+  if (previewBtn) previewBtn.href = link;
+  setLinkResultDesc('Your link for ', fullName, ' is ready');
   const expiryLabels = {24:'24 hours',48:'48 hours',72:'3 days',168:'7 days',720:'30 days'};
   const expiryLabel  = expiryLabels[expiryHours] || expiryHours + ' hours';
   document.getElementById('linkExpiryLabel').textContent = `🕐 Link expires in ${expiryLabel}`;
@@ -700,6 +704,19 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
 
 function resetSendForm() {
   closeSendModal();
+}
+
+// Build the post-generation headline with a bolded customer name (DOM-safe — no innerHTML/XSS)
+function setLinkResultDesc(prefix, name, suffix) {
+  const desc = document.getElementById('linkResultDesc');
+  if (!desc) return;
+  desc.textContent = '';
+  desc.appendChild(document.createTextNode(prefix));
+  const strong = document.createElement('strong');
+  strong.style.color = 'var(--primary)';
+  strong.textContent = name || '';
+  desc.appendChild(strong);
+  desc.appendChild(document.createTextNode(suffix));
 }
 
 // ── Copy helpers ──────────────────────────────────────────────
