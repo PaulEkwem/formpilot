@@ -665,13 +665,9 @@
         <h3 style="font-size:1rem;font-weight:700;margin-bottom:.25rem;">Link ready!</h3>
         <p id="linkResultDesc" style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;"></p>
 
-        <div class="access-code-box" id="accessCodeBox">
-          <div class="access-code-label">🔑 Access code — share with your customer separately</div>
-          <div class="access-code-row">
-            <span class="access-code-digits" id="accessCodeDisplay">000000</span>
-            <button class="copy-btn" onclick="copyAccessCode()">Copy</button>
-          </div>
-          <div class="access-code-hint">Customer needs this to unlock the form. Don't send it in the same message as the link.</div>
+        <!-- Access-code box hidden — slug-only auth; row still inserted server-side for completion verification -->
+        <div class="access-code-box" id="accessCodeBox" style="display:none">
+          <span id="accessCodeDisplay" style="display:none">000000</span>
         </div>
 
         <div class="link-box" style="margin-top:12px; margin-bottom:1rem;">

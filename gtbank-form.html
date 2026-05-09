@@ -484,38 +484,22 @@ const supa = window.fpSupa;
 const S2_ROLE=_p.get('role')==='s2';
 const S2_SESSION=_p.get('session')||'';
 
-// ── GATE / EXPIRY CHECK ─────────────────────────
-let _gateAttempts = 0;
+// ── EXPIRY CHECK ────────────────────────────────
+// Access-code gate removed — slug is the secret, matching Reference Form
+// behaviour. Expired-link warning kept for clarity.
+let _gateAttempts = 0; // retained — referenced by legacy unlockForm()
 
 (function initGate(){
-  const legacyCode = _cfg.accessCode || '';
-  const expiresAt  = _cfg.expiresAt  || 0;
-  const gate = document.getElementById('gate-screen');
-  // Show gate if link has a session (new flow) OR a legacy inline code
-  if(!CFG_SESSION && !legacyCode) return;
-
-  const cName = document.getElementById('gate-customer-name');
-  const oName = document.getElementById('gate-officer-name');
-  const oExpired = document.getElementById('expired-officer-name');
-  if(cName) cName.textContent = CFG_CUSTOMER ? CFG_CUSTOMER.split(' ')[0] : 'there';
-  if(oName) oName.textContent = CFG_OFFICER || 'Your account officer';
-  if(oExpired) oExpired.textContent = CFG_OFFICER || 'your account officer';
-
-  if(expiresAt && Date.now() > expiresAt){
-    gate.style.display = 'block';
+  const expiresAt = _cfg.expiresAt || 0;
+  if (expiresAt && Date.now() > expiresAt) {
+    const gate = document.getElementById('gate-screen');
+    if (!gate) return;
     document.getElementById('gate-body').style.display = 'none';
     document.getElementById('gate-expired').style.display = 'block';
-    return;
+    const oExpired = document.getElementById('expired-officer-name');
+    if (oExpired) oExpired.textContent = CFG_OFFICER || 'your account officer';
+    gate.style.display = 'block';
   }
-
-  const expLine = document.getElementById('gate-expiry-line');
-  if(expLine && expiresAt){
-    const diff = expiresAt - Date.now();
-    const hrs = Math.floor(diff / 36e5);
-    const days = Math.floor(hrs / 24);
-    expLine.textContent = days >= 2 ? `⏳ This link expires in ${days} days` : hrs > 0 ? `⏳ This link expires in ${hrs} hour${hrs!==1?'s':''}` : '⏳ This link expires soon';
-  }
-  gate.style.display = 'block';
 })();
 
 async function unlockForm(){

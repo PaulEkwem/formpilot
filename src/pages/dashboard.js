@@ -603,7 +603,8 @@ document.getElementById('modalGenerateBtn').addEventListener('click', function (
   const custPhone = document.getElementById('mCustPhone').value.trim();
 
   if (!first) { showToast('Please enter a name before generating.'); return; }
-  document.getElementById('accessCodeBox').style.display = '';
+  // Access-code box hidden by design — slug-only auth.
+  document.getElementById('accessCodeBox').style.display = 'none';
 
   const rnd = new Uint32Array(2);
   crypto.getRandomValues(rnd);
